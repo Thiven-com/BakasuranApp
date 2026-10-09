@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "BAKASURAN",
-    "slug": "BAKASURAN",
+    "name": "BakasuranApp",
+    "slug": "BakasuranApp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "bakasuran",
+    "scheme": "bakasuranapp",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
