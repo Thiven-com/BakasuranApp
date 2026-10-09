@@ -14,8 +14,8 @@ import {
     View,
 } from "react-native";
 
-import Colors from "../constants/colors";
-import Fonts from "../constants/fonts";
+import Colors from "../constants/Colors";
+import Fonts from "../constants/Fonts";
 
 export default function HelpSupportScreen() {
   const [expandedFaq, setExpandedFaq] = useState(null);
@@ -227,14 +227,14 @@ export default function HelpSupportScreen() {
               style={[
                 styles.quickIcon,
                 {
-                  backgroundColor: `${Colors.info}18`,
+                  backgroundColor: `${Colors.primary}18`,
                 },
               ]}
             >
               <Ionicons
                 name="receipt-outline"
                 size={22}
-                color={Colors.info}
+                color={Colors.primary}
               />
             </View>
 
@@ -266,14 +266,14 @@ export default function HelpSupportScreen() {
               style={[
                 styles.quickIcon,
                 {
-                  backgroundColor: `${Colors.success}18`,
+                  backgroundColor: `${Colors.primary}18`,
                 },
               ]}
             >
               <Ionicons
                 name="location-outline"
                 size={22}
-                color={Colors.success}
+                color={Colors.primary}
               />
             </View>
 
@@ -454,7 +454,7 @@ export default function HelpSupportScreen() {
             <Ionicons
               name="time-outline"
               size={19}
-              color={Colors.info}
+              color={Colors.primary}
             />
           </View>
 
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
+    fontSize: Fonts.size.xxl,
   },
 
   headerSpace: {
@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.base,
 
     marginTop: 6,
   },
@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.base,
 
     textAlign: "center",
 
@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.base,
 
     marginLeft: 7,
   },
@@ -654,7 +654,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.extraBold,
-    fontSize: Fonts.size.base,
+    fontSize: Fonts.size.xl,
 
     marginTop: 27,
     marginBottom: 13,
@@ -709,14 +709,14 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
   },
 
   quickSubtitle: {
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.md,
 
     marginTop: 4,
   },
@@ -770,7 +770,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.medium,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.base,
 
     marginHorizontal: 10,
 
@@ -786,7 +786,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
 
     lineHeight: 19,
   },
@@ -808,14 +808,14 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.extraBold,
-    fontSize: Fonts.size.base,
+    fontSize: Fonts.size.xl,
   },
 
   messageSubtitle: {
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.xl,
 
     marginTop: 5,
     marginBottom: 13,
@@ -845,7 +845,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.base,
 
     marginLeft: 9,
     paddingTop: 0,
@@ -869,7 +869,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.xxl,
 
     marginLeft: 8,
   },
@@ -914,14 +914,14 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.base,
   },
 
   supportInfoText: {
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.md,
 
     marginTop: 4,
   },

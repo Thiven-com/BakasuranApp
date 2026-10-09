@@ -2,15 +2,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import {
-    Alert,
-    FlatList,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import Colors from "../constants/Colors";
@@ -729,7 +729,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.md,
   },
 
   /* CATEGORY */
@@ -770,7 +770,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.medium,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.md,
   },
 
   categoryTextActive: {
@@ -864,7 +864,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.medium,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.xl,
   },
 
   heroCodeRow: {
@@ -892,7 +892,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: 10,
+    fontSize: 15,
   },
 
   heroCode: {
@@ -901,7 +901,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: 11,
+    fontSize: 15,
   },
 
   copyIconButton: {
@@ -941,7 +941,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.md,
   },
 
   discountBadge: {
@@ -983,7 +983,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: 9,
+    fontSize: 15,
   },
 
   /* SECTION */
@@ -1021,14 +1021,14 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+    fontSize: Fonts.size.xl,
   },
 
   seeAll: {
     color: Colors.primary,
 
     fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.xl,
   },
 
   /* BEST OFFERS */
@@ -1082,7 +1082,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: 9,
+    fontSize: 15,
   },
 
   offerContent: {
@@ -1093,7 +1093,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.base,
   },
 
   offerDescription: {
@@ -1102,7 +1102,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: 10,
+    fontSize: 15,
   },
 
   couponButton: {
@@ -1127,7 +1127,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: 9,
+    fontSize: 15,
   },
 
   couponCode: {
@@ -1138,7 +1138,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
 
     fontFamily: Fonts.bold,
-    fontSize: 10,
+    fontSize: 13,
   },
 
   /* RESTAURANTS */
@@ -1192,7 +1192,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: 9,
+    fontSize: 14,
   },
 
   restaurantHeart: {
@@ -1220,7 +1220,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.base,
   },
 
   restaurantCuisine: {
@@ -1229,7 +1229,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: 10,
+    fontSize: 14,
   },
 
   restaurantRating: {
@@ -1245,7 +1245,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.semiBold,
-    fontSize: 10,
+    fontSize: 13,
   },
 
   ratingDot: {
@@ -1258,7 +1258,7 @@ const styles = StyleSheet.create({
     color: Colors.success,
 
     fontFamily: Fonts.medium,
-    fontSize: 9,
+    fontSize: 15,
   },
 
   /* SAVINGS */
@@ -1307,7 +1307,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.xl,
   },
 
   savingSubtitle: {
@@ -1316,7 +1316,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
 
     fontFamily: Fonts.semiBold,
-    fontSize: 10,
+    fontSize: 14,
   },
 
   savingDescription: {
@@ -1325,7 +1325,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: 9,
+    fontSize: 14,
   },
 
   /* PROMISE */
@@ -1369,7 +1369,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.md,
   },
 
   promiseText: {
@@ -1378,7 +1378,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: 10,
+    fontSize: 13,
 
     lineHeight: 15,
   },

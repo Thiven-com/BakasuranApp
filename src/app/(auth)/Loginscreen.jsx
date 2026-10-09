@@ -15,8 +15,8 @@ import {
     View,
 } from "react-native";
 
-import Colors from "../../constants/colors";
-import Fonts from "../../constants/fonts";
+import Colors from "../../constants/Colors";
+import Fonts from "../../constants/Fonts";
 
 export default function LoginScreen() {
   const [mobile, setMobile] = useState("");

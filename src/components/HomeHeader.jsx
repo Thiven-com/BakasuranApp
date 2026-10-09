@@ -1,5 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
 
 import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
@@ -8,11 +10,11 @@ const HomeHeader = () => {
   return (
     <View style={styles.container}>
       <View style={styles.statusRow}>
-        <Text style={styles.time}>9:41</Text>
+        {/* <Text style={styles.time}>9:41</Text> */}
         <View style={styles.statusIcons}>
-          <Ionicons name="wifi" size={14} color={Colors.white} />
-          <Ionicons name="cellular" size={14} color={Colors.white} />
-          <Ionicons name="battery-full" size={18} color={Colors.white} />
+          {/*<Ionicons name="wifi" size={14} color={Colors.white} />*/}
+          {/*<Ionicons name="cellular" size={14} color={Colors.white} />*/}
+          {/*<Ionicons name="battery-full" size={18} color={Colors.white} />*/}
         </View>
       </View>
 
@@ -31,7 +33,11 @@ const HomeHeader = () => {
           <Ionicons name="chevron-down" size={13} color={Colors.white} />
         </View>
 
-        <TouchableOpacity style={styles.iconButton} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.iconButton}
+          activeOpacity={0.8}
+          onPress={() => router.push("/notifications")}
+        >
           <Ionicons
             name="notifications-outline"
             size={18}

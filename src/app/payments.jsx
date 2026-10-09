@@ -13,8 +13,8 @@ import {
   View,
 } from "react-native";
 
-import Colors from "../constants/colors";
-import Fonts from "../constants/fonts";
+import Colors from "../constants/Colors";
+import Fonts from "../constants/Fonts";
 
 /* =========================================================
    PAYMENT SCREEN
@@ -39,7 +39,7 @@ export default function PaymentsScreen() {
       lastFour: "4242",
       name: "Raju Kumar",
       expiry: "12/28",
-      color: Colors.info,
+      color: "#f82408",
     },
     {
       id: 2,
@@ -48,7 +48,7 @@ export default function PaymentsScreen() {
       lastFour: "5678",
       name: "Raju Kumar",
       expiry: "09/27",
-      color: Colors.warning,
+      color: "#f82408",
     },
   ]);
 
@@ -254,7 +254,7 @@ export default function PaymentsScreen() {
             <Ionicons
               name="shield-checkmark-outline"
               size={23}
-              color={Colors.success}
+              color={Colors.primary}
             />
           </View>
 
@@ -623,14 +623,14 @@ export default function PaymentsScreen() {
               style={[
                 styles.otherIcon,
                 {
-                  backgroundColor: `${Colors.success}18`,
+                  backgroundColor: `${Colors.primary}18`,
                 },
               ]}
             >
               <Ionicons
                 name="cash-outline"
                 size={22}
-                color={Colors.success}
+                color={Colors.primary}
               />
             </View>
 
@@ -660,7 +660,7 @@ export default function PaymentsScreen() {
           <Ionicons
             name="shield-checkmark"
             size={18}
-            color={Colors.success}
+            color={Colors.primary}
           />
 
           <Text style={styles.bottomSecurityText}>
@@ -745,7 +745,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.md,
 
     marginTop: 6,
   },
@@ -790,14 +790,14 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
   },
 
   secureText: {
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.md,
 
     marginTop: 3,
   },
@@ -852,7 +852,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
 
     fontFamily: Fonts.extraBold,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
 
     letterSpacing: 1,
   },
@@ -868,7 +868,7 @@ const styles = StyleSheet.create({
 
   defaultText: {
     fontFamily: Fonts.extraBold,
-    fontSize: Fonts.xs,
+    fontSize: Fonts.md,
 
     letterSpacing: 0.5,
   },
@@ -888,7 +888,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.base,
 
     textTransform: "uppercase",
 
@@ -899,7 +899,7 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.md,
 
     marginTop: 3,
   },
@@ -936,7 +936,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+    fontSize: Fonts.size.xxl,
 
     marginLeft: 8,
   },
@@ -968,14 +968,14 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
+    fontSize: Fonts.size.xxl,
   },
 
   inputLabel: {
     color: Colors.textSecondary,
 
     fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.xl,
 
     marginTop: 14,
     marginBottom: 8,
@@ -1003,7 +1003,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
 
     marginLeft: 10,
 
@@ -1038,7 +1038,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+    fontSize: Fonts.size.xxl,
 
     marginLeft: 8,
   },
@@ -1054,7 +1054,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.medium,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.xl,
   },
 
   /* ================= OTHER ================= */
@@ -1063,7 +1063,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
+    fontSize: Fonts.size.xxl,
 
     marginTop: 27,
     marginBottom: 13,
@@ -1116,14 +1116,14 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
 
     fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.xl,
   },
 
   otherSubtitle: {
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.base,
 
     marginTop: 4,
   },
@@ -1143,7 +1143,7 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.xl,
 
     marginLeft: 7,
   },

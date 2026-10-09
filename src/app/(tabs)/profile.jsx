@@ -11,8 +11,8 @@ import {
   View,
 } from "react-native";
 
-import Colors from "../../constants/colors";
-import Fonts from "../../constants/fonts";
+import Colors from "../../constants/Colors";
+import Fonts from "../../constants/Fonts";
 
 /* =========================================================
    PROFILE SCREEN
@@ -23,70 +23,64 @@ export default function ProfileScreen() {
      MENU ITEMS
   ======================================================= */
 
-  const menuItems = [
-    {
-      title: "My Orders",
-      subtitle: "View your order history",
-      icon: "bag-handle",
-      color: Colors.order,
-      background: "#35151B",
-      route: "/orders",
-    },
-
-    {
-      title: "Addresses",
-      subtitle: "Manage your delivery addresses",
-      icon: "location",
-      color: Colors.warning,
-      background: "#352A14",
-      route: "/addresses",
-    },
-
-    {
-      title: "Payment Methods",
-      subtitle: "Manage cards, UPI & wallets",
-      icon: "card",
-      color: Colors.info,
-      background: "#102F42",
-      route: "/payments",
-    },
-
-    {
-      title: "Favourite Restaurants",
-      subtitle: "Your saved restaurants",
-      icon: "heart",
-      color: Colors.favourite || Colors.offer,
-      background: "#35141F",
-      route: "/favourites",
-    },
-
-    {
-      title: "Offers & Rewards",
-      subtitle: "Exclusive offers and rewards",
-      icon: "gift",
-      color: Colors.offer,
-      background: "#2C1740",
-      route: "/notifications",
-    },
-
-    {
-      title: "Help & Support",
-      subtitle: "Get help, FAQs and support",
-      icon: "headset",
-      color: Colors.success,
-      background: "#10372B",
-      route: "/help&support",
-    },
-
-    {
-      title: "Settings",
-      subtitle: "App preferences and notifications",
-      icon: "settings",
-      color: "#B8C0CC",
-      background: "#29303A",
-      route: "/settings",
-    },
-  ];
+const menuItems = [
+  {
+    title: "My Orders",
+    subtitle: "View your order history",
+    icon: "bag-handle",
+    color: "#f82408",
+    background: "#0c0909",
+    route: "/MyOrdersScreen",
+  },
+  {
+    title: "Addresses",
+    subtitle: "Manage your delivery addresses",
+    icon: "location",
+    color: "#f82408",
+    background: "#0c0909",
+    route: "/addresses",
+  },
+  {
+    title: "Payment Methods",
+    subtitle: "Manage cards, UPI & wallets",
+    icon: "card",
+    color: "#f82408",
+    background: "#0c0909",
+    route: "/payments",
+  },
+  {
+    title: "Favourite Restaurants",
+    subtitle: "Your saved restaurants",
+    icon: "heart",
+    color: "#f82408",
+    background: "#0c0909",
+    route: "/Offers&DealsScreen",
+  },
+  {
+    title: "Offers & Rewards",
+    subtitle: "Exclusive offers and rewards",
+    icon: "gift",
+    color: "#f82408",
+    background: "#0c0909",
+    route: "/notifications",
+  },
+  {
+    title: "Help & Support",
+    subtitle: "Get help, FAQs and support",
+    icon: "headset",
+    color: "#f82408",
+    background: "#0c0909",
+    route: "/help&support",
+  },
+  {
+    title: "Settings",
+    subtitle: "App preferences and notifications",
+    icon: "cog",
+    color: "#f82408",
+    background: "#0c0909",
+    route: "/settings",
+  },
+];
 
   /* =======================================================
      LOGOUT
@@ -552,7 +546,7 @@ const styles = StyleSheet.create({
 
     fontFamily: Fonts.medium,
 
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.base,
 
     marginLeft: 8,
   },
@@ -660,7 +654,7 @@ const styles = StyleSheet.create({
 
     fontSize: Fonts.size.xs,
 
-    marginRight: 7,
+    marginRight: 9,
   },
 
   /* =======================================================
@@ -735,7 +729,7 @@ const styles = StyleSheet.create({
 
     fontFamily: Fonts.bold,
 
-    fontSize: Fonts.size.base,
+    fontSize: Fonts.size.xl,
 
     letterSpacing: -0.2,
 
@@ -747,7 +741,7 @@ const styles = StyleSheet.create({
 
     fontFamily: Fonts.medium,
 
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.md,
   },
 
   /* =======================================================

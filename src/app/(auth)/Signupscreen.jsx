@@ -17,8 +17,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
-import Colors from "../../constants/colors";
-import Fonts from "../../constants/fonts";
+import Colors from "../../constants/Colors";
+import Fonts from "../../constants/Fonts";
 
 /* =========================================================
    SIGNUP SCREEN
@@ -171,7 +171,7 @@ export default function Signupscreen() {
           ================================================= */}
 
           <ImageBackground
-            source={require("../../../assets/images/signup-bg.png")}
+            source={require("../../../assets/images/signupimage.png")}
             style={styles.backgroundImage}
             resizeMode="cover"
           >
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
 
   backgroundImage: {
     width: "100%",
-    minHeight: 1100,
+    minHeight: 70,
     backgroundColor: Colors.black,
   },
 

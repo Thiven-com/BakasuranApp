@@ -15,8 +15,8 @@ import {
     View,
 } from "react-native";
 
-import Colors from "../constants/colors";
-import Fonts from "../constants/fonts";
+import Colors from "../constants/Colors";
+import Fonts from "../constants/Fonts";
 
 export default function EditProfileScreen() {
   const [fullName, setFullName] = useState("Raju Kumar");
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.xl,
+    fontSize: Fonts.size.xxl,
 
     letterSpacing: 0.2,
 
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
 
     fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.base,
 
     marginTop: 12,
   },
@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.medium,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.xl,
 
     marginBottom: 8,
     marginLeft: 2,
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
 
     fontFamily: Fonts.medium,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
 
     paddingHorizontal: 2,
   },
@@ -638,7 +638,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
 
     fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
 
     marginBottom: 3,
   },
@@ -647,7 +647,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.md,
   },
 
   /* =======================================================
@@ -676,7 +676,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+    fontSize: Fonts.size.xl,
 
     marginRight: 10,
   },
@@ -705,7 +705,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.xl,
   },
 
   /* =======================================================

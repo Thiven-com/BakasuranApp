@@ -15,8 +15,8 @@ import {
 // IMPORT YOUR COMMON FONTS AND COLORS
 // =========================================================
 
-import Colors from "../../constants/colors";
-import Fonts from "../../constants/fonts";
+import Colors from "../../constants/Colors";
+import Fonts from "../../constants/Fonts";
 
 // =========================================================
 // SCREEN SIZE

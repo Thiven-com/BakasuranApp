@@ -13,8 +13,8 @@ import {
   View,
 } from "react-native";
 
-import Colors from "../constants/colors";
-import Fonts from "../constants/fonts";
+import Colors from "../constants/Colors";
+import Fonts from "../constants/Fonts";
 
 export default function Addresses() {
   const [showForm, setShowForm] = useState(false);
@@ -38,7 +38,7 @@ export default function Addresses() {
       landmark: "Near City Center",
       city: "Hyderabad",
       pincode: "500001",
-      color: Colors.info,
+      color: "#f82408",
       icon: "home-outline",
     },
     {
@@ -50,7 +50,7 @@ export default function Addresses() {
       landmark: "Near Metro Station",
       city: "Hyderabad",
       pincode: "500081",
-      color: "#A855F7",
+      color: "#f82408",
       icon: "briefcase-outline",
     },
   ]);
@@ -87,9 +87,9 @@ export default function Addresses() {
 
     const typeColor =
       addressType === "Home"
-        ? Colors.info
+        ? "#f82408"
         : addressType === "Work"
-        ? "#A855F7"
+        ? "#f82408"
         : Colors.warning;
 
     const typeIcon =
@@ -689,7 +689,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
+    fontSize: Fonts.size.xxl,
   },
 
   headerSpace: {
@@ -714,7 +714,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.md,
 
     marginTop: 6,
   },
@@ -767,7 +767,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.md,
 
     marginTop: 3,
   },
@@ -806,7 +806,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
 
     marginLeft: 10,
 
@@ -828,7 +828,7 @@ const styles = StyleSheet.create({
     color: Colors.error,
 
     fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.xl,
 
     marginLeft: 7,
   },
@@ -853,7 +853,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+    fontSize: Fonts.size.xl,
 
     marginLeft: 8,
   },

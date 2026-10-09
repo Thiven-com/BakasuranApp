@@ -13,8 +13,8 @@ import {
     View,
 } from "react-native";
 
-import Colors from "../constants/colors";
-import Fonts from "../constants/fonts";
+import Colors from "../constants/Colors";
+import Fonts from "../constants/Fonts";
 
 export default function SettingsScreen() {
   const [notifications, setNotifications] = useState(true);
@@ -155,14 +155,14 @@ export default function SettingsScreen() {
               style={[
                 styles.iconContainer,
                 {
-                  backgroundColor: `${Colors.info}18`,
+                  backgroundColor: `${Colors.primary}18`,
                 },
               ]}
             >
               <Ionicons
                 name="person-outline"
                 size={21}
-                color={Colors.info}
+                color={Colors.primary}
               />
             </View>
 
@@ -194,14 +194,14 @@ export default function SettingsScreen() {
               style={[
                 styles.iconContainer,
                 {
-                  backgroundColor: `${Colors.success}18`,
+                  backgroundColor: `${Colors.primary}18`,
                 },
               ]}
             >
               <Ionicons
                 name="location-outline"
                 size={21}
-                color={Colors.success}
+                color={Colors.primary}
               />
             </View>
 
@@ -278,14 +278,14 @@ export default function SettingsScreen() {
               style={[
                 styles.iconContainer,
                 {
-                  backgroundColor: `${Colors.warning}18`,
+                  backgroundColor: `${Colors.primary}18`,
                 },
               ]}
             >
               <Ionicons
                 name="notifications-outline"
                 size={21}
-                color={Colors.warning}
+                color={Colors.primary}
               />
             </View>
 
@@ -321,14 +321,14 @@ export default function SettingsScreen() {
               style={[
                 styles.iconContainer,
                 {
-                  backgroundColor: `${Colors.info}18`,
+                  backgroundColor: `${Colors.primary}18`,
                 },
               ]}
             >
               <Ionicons
                 name="bicycle-outline"
                 size={21}
-                color={Colors.info}
+                color={Colors.primary}
               />
             </View>
 
@@ -417,7 +417,7 @@ export default function SettingsScreen() {
               style={[
                 styles.iconContainer,
                 {
-                  backgroundColor: `${Colors.info}18`,
+                  backgroundColor: `${Colors.primary}18`,
                 },
               ]}
             >
@@ -428,7 +428,7 @@ export default function SettingsScreen() {
                     : "volume-mute-outline"
                 }
                 size={21}
-                color={Colors.info}
+                color={Colors.primary}
               />
             </View>
 
@@ -521,14 +521,14 @@ export default function SettingsScreen() {
               style={[
                 styles.iconContainer,
                 {
-                  backgroundColor: `${Colors.info}18`,
+                  backgroundColor: `${Colors.primary}18`,
                 },
               ]}
             >
               <Ionicons
                 name="help-circle-outline"
                 size={21}
-                color={Colors.info}
+                color={Colors.primary}
               />
             </View>
 
@@ -565,14 +565,14 @@ export default function SettingsScreen() {
               style={[
                 styles.iconContainer,
                 {
-                  backgroundColor: `${Colors.success}18`,
+                  backgroundColor: `${Colors.primary}18`,
                 },
               ]}
             >
               <Ionicons
                 name="shield-checkmark-outline"
                 size={21}
-                color={Colors.success}
+                color={Colors.primary}
               />
             </View>
 
@@ -609,14 +609,14 @@ export default function SettingsScreen() {
               style={[
                 styles.iconContainer,
                 {
-                  backgroundColor: `${Colors.warning}18`,
+                  backgroundColor: `${Colors.primary}18`,
                 },
               ]}
             >
               <Ionicons
                 name="document-text-outline"
                 size={21}
-                color={Colors.warning}
+                color={Colors.primary}
               />
             </View>
 
@@ -648,14 +648,14 @@ export default function SettingsScreen() {
               style={[
                 styles.iconContainer,
                 {
-                  backgroundColor: `${Colors.warning}18`,
+                  backgroundColor: `${Colors.primary}18`,
                 },
               ]}
             >
               <Ionicons
                 name="trash-bin-outline"
                 size={21}
-                color={Colors.warning}
+                color={Colors.primary}
               />
             </View>
 
@@ -795,7 +795,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.extraBold,
-    fontSize: Fonts.size.base,
+    fontSize: Fonts.size.lg,
 
     marginTop: 25,
     marginBottom: 12,
@@ -849,14 +849,14 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.xl,
   },
 
   settingSubtitle: {
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.md,
 
     lineHeight: 16,
 
@@ -886,7 +886,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
 
     fontFamily: Fonts.extraBold,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.xl,
 
     marginLeft: 8,
   },
@@ -939,7 +939,7 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.xxl,
 
     marginTop: 7,
   },
