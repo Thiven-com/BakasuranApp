@@ -2,17 +2,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import Colors from "../constants/Colors";
@@ -167,14 +167,14 @@ export default function EditProfileScreen() {
                   styles.inputIcon,
                   {
                     backgroundColor:
-                      `${Colors.info}20`,
+                      `${Colors.primary}20`,
                   },
                 ]}
               >
                 <Ionicons
                   name="person-outline"
-                  size={20}
-                  color={Colors.info}
+                  size={25}
+                  color={Colors.primary}
                 />
               </View>
 
@@ -202,14 +202,14 @@ export default function EditProfileScreen() {
                   styles.inputIcon,
                   {
                     backgroundColor:
-                      `${Colors.success}20`,
+                      `${Colors.primary}20`,
                   },
                 ]}
               >
                 <Ionicons
                   name="call-outline"
-                  size={20}
-                  color={Colors.success}
+                  size={25}
+                  color={Colors.primary}
                 />
               </View>
 
@@ -237,14 +237,14 @@ export default function EditProfileScreen() {
                   styles.inputIcon,
                   {
                     backgroundColor:
-                      `${Colors.info}20`,
+                      `${Colors.primary}20`,
                   },
                 ]}
               >
                 <Ionicons
                   name="mail-outline"
-                  size={20}
-                  color={Colors.info}
+                  size={25}
+                  color={Colors.primary}
                 />
               </View>
 
@@ -273,14 +273,14 @@ export default function EditProfileScreen() {
                   styles.inputIcon,
                   {
                     backgroundColor:
-                      `${Colors.warning}20`,
+                      `${Colors.primary}20`,
                   },
                 ]}
               >
                 <Ionicons
                   name="location-outline"
-                  size={20}
-                  color={Colors.warning}
+                  size={25}
+                  color={Colors.primary}
                 />
               </View>
 
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: Colors.white,
 
-    fontFamily: Fonts.semiBold,
+    fontFamily: Fonts.regular,
     fontSize: Fonts.size.xxl,
 
     letterSpacing: 0.2,
@@ -513,8 +513,8 @@ const styles = StyleSheet.create({
   changePhotoText: {
     color: Colors.primary,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.base,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xl,
 
     marginTop: 12,
   },
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: Colors.white,
 
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
     fontSize: Fonts.size.lg,
 
     marginBottom: 14,
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   label: {
     color: Colors.textSecondary,
 
-    fontFamily: Fonts.medium,
+    fontFamily: Fonts.regular,
     fontSize: Fonts.size.xl,
 
     marginBottom: 8,
@@ -586,12 +586,12 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
 
-    height: 56,
+    height: 35,
 
     color: Colors.textPrimary,
 
-    fontFamily: Fonts.medium,
-    fontSize: Fonts.size.base,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xl,
 
     paddingHorizontal: 2,
   },
@@ -637,8 +637,8 @@ const styles = StyleSheet.create({
   infoTitle: {
     color: Colors.textPrimary,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.base,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xl,
 
     marginBottom: 3,
   },
@@ -647,7 +647,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
   },
 
   /* =======================================================
@@ -675,8 +675,8 @@ const styles = StyleSheet.create({
   saveText: {
     color: Colors.white,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xxl,
 
     marginRight: 10,
   },
@@ -704,7 +704,7 @@ const styles = StyleSheet.create({
   cancelText: {
     color: Colors.textSecondary,
 
-    fontFamily: Fonts.semiBold,
+    fontFamily: Fonts.regular,
     fontSize: Fonts.size.xl,
   },
 

@@ -2,16 +2,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    Linking,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Linking,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import Colors from "../constants/Colors";
@@ -177,7 +177,7 @@ export default function HelpSupportScreen() {
             >
               <Ionicons
                 name="call-outline"
-                size={19}
+                size={25}
                 color={Colors.white}
               />
 
@@ -198,7 +198,7 @@ export default function HelpSupportScreen() {
             >
               <Ionicons
                 name="mail-outline"
-                size={19}
+                size={25}
                 color={Colors.white}
               />
 
@@ -233,7 +233,7 @@ export default function HelpSupportScreen() {
             >
               <Ionicons
                 name="receipt-outline"
-                size={22}
+                size={25}
                 color={Colors.primary}
               />
             </View>
@@ -272,7 +272,7 @@ export default function HelpSupportScreen() {
             >
               <Ionicons
                 name="location-outline"
-                size={22}
+                size={25}
                 color={Colors.primary}
               />
             </View>
@@ -314,7 +314,7 @@ export default function HelpSupportScreen() {
             >
               <Ionicons
                 name="card-outline"
-                size={22}
+                size={25}
                 color={Colors.primary}
               />
             </View>
@@ -653,8 +653,8 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: Colors.white,
 
-    fontFamily: Fonts.extraBold,
-    fontSize: Fonts.size.xl,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xxl,
 
     marginTop: 27,
     marginBottom: 13,
@@ -708,15 +708,15 @@ const styles = StyleSheet.create({
   quickTitle: {
     color: Colors.white,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.base,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xl,
   },
 
   quickSubtitle: {
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
 
     marginTop: 4,
   },
@@ -753,8 +753,8 @@ const styles = StyleSheet.create({
   },
 
   questionIcon: {
-    width: 44,
-    height: 44,
+    width: 49,
+    height: 49,
 
     borderRadius: 10,
 
@@ -807,7 +807,7 @@ const styles = StyleSheet.create({
   messageTitle: {
     color: Colors.white,
 
-    fontFamily: Fonts.extraBold,
+    fontFamily: Fonts.regular,
     fontSize: Fonts.size.xl,
   },
 
@@ -845,7 +845,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+    fontSize: Fonts.size.xl,
 
     marginLeft: 9,
     paddingTop: 0,
@@ -913,7 +913,7 @@ const styles = StyleSheet.create({
   supportInfoTitle: {
     color: Colors.white,
 
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
     fontSize: Fonts.size.base,
   },
 
@@ -921,7 +921,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
 
     marginTop: 4,
   },

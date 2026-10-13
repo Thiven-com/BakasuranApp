@@ -1,13 +1,13 @@
 import { router } from "expo-router";
 import { useEffect, useRef } from "react";
 import {
-    Animated,
-    Easing,
-    Image,
-    StatusBar,
-    StyleSheet,
-    Text,
-    View,
+  Animated,
+  Easing,
+  Image,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 export default function SplashScreen() {
@@ -29,7 +29,7 @@ export default function SplashScreen() {
     // Go to onboarding after 10 seconds
     const timer = setTimeout(() => {
       router.replace("/(auth)/Onboardingscreen");
-    }, 10000);
+    }, 3000);
 
     return () => {
       animation.stop();

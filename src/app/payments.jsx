@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
+    fontSize: Fonts.size.xxl,
   },
 
   headerSpace: {
@@ -737,7 +737,7 @@ const styles = StyleSheet.create({
   title: {
     color: Colors.textPrimary,
 
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
     fontSize: Fonts.size.xxl,
   },
 
@@ -745,7 +745,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
 
     marginTop: 6,
   },
@@ -789,15 +789,15 @@ const styles = StyleSheet.create({
   secureTitle: {
     color: Colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xl,
   },
 
   secureText: {
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
 
     marginTop: 3,
   },
@@ -851,8 +851,8 @@ const styles = StyleSheet.create({
   cardType: {
     color: Colors.textPrimary,
 
-    fontFamily: Fonts.extraBold,
-    fontSize: Fonts.size.base,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xl,
 
     letterSpacing: 1,
   },
@@ -867,8 +867,8 @@ const styles = StyleSheet.create({
   },
 
   defaultText: {
-    fontFamily: Fonts.extraBold,
-    fontSize: Fonts.md,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xl,
 
     letterSpacing: 0.5,
   },
@@ -899,7 +899,7 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
 
     marginTop: 3,
   },
@@ -1062,7 +1062,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: Colors.textPrimary,
 
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
     fontSize: Fonts.size.xxl,
 
     marginTop: 27,
@@ -1115,7 +1115,7 @@ const styles = StyleSheet.create({
   otherTitle: {
     color: Colors.textPrimary,
 
-    fontFamily: Fonts.semiBold,
+    fontFamily: Fonts.regular,
     fontSize: Fonts.size.xl,
   },
 
@@ -1143,7 +1143,7 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xl,
+    fontSize: Fonts.size.base,
 
     marginLeft: 7,
   },

@@ -714,7 +714,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
 
     marginTop: 6,
   },
@@ -760,14 +760,14 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+    fontSize: Fonts.size.xxl,
   },
 
   addressName: {
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.xl,
 
     marginTop: 3,
   },

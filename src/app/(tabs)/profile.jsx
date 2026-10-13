@@ -23,64 +23,81 @@ export default function ProfileScreen() {
      MENU ITEMS
   ======================================================= */
 
-const menuItems = [
-  {
-    title: "My Orders",
-    subtitle: "View your order history",
-    icon: "bag-handle",
-    color: "#f82408",
-    background: "#0c0909",
-    route: "/MyOrdersScreen",
-  },
-  {
-    title: "Addresses",
-    subtitle: "Manage your delivery addresses",
-    icon: "location",
-    color: "#f82408",
-    background: "#0c0909",
-    route: "/addresses",
-  },
-  {
-    title: "Payment Methods",
-    subtitle: "Manage cards, UPI & wallets",
-    icon: "card",
-    color: "#f82408",
-    background: "#0c0909",
-    route: "/payments",
-  },
-  {
-    title: "Favourite Restaurants",
-    subtitle: "Your saved restaurants",
-    icon: "heart",
-    color: "#f82408",
-    background: "#0c0909",
-    route: "/Offers&DealsScreen",
-  },
-  {
-    title: "Offers & Rewards",
-    subtitle: "Exclusive offers and rewards",
-    icon: "gift",
-    color: "#f82408",
-    background: "#0c0909",
-    route: "/notifications",
-  },
-  {
-    title: "Help & Support",
-    subtitle: "Get help, FAQs and support",
-    icon: "headset",
-    color: "#f82408",
-    background: "#0c0909",
-    route: "/help&support",
-  },
-  {
-    title: "Settings",
-    subtitle: "App preferences and notifications",
-    icon: "cog",
-    color: "#f82408",
-    background: "#0c0909",
-    route: "/settings",
-  },
-];
+  const menuItems = [
+    {
+      title: "My Orders",
+      subtitle: "View your order history",
+      icon: "bag-handle",
+      color: "#f82408",
+      background: "#0c0909",
+      route: "/MyOrdersScreen",
+    },
+    {
+      title: "Addresses",
+      subtitle: "Manage your delivery addresses",
+      icon: "location",
+      color: "#f82408",
+      background: "#0c0909",
+      route: "/addresses",
+    },
+    {
+      title: "Payment Methods",
+      subtitle: "Manage cards, UPI & wallets",
+      icon: "card",
+      color: "#f82408",
+      background: "#0c0909",
+      route: "/payments",
+    },
+    {
+      title: "Favourite Restaurants",
+      subtitle: "Your saved restaurants",
+      icon: "heart",
+      color: "#f82408",
+      background: "#0c0909",
+      route: "/Offers&DealsScreen",
+    },
+    {
+      title: "Offers & Rewards",
+      subtitle: "Exclusive offers and rewards",
+      icon: "gift",
+      color: "#f82408",
+      background: "#0c0909",
+      route: "/notifications",
+    },
+    {
+      title: "Help & Support",
+      subtitle: "Get help, FAQs and support",
+      icon: "headset",
+      color: "#f82408",
+      background: "#0c0909",
+      route: "/help&support",
+    },
+    {
+      title: "Settings",
+      subtitle: "App preferences and notifications",
+      icon: "cog",
+      color: "#f82408",
+      background: "#0c0909",
+      route: "/settings",
+    },
+
+    {
+      title: "Blogs",
+      subtitle: " Discover food stories, tips and trends",
+      icon: "newspaper-outline",
+      color: "#f82408",
+      background: "#0c0909",
+      route: "/Blogs",
+    },
+
+    {
+      title: "Cancellation-refund",
+      icon: "receipt-outline",
+      color: "#f82408",
+      background: "#0c0909",
+      route: "/cancellation-refund",
+    },
+  ];
 
   /* =======================================================
      LOGOUT
@@ -306,7 +323,7 @@ const menuItems = [
               style={[
                 styles.menuItem,
                 index === menuItems.length - 1 &&
-                  styles.lastMenuItem,
+                styles.lastMenuItem,
               ]}
               activeOpacity={0.75}
               onPress={() => handleMenuPress(item.route)}
@@ -361,8 +378,10 @@ const menuItems = [
         <TouchableOpacity
           style={styles.logoutButton}
           activeOpacity={0.8}
-          onPress={handleLogout}
+          onPressIn={() => router.push("/(auth)/Loginscreen")}
         >
+
+
           <Ionicons
             name="log-out-outline"
             size={26}
@@ -524,7 +543,7 @@ const styles = StyleSheet.create({
   profileName: {
     color: Colors.textPrimary,
 
-    fontFamily: Fonts.extraBold,
+    fontFamily: Fonts.regular,
 
     fontSize: Fonts.size.xxl,
 
@@ -544,7 +563,7 @@ const styles = StyleSheet.create({
   infoText: {
     color: Colors.textSecondary,
 
-    fontFamily: Fonts.medium,
+    fontFamily: Fonts.regular,
 
     fontSize: Fonts.size.base,
 
@@ -596,9 +615,9 @@ const styles = StyleSheet.create({
   bakasuranText: {
     color: Colors.white,
 
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
 
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.md,
 
     marginLeft: 6,
 
@@ -616,7 +635,7 @@ const styles = StyleSheet.create({
 
     borderRadius: 20,
 
-    backgroundColor: "#241A11",
+    backgroundColor: "#0e0804",
 
     borderWidth: 1,
 
@@ -632,9 +651,9 @@ const styles = StyleSheet.create({
   goldText: {
     color: Colors.warning,
 
-    fontFamily: Fonts.medium,
+    fontFamily: Fonts.regular,
 
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.md,
 
     marginLeft: 5,
   },
@@ -650,9 +669,9 @@ const styles = StyleSheet.create({
 
     color: Colors.primary,
 
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
 
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.base,
 
     marginRight: 9,
   },
@@ -727,7 +746,7 @@ const styles = StyleSheet.create({
   menuTitle: {
     color: Colors.textPrimary,
 
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
 
     fontSize: Fonts.size.xl,
 
@@ -739,9 +758,9 @@ const styles = StyleSheet.create({
   menuSubtitle: {
     color: Colors.textSecondary,
 
-    fontFamily: Fonts.medium,
+    fontFamily: Fonts.regular,
 
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
   },
 
   /* =======================================================
@@ -769,7 +788,7 @@ const styles = StyleSheet.create({
   logoutText: {
     color: Colors.primary,
 
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
 
     fontSize: Fonts.size.lg,
 

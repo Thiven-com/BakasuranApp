@@ -2,17 +2,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
 import Colors from "../../constants/Colors";
@@ -155,9 +155,7 @@ export default function LoginScreen() {
               {/* India Flag */}
 
               <View style={styles.countrySection}>
-                <Text style={styles.indiaFlag}>
-                  🇮🇳
-                </Text>
+                
 
                 <Text style={styles.countryCode}>
                   +91
@@ -165,7 +163,7 @@ export default function LoginScreen() {
 
                 <Ionicons
                   name="chevron-down"
-                  size={Fonts.size.md}
+                  size={Fonts.size.xl}
                   color={Colors.white}
                 />
               </View>
@@ -220,7 +218,7 @@ export default function LoginScreen() {
             <View style={styles.securityContainer}>
               <Ionicons
                 name="lock-closed-outline"
-                size={Fonts.size.lg}
+                size={Fonts.size.xl}
                 color={Colors.textSecondary}
               />
 
@@ -355,9 +353,9 @@ const styles = StyleSheet.create({
   loginTitle: {
     color: Colors.textPrimary,
 
-    fontSize: Fonts.size.xxl,
+    fontSize: Fonts.size.heading,
 
-    fontFamily: Fonts.semiBold,
+    fontFamily: Fonts.regular,
 
     lineHeight: 38,
 
@@ -366,7 +364,7 @@ const styles = StyleSheet.create({
 
   redText: {
     color: Colors.primary,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
   },
 
   // ===========================================================
@@ -376,7 +374,7 @@ const styles = StyleSheet.create({
   subtitle: {
     color: Colors.textSecondary,
 
-    fontSize: Fonts.size.base,
+    fontSize: Fonts.size.xl,
 
     fontFamily: Fonts.regular,
 
@@ -388,11 +386,11 @@ const styles = StyleSheet.create({
   // ===========================================================
 
   mobileInputContainer: {
-    width: "100%",
+    width: "103",
 
     height: 60,
 
-    borderWidth: 1.5,
+    borderWidth: 1.8,
 
     borderColor: Colors.borderLight,
 
@@ -412,11 +410,11 @@ const styles = StyleSheet.create({
 
     alignItems: "center",
 
-    minWidth: 110,
+    minWidth: 83,
   },
 
   indiaFlag: {
-    fontSize: Fonts.size.xxl,
+    fontSize: Fonts.size.lg,
 
     marginRight: 10,
   },
@@ -424,9 +422,9 @@ const styles = StyleSheet.create({
   countryCode: {
     color: Colors.textPrimary,
 
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.xxl,
 
-    fontFamily: Fonts.semiBold,
+    fontFamily: Fonts.regular,
 
     marginRight: 8,
   },
@@ -445,10 +443,12 @@ const styles = StyleSheet.create({
     flex: 1,
 
     height: 40,
+    width:50,
+  
 
     color: Colors.textPrimary,
 
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.xl,
 
     fontFamily: Fonts.regular,
 
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
 
     fontSize: Fonts.size.lg,
 
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
   },
 
   arrow: {
@@ -541,7 +541,7 @@ const styles = StyleSheet.create({
   securityText: {
     color: Colors.textSecondary,
 
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.base,
 
     fontFamily: Fonts.regular,
 

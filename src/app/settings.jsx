@@ -1,20 +1,60 @@
+
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
-import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
+
+const RED = "#FF1515";
+const WHITE = "#FFFFFF";
+const MUTED = "#C8C8C8";
+const TRACK_OFF = "#383838";
+
+/* =====================================================
+   CUSTOM SWITCH
+   Consistent red and white colors on Web and Mobile
+===================================================== */
+
+function SettingSwitch({ value, onValueChange }) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={() => onValueChange(!value)}
+      style={styles.switchTouchArea}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value }}
+      accessibilityLabel={value ? "On" : "Off"}
+    >
+      <View
+        style={[
+          styles.switchTrack,
+          {
+            backgroundColor: value ? RED : TRACK_OFF,
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.switchThumb,
+            {
+              left: value ? 24 : 3,
+            },
+          ]}
+        />
+      </View>
+    </TouchableOpacity>
+  );
+}
 
 export default function SettingsScreen() {
   const [notifications, setNotifications] = useState(true);
@@ -100,33 +140,104 @@ export default function SettingsScreen() {
     );
   };
 
+  /* =====================================================
+     MENU ROW
+  ===================================================== */
+
+  const renderMenuRow = (
+    icon,
+    title,
+    subtitle,
+    onPress,
+    last = false
+  ) => (
+    <TouchableOpacity
+      key={title}
+      style={[
+        styles.settingRow,
+        last && styles.lastRow,
+      ]}
+      onPress={onPress}
+      activeOpacity={0.75}
+      accessibilityRole="button"
+    >
+      <View style={styles.iconContainer}>
+        <Ionicons name={icon} size={24} color={RED} />
+      </View>
+
+      <View style={styles.settingContent}>
+        <Text style={styles.settingTitle}>{title}</Text>
+        <Text style={styles.settingSubtitle}>{subtitle}</Text>
+      </View>
+
+      <Ionicons
+        name="chevron-forward"
+        size={20}
+        color={MUTED}
+      />
+    </TouchableOpacity>
+  );
+
+  /* =====================================================
+     TOGGLE ROW
+  ===================================================== */
+
+  const renderToggleRow = (
+    icon,
+    title,
+    subtitle,
+    value,
+    onValueChange,
+    last = false
+  ) => (
+    <View
+      key={title}
+      style={[
+        styles.settingRow,
+        last && styles.lastRow,
+      ]}
+    >
+      <View style={styles.iconContainer}>
+        <Ionicons name={icon} size={24} color={RED} />
+      </View>
+
+      <View style={styles.settingContent}>
+        <Text style={styles.settingTitle}>{title}</Text>
+        <Text style={styles.settingSubtitle}>{subtitle}</Text>
+      </View>
+
+      <SettingSwitch
+        value={value}
+        onValueChange={onValueChange}
+      />
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={Colors.background}
+        backgroundColor="#080808"
       />
 
-      {/* =================================================
-          HEADER
-      ================================================= */}
+      {/* HEADER */}
 
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
-          activeOpacity={0.7}
+          activeOpacity={0.75}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
         >
           <Ionicons
             name="chevron-back"
             size={26}
-            color={Colors.white}
+            color={WHITE}
           />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>
-          Settings
-        </Text>
+        <Text style={styles.headerTitle}>Settings</Text>
 
         <View style={styles.headerSpace} />
       </View>
@@ -135,595 +246,160 @@ export default function SettingsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* =================================================
-            ACCOUNT
-        ================================================= */}
+        {/* ACCOUNT */}
 
-        <Text style={styles.sectionTitle}>
-          Account
-        </Text>
+        <Text style={styles.sectionTitle}>Account</Text>
 
         <View style={styles.settingsCard}>
-          {/* PROFILE */}
+          {renderMenuRow(
+            "person-outline",
+            "Profile",
+            "Manage your personal information",
+            () => router.push("/profile")
+          )}
 
-          <TouchableOpacity
-            style={styles.settingRow}
-            onPress={() => router.push("/profile")}
-            activeOpacity={0.7}
-          >
-            <View
-              style={[
-                styles.iconContainer,
-                {
-                  backgroundColor: `${Colors.primary}18`,
-                },
-              ]}
-            >
-              <Ionicons
-                name="person-outline"
-                size={21}
-                color={Colors.primary}
-              />
-            </View>
+          {renderMenuRow(
+            "location-outline",
+            "Addresses",
+            "Manage your delivery addresses",
+            () => router.push("/addresses")
+          )}
 
-            <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>
-                Profile
-              </Text>
-
-              <Text style={styles.settingSubtitle}>
-                Manage your personal information
-              </Text>
-            </View>
-
-            <Ionicons
-              name="chevron-forward"
-              size={19}
-              color={Colors.textMuted}
-            />
-          </TouchableOpacity>
-
-          {/* ADDRESSES */}
-
-          <TouchableOpacity
-            style={styles.settingRow}
-            onPress={() => router.push("/addresses")}
-            activeOpacity={0.7}
-          >
-            <View
-              style={[
-                styles.iconContainer,
-                {
-                  backgroundColor: `${Colors.primary}18`,
-                },
-              ]}
-            >
-              <Ionicons
-                name="location-outline"
-                size={21}
-                color={Colors.primary}
-              />
-            </View>
-
-            <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>
-                Addresses
-              </Text>
-
-              <Text style={styles.settingSubtitle}>
-                Manage your delivery addresses
-              </Text>
-            </View>
-
-            <Ionicons
-              name="chevron-forward"
-              size={19}
-              color={Colors.textMuted}
-            />
-          </TouchableOpacity>
-
-          {/* PAYMENT */}
-
-          <TouchableOpacity
-            style={styles.settingRow}
-            onPress={() => router.push("/payments")}
-            activeOpacity={0.7}
-          >
-            <View
-              style={[
-                styles.iconContainer,
-                {
-                  backgroundColor: `${Colors.primary}18`,
-                },
-              ]}
-            >
-              <Ionicons
-                name="card-outline"
-                size={21}
-                color={Colors.primary}
-              />
-            </View>
-
-            <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>
-                Payment Methods
-              </Text>
-
-              <Text style={styles.settingSubtitle}>
-                Manage your saved payment methods
-              </Text>
-            </View>
-
-            <Ionicons
-              name="chevron-forward"
-              size={19}
-              color={Colors.textMuted}
-            />
-          </TouchableOpacity>
+          {renderMenuRow(
+            "card-outline",
+            "Payment Methods",
+            "Manage your saved payment methods",
+            () => router.push("/payments"),
+            true
+          )}
         </View>
 
-        {/* =================================================
-            NOTIFICATIONS
-        ================================================= */}
+        {/* NOTIFICATIONS */}
 
-        <Text style={styles.sectionTitle}>
-          Notifications
-        </Text>
+        <Text style={styles.sectionTitle}>Notifications</Text>
 
         <View style={styles.settingsCard}>
-          {/* ALL NOTIFICATIONS */}
+          {renderToggleRow(
+            "notifications-outline",
+            "Notifications",
+            "Receive app notifications",
+            notifications,
+            setNotifications
+          )}
 
-          <View style={styles.settingRow}>
-            <View
-              style={[
-                styles.iconContainer,
-                {
-                  backgroundColor: `${Colors.primary}18`,
-                },
-              ]}
-            >
-              <Ionicons
-                name="notifications-outline"
-                size={21}
-                color={Colors.primary}
-              />
-            </View>
+          {renderToggleRow(
+            "bicycle-outline",
+            "Order Updates",
+            "Get updates about your orders",
+            orderUpdates,
+            setOrderUpdates
+          )}
 
-            <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>
-                Notifications
-              </Text>
-
-              <Text style={styles.settingSubtitle}>
-                Receive app notifications
-              </Text>
-            </View>
-
-            <Switch
-              value={notifications}
-              onValueChange={setNotifications}
-              trackColor={{
-                false: Colors.border,
-                true: Colors.primaryDark,
-              }}
-              thumbColor={
-                notifications
-                  ? Colors.primary
-                  : Colors.textSecondary
-              }
-            />
-          </View>
-
-          {/* ORDER UPDATES */}
-
-          <View style={styles.settingRow}>
-            <View
-              style={[
-                styles.iconContainer,
-                {
-                  backgroundColor: `${Colors.primary}18`,
-                },
-              ]}
-            >
-              <Ionicons
-                name="bicycle-outline"
-                size={21}
-                color={Colors.primary}
-              />
-            </View>
-
-            <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>
-                Order Updates
-              </Text>
-
-              <Text style={styles.settingSubtitle}>
-                Get updates about your orders
-              </Text>
-            </View>
-
-            <Switch
-              value={orderUpdates}
-              onValueChange={setOrderUpdates}
-              trackColor={{
-                false: Colors.border,
-                true: Colors.primaryDark,
-              }}
-              thumbColor={
-                orderUpdates
-                  ? Colors.primary
-                  : Colors.textSecondary
-              }
-            />
-          </View>
-
-          {/* OFFERS */}
-
-          <View style={styles.settingRow}>
-            <View
-              style={[
-                styles.iconContainer,
-                {
-                  backgroundColor: `${Colors.offer}18`,
-                },
-              ]}
-            >
-              <Ionicons
-                name="gift-outline"
-                size={21}
-                color={Colors.offer}
-              />
-            </View>
-
-            <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>
-                Offers & Promotions
-              </Text>
-
-              <Text style={styles.settingSubtitle}>
-                Receive special offers and discounts
-              </Text>
-            </View>
-
-            <Switch
-              value={offers}
-              onValueChange={setOffers}
-              trackColor={{
-                false: Colors.border,
-                true: Colors.primaryDark,
-              }}
-              thumbColor={
-                offers
-                  ? Colors.primary
-                  : Colors.textSecondary
-              }
-            />
-          </View>
+          {renderToggleRow(
+            "gift-outline",
+            "Offers & Promotions",
+            "Receive special offers and discounts",
+            offers,
+            setOffers,
+            true
+          )}
         </View>
 
-        {/* =================================================
-            APP PREFERENCES
-        ================================================= */}
+        {/* APP PREFERENCES */}
 
-        <Text style={styles.sectionTitle}>
-          App Preferences
-        </Text>
+        <Text style={styles.sectionTitle}>App Preferences</Text>
 
         <View style={styles.settingsCard}>
-          {/* SOUND */}
+          {renderToggleRow(
+            sound
+              ? "volume-high-outline"
+              : "volume-mute-outline",
+            "Sound",
+            "Play sounds for app actions",
+            sound,
+            setSound
+          )}
 
-          <View style={styles.settingRow}>
-            <View
-              style={[
-                styles.iconContainer,
-                {
-                  backgroundColor: `${Colors.primary}18`,
-                },
-              ]}
-            >
-              <Ionicons
-                name={
-                  sound
-                    ? "volume-high-outline"
-                    : "volume-mute-outline"
-                }
-                size={21}
-                color={Colors.primary}
-              />
-            </View>
-
-            <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>
-                Sound
-              </Text>
-
-              <Text style={styles.settingSubtitle}>
-                Play sounds for app actions
-              </Text>
-            </View>
-
-            <Switch
-              value={sound}
-              onValueChange={setSound}
-              trackColor={{
-                false: Colors.border,
-                true: Colors.primaryDark,
-              }}
-              thumbColor={
-                sound
-                  ? Colors.primary
-                  : Colors.textSecondary
-              }
-            />
-          </View>
-
-          {/* DARK MODE */}
-
-          <View style={styles.settingRow}>
-            <View
-              style={[
-                styles.iconContainer,
-                {
-                  backgroundColor: `${Colors.primary}18`,
-                },
-              ]}
-            >
-              <Ionicons
-                name="moon-outline"
-                size={21}
-                color={Colors.primary}
-              />
-            </View>
-
-            <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>
-                Dark Mode
-              </Text>
-
-              <Text style={styles.settingSubtitle}>
-                Use the dark BAKASURAN theme
-              </Text>
-            </View>
-
-            <Switch
-              value={darkMode}
-              onValueChange={setDarkMode}
-              trackColor={{
-                false: Colors.border,
-                true: Colors.primaryDark,
-              }}
-              thumbColor={
-                darkMode
-                  ? Colors.primary
-                  : Colors.textSecondary
-              }
-            />
-          </View>
+          {renderToggleRow(
+            "moon-outline",
+            "Dark Mode",
+            "Use the dark BAKASURAN theme",
+            darkMode,
+            setDarkMode,
+            true
+          )}
         </View>
 
-        {/* =================================================
-            SUPPORT
-        ================================================= */}
+        {/* SUPPORT */}
 
-        <Text style={styles.sectionTitle}>
-          Support
-        </Text>
+        <Text style={styles.sectionTitle}>Support</Text>
 
         <View style={styles.settingsCard}>
-          {/* HELP */}
+          {renderMenuRow(
+            "help-circle-outline",
+            "Help & Support",
+            "Get help with your account and orders",
+            () => router.push("/help&support")
+          )}
 
-          <TouchableOpacity
-            style={styles.settingRow}
-            onPress={() => router.push("/helpsupport")}
-            activeOpacity={0.7}
-          >
-            <View
-              style={[
-                styles.iconContainer,
-                {
-                  backgroundColor: `${Colors.primary}18`,
-                },
-              ]}
-            >
-              <Ionicons
-                name="help-circle-outline"
-                size={21}
-                color={Colors.primary}
-              />
-            </View>
+          {renderMenuRow(
+            "shield-checkmark-outline",
+            "Privacy Policy",
+            "Learn how we protect your information",
+                () => router.push("/privacypolicy")
+              
+          )}
 
-            <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>
-                Help & Support
-              </Text>
+          {renderMenuRow(
+            "document-text-outline",
+            "Terms & Conditions",
+            "View our terms of service",
+              () => router.push("/terms&conditions")
+          )}
 
-              <Text style={styles.settingSubtitle}>
-                Get help with your account and orders
-              </Text>
-            </View>
-
-            <Ionicons
-              name="chevron-forward"
-              size={19}
-              color={Colors.textMuted}
-            />
-          </TouchableOpacity>
-
-          {/* PRIVACY */}
-
-          <TouchableOpacity
-            style={styles.settingRow}
-            onPress={() =>
-              Alert.alert(
-                "Privacy Policy",
-                "Your privacy is important to us. Your personal information is handled securely."
-              )
-            }
-            activeOpacity={0.7}
-          >
-            <View
-              style={[
-                styles.iconContainer,
-                {
-                  backgroundColor: `${Colors.primary}18`,
-                },
-              ]}
-            >
-              <Ionicons
-                name="shield-checkmark-outline"
-                size={21}
-                color={Colors.primary}
-              />
-            </View>
-
-            <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>
-                Privacy Policy
-              </Text>
-
-              <Text style={styles.settingSubtitle}>
-                Learn how we protect your information
-              </Text>
-            </View>
-
-            <Ionicons
-              name="chevron-forward"
-              size={19}
-              color={Colors.textMuted}
-            />
-          </TouchableOpacity>
-
-          {/* TERMS */}
-
-          <TouchableOpacity
-            style={styles.settingRow}
-            onPress={() =>
-              Alert.alert(
-                "Terms & Conditions",
-                "Please review the terms and conditions for using BAKASURAN."
-              )
-            }
-            activeOpacity={0.7}
-          >
-            <View
-              style={[
-                styles.iconContainer,
-                {
-                  backgroundColor: `${Colors.primary}18`,
-                },
-              ]}
-            >
-              <Ionicons
-                name="document-text-outline"
-                size={21}
-                color={Colors.primary}
-              />
-            </View>
-
-            <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>
-                Terms & Conditions
-              </Text>
-
-              <Text style={styles.settingSubtitle}>
-                View our terms of service
-              </Text>
-            </View>
-
-            <Ionicons
-              name="chevron-forward"
-              size={19}
-              color={Colors.textMuted}
-            />
-          </TouchableOpacity>
-
-          {/* CLEAR CACHE */}
-
-          <TouchableOpacity
-            style={styles.settingRow}
-            onPress={handleClearCache}
-            activeOpacity={0.7}
-          >
-            <View
-              style={[
-                styles.iconContainer,
-                {
-                  backgroundColor: `${Colors.primary}18`,
-                },
-              ]}
-            >
-              <Ionicons
-                name="trash-bin-outline"
-                size={21}
-                color={Colors.primary}
-              />
-            </View>
-
-            <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>
-                Clear Cache
-              </Text>
-
-              <Text style={styles.settingSubtitle}>
-                Free up temporary app storage
-              </Text>
-            </View>
-
-            <Ionicons
-              name="chevron-forward"
-              size={19}
-              color={Colors.textMuted}
-            />
-          </TouchableOpacity>
+          {renderMenuRow(
+            "trash-bin-outline",
+            "Clear Cache",
+            "Free up temporary app storage",
+            handleClearCache,
+            true
+          )}
         </View>
 
-        {/* =================================================
-            LOGOUT
-        ================================================= */}
+        {/* LOGOUT */}
 
         <TouchableOpacity
           style={styles.logoutButton}
           onPress={handleLogout}
           activeOpacity={0.8}
+          accessibilityRole="button"
         >
           <Ionicons
             name="log-out-outline"
-            size={20}
-            color={Colors.primary}
+            size={24}
+            color={RED}
           />
 
-          <Text style={styles.logoutText}>
-            Logout
-          </Text>
+          <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
 
-        {/* =================================================
-            DELETE ACCOUNT
-        ================================================= */}
+        {/* DELETE ACCOUNT */}
 
         <TouchableOpacity
           style={styles.deleteAccountButton}
           onPress={handleDeleteAccount}
-          activeOpacity={0.7}
+          activeOpacity={0.75}
         >
           <Text style={styles.deleteAccountText}>
             Delete Account
           </Text>
         </TouchableOpacity>
 
-        {/* =================================================
-            VERSION
-        ================================================= */}
+        {/* APP VERSION */}
 
         <View style={styles.versionContainer}>
-          <Text style={styles.brandText}>
-            BAKASURAN
-          </Text>
-
-          <Text style={styles.versionText}>
-            Version 1.0.0
-          </Text>
-
+          <Text style={styles.brandText}>BAKASURAN</Text>
+          <Text style={styles.versionText}>Version 1.0.0</Text>
           <Text style={styles.copyrightText}>
             Made with ❤️ for food lovers
           </Text>
@@ -733,214 +409,228 @@ export default function SettingsScreen() {
   );
 }
 
-/* =========================================================
+/* =====================================================
    STYLES
-========================================================= */
+===================================================== */
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: "#080808",
   },
 
   scrollContent: {
     paddingHorizontal: 16,
-    paddingBottom: 45,
+    paddingBottom: 36,
   },
 
-  /* ================= HEADER ================= */
+  /* HEADER */
 
   header: {
-    height: 62,
-
+    height: 54,
     paddingHorizontal: 16,
-
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#292323",
   },
 
   backButton: {
-    width: 42,
-    height: 42,
-
-    borderRadius: 21,
-
-    backgroundColor: Colors.card,
-
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#171414",
     justifyContent: "center",
     alignItems: "center",
-
-    borderWidth: 1,
-    borderColor: Colors.border,
   },
 
   headerTitle: {
-    color: Colors.white,
-
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
+    flex: 1,
+    textAlign: "center",
+    color: WHITE,
+    fontFamily: Fonts.regular,
+    fontSize: 25,
+    lineHeight: 23,
+    letterSpacing: 0.2,
+    includeFontPadding: false,
   },
 
   headerSpace: {
-    width: 42,
+    width: 40,
   },
 
-  /* ================= SECTION ================= */
+  /* SECTION */
 
   sectionTitle: {
-    color: Colors.white,
-
-    fontFamily: Fonts.extraBold,
-    fontSize: Fonts.size.lg,
-
-    marginTop: 25,
-    marginBottom: 12,
+    color: WHITE,
+    fontFamily: Fonts.regular,
+    fontSize: 25,
+    lineHeight: 26,
+    marginTop: 20,
+    marginBottom: 9,
+    includeFontPadding: false,
   },
 
-  /* ================= CARD ================= */
+  /* CARD */
 
   settingsCard: {
-    backgroundColor: Colors.card,
-
-    borderRadius: 18,
-
+    backgroundColor: "#202020",
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: Colors.border,
-
+    borderColor: "#292929",
     overflow: "hidden",
   },
 
-  /* ================= ROW ================= */
+  /* ROW */
 
   settingRow: {
-    minHeight: 72,
-
-    paddingHorizontal: 14,
-
+    minHeight: 68,
+    paddingHorizontal: 9,
+    paddingVertical: 8,
     flexDirection: "row",
     alignItems: "center",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#353535",
+  },
 
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+  lastRow: {
+    borderBottomWidth: 0,
   },
 
   iconContainer: {
-    width: 43,
-    height: 43,
-
-    borderRadius: 13,
-
+    width: 42,
+    height: 42,
+    borderRadius: 11,
+    backgroundColor: "rgba(255, 21, 21, 0.12)",
     justifyContent: "center",
     alignItems: "center",
   },
 
   settingContent: {
     flex: 1,
-
-    marginLeft: 12,
-    marginRight: 10,
+    minWidth: 0,
+    marginLeft: 9,
+    marginRight: 5,
   },
 
   settingTitle: {
-    color: Colors.white,
-
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.xl,
+    color: WHITE,
+    fontFamily: Fonts.regular,
+    fontSize: 23,
+    lineHeight: 28,
+    letterSpacing: 0.1,
+    includeFontPadding: false,
   },
 
   settingSubtitle: {
-    color: Colors.textSecondary,
-
+    color: MUTED,
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
-
-    lineHeight: 16,
-
-    marginTop: 4,
+    fontSize: 16,
+    lineHeight: 15,
+    letterSpacing: 0.05,
+    marginTop: 2,
+    includeFontPadding: false,
   },
 
-  /* ================= LOGOUT ================= */
+  /* CUSTOM SWITCH */
+
+  switchTouchArea: {
+    width: 49,
+    height: 38,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 4,
+  },
+
+  switchTrack: {
+    width: 46,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: "center",
+    position: "relative",
+  },
+
+  switchThumb: {
+    position: "absolute",
+    top: 3,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: WHITE,
+  },
+
+  /* LOGOUT */
 
   logoutButton: {
-    height: 55,
-
-    borderRadius: 28,
-
+    minHeight: 50,
+    borderRadius: 25,
     borderWidth: 1.5,
-    borderColor: Colors.primary,
-
-    backgroundColor: Colors.backgroundSecondary,
-
+    borderColor: RED,
+    backgroundColor: "#111010",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-
-    marginTop: 28,
+    marginTop: 24,
   },
 
   logoutText: {
-    color: Colors.primary,
-
-    fontFamily: Fonts.extraBold,
-    fontSize: Fonts.size.xl,
-
+    color: RED,
+    fontFamily: Fonts.regular,
+    fontSize: 25,
+    lineHeight: 23,
     marginLeft: 8,
+    includeFontPadding: false,
   },
 
-  /* ================= DELETE ================= */
+  /* DELETE ACCOUNT */
 
   deleteAccountButton: {
-    height: 48,
-
+    minHeight: 44,
     alignItems: "center",
     justifyContent: "center",
-
-    marginTop: 8,
-  },
-
-  deleteAccountText: {
-    color: Colors.textMuted,
-
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.xs,
-  },
-
-  /* ================= VERSION ================= */
-
-  versionContainer: {
-    alignItems: "center",
-
-    marginTop: 25,
-  },
-
-  brandText: {
-    color: Colors.textMuted,
-
-    fontFamily: Fonts.extraBold,
-    fontSize: Fonts.size.xs,
-
-    letterSpacing: 3,
-  },
-
-  versionText: {
-    color: Colors.textMuted,
-
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
-
     marginTop: 5,
   },
 
-  copyrightText: {
-    color: Colors.textMuted,
+  deleteAccountText: {
+    color: "#BDBDBD",
+    fontFamily: Fonts.medium,
+    fontSize: 19,
+    lineHeight: 20,
+    includeFontPadding: false,
+  },
 
+  /* VERSION */
+
+  versionContainer: {
+    alignItems: "center",
+    marginTop: 20,
+  },
+
+  brandText: {
+    color: "#A8A8A8",
+    fontFamily: Fonts.bold,
+    fontSize: 17,
+    lineHeight: 17,
+    letterSpacing: 2,
+    includeFontPadding: false,
+  },
+
+  versionText: {
+    color: "#888888",
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xxl,
+    fontSize: 16,
+    lineHeight: 16,
+    marginTop: 4,
+    includeFontPadding: false,
+  },
 
-    marginTop: 7,
+  copyrightText: {
+    color: "#A8A8A8",
+    fontFamily: Fonts.regular,
+    fontSize: 19,
+    lineHeight: 18,
+    marginTop: 6,
+    includeFontPadding: false,
   },
 });
