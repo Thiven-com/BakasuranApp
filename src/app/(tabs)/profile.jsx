@@ -91,7 +91,7 @@ export default function ProfileScreen() {
     },
 
     {
-      title: "Cancellation-refund",
+      title: "Cancellation-Refund",
       icon: "receipt-outline",
       color: "#f82408",
       background: "#0c0909",
