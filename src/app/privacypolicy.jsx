@@ -1,17 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useMemo } from "react";
 import {
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
-import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 const privacySections = [
   {
@@ -95,11 +96,14 @@ const privacySections = [
 ];
 
 export default function PrivacyPolicyScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor={Colors.background}
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
       />
 
       {/* HEADER */}
@@ -110,27 +114,21 @@ export default function PrivacyPolicyScreen() {
           activeOpacity={0.75}
           accessibilityLabel="Go back"
         >
-          <Ionicons
-            name="arrow-back"
-            size={25}
-            color={Colors.white}
-          />
+          <Ionicons name="arrow-back" size={25} color={colors.textPrimary} />
         </TouchableOpacity>
 
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>
             Privacy <Text style={styles.headerTitleRed}>Policy</Text>
           </Text>
-          <Text style={styles.headerSubtitle}>
-            Your privacy matters to us
-          </Text>
+          <Text style={styles.headerSubtitle}>Your privacy matters to us</Text>
         </View>
 
         <View style={styles.headerRight}>
           <Ionicons
             name="shield-checkmark-outline"
             size={25}
-            color={Colors.primary}
+            color={colors.primary}
           />
         </View>
       </View>
@@ -147,55 +145,40 @@ export default function PrivacyPolicyScreen() {
             <Ionicons
               name="shield-checkmark"
               size={30}
-              color={Colors.primary}
+              color={colors.primary}
             />
           </View>
 
-          <Text style={styles.introTitle}>
-            Your Data. Your Privacy.
-          </Text>
+          <Text style={styles.introTitle}>Your Data. Your Privacy.</Text>
 
           <Text style={styles.introDescription}>
-            Learn how Bakasuran may collect, use, and protect
-            your information while you enjoy our services.
+            Learn how Bakasuran may collect, use, and protect your information
+            while you enjoy our services.
           </Text>
-
-          
         </View>
 
         {/* PRIVACY SECTIONS */}
         {privacySections.map((section) => (
-          <View
-            key={section.title}
-            style={styles.sectionCard}
-          >
+          <View key={section.title} style={styles.sectionCard}>
             <View style={styles.sectionHeading}>
               <View style={styles.sectionIcon}>
                 <Ionicons
                   name={section.icon}
                   size={20}
-                  color={Colors.primary}
+                  color={colors.primary}
                 />
               </View>
 
-              <Text style={styles.sectionTitle}>
-                {section.title}
-              </Text>
+              <Text style={styles.sectionTitle}>{section.title}</Text>
             </View>
 
-            <Text style={styles.sectionContent}>
-              {section.content}
-            </Text>
+            <Text style={styles.sectionContent}>{section.content}</Text>
           </View>
         ))}
 
         {/* FOOTER */}
         <View style={styles.footer}>
-          <Ionicons
-            name="heart"
-            size={28}
-            color={Colors.primary}
-          />
+          <Ionicons name="heart" size={28} color={colors.primary} />
 
           <Text style={styles.footerText}>
             Thank you for choosing Bakasuran.
@@ -212,10 +195,10 @@ export default function PrivacyPolicyScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   header: {
@@ -224,18 +207,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: colors.border,
   },
 
   backButton: {
     width: 42,
     height: 42,
     borderRadius: 14,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -246,18 +229,18 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: Fonts.size.lg,
     fontFamily: Fonts.regular,
     fontWeight: "800",
   },
 
   headerTitleRed: {
-    color: Colors.primary,
+    color: colors.primary,
   },
 
   headerSubtitle: {
-    color: Colors.textMuted,
+    color: colors.textMuted,
     fontSize: Fonts.size.xl,
     fontFamily: Fonts.regular,
     marginTop: 10,
@@ -267,7 +250,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 14,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -283,11 +266,11 @@ const styles = StyleSheet.create({
   },
 
   introCard: {
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
     marginBottom: 20,
     alignItems: "center",
   },
@@ -296,16 +279,16 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 22,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.backgroundElement,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 14,
   },
 
   introTitle: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: Fonts.size.xxl,
     fontFamily: Fonts.regular,
     fontWeight: "800",
@@ -314,22 +297,20 @@ const styles = StyleSheet.create({
   },
 
   introDescription: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     fontSize: Fonts.size.xl,
     fontFamily: Fonts.regular,
     lineHeight: 22,
     textAlign: "center",
   },
 
- 
-
   sectionCard: {
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
   },
 
   sectionHeading: {
@@ -342,7 +323,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.backgroundElement,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 11,
@@ -350,14 +331,14 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     flex: 1,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: Fonts.size.xxl,
     fontFamily: Fonts.regular,
     fontWeight: "700",
   },
 
   sectionContent: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     fontSize: Fonts.size.xl,
     fontFamily: Fonts.regular,
     lineHeight: 23,
@@ -370,7 +351,7 @@ const styles = StyleSheet.create({
   },
 
   footerText: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: Fonts.size.xxl,
     fontFamily: Fonts.regular,
     fontWeight: "600",
@@ -378,7 +359,7 @@ const styles = StyleSheet.create({
   },
 
   footerSubtext: {
-    color: Colors.textMuted,
+    color: colors.textMuted,
     fontSize: Fonts.size.base,
     fontFamily: Fonts.regular,
     marginTop: 5,

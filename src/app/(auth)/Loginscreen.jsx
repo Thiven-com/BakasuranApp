@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Image,
@@ -15,10 +15,12 @@ import {
   View,
 } from "react-native";
 
-import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
+import { useTheme } from "../../hooks/use-theme";
 
 export default function LoginScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [mobile, setMobile] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -40,7 +42,7 @@ export default function LoginScreen() {
     if (mobile.length !== 10) {
       Alert.alert(
         "Invalid Mobile Number",
-        "Please enter a valid 10-digit mobile number."
+        "Please enter a valid 10-digit mobile number.",
       );
       return;
     }
@@ -79,10 +81,7 @@ export default function LoginScreen() {
     } catch (error) {
       setLoading(false);
 
-      Alert.alert(
-        "Login Failed",
-        "Something went wrong. Please try again."
-      );
+      Alert.alert("Login Failed", "Something went wrong. Please try again.");
     }
   };
 
@@ -90,7 +89,7 @@ export default function LoginScreen() {
     <View style={styles.container}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={Colors.background}
+        backgroundColor={colors.background}
         translucent={false}
       />
 
@@ -133,10 +132,7 @@ export default function LoginScreen() {
             ================================================= */}
 
             <Text style={styles.loginTitle}>
-              Login to{" "}
-              <Text style={styles.redText}>
-                Your Account
-              </Text>
+              Login to <Text style={styles.redText}>Your Account</Text>
             </Text>
 
             {/* =================================================
@@ -155,16 +151,12 @@ export default function LoginScreen() {
               {/* India Flag */}
 
               <View style={styles.countrySection}>
-                
-
-                <Text style={styles.countryCode}>
-                  +91
-                </Text>
+                <Text style={styles.countryCode}>+91</Text>
 
                 <Ionicons
                   name="chevron-down"
                   size={Fonts.size.xl}
-                  color={Colors.white}
+                  color={colors.white}
                 />
               </View>
 
@@ -178,7 +170,7 @@ export default function LoginScreen() {
                 value={mobile}
                 onChangeText={handleMobileChange}
                 placeholder="Enter your mobile number"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 keyboardType="phone-pad"
                 maxLength={10}
                 style={styles.mobileInput}
@@ -204,11 +196,7 @@ export default function LoginScreen() {
                 {loading ? "Sending..." : "Send OTP"}
               </Text>
 
-              {!loading && (
-                <Text style={styles.arrow}>
-                  →
-                </Text>
-              )}
+              {!loading && <Text style={styles.arrow}>→</Text>}
             </Pressable>
 
             {/* =================================================
@@ -219,7 +207,7 @@ export default function LoginScreen() {
               <Ionicons
                 name="lock-closed-outline"
                 size={Fonts.size.xl}
-                color={Colors.textSecondary}
+                color={colors.textSecondary}
               />
 
               <Text style={styles.securityText}>
@@ -237,320 +225,320 @@ export default function LoginScreen() {
 // STYLES
 // =============================================================
 
-const styles = StyleSheet.create({
-  // ===========================================================
-  // MAIN
-  // ===========================================================
-
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-
-  keyboardContainer: {
-    flex: 1,
-  },
-
-  scrollContent: {
-    flexGrow: 1,
-    backgroundColor: Colors.background,
-  },
-
-  // ===========================================================
-  // HERO
-  // ===========================================================
-
-  heroContainer: {
-    width: "100%",
-    height: 520,
-    position: "relative",
-    overflow: "hidden",
-  },
-
-  heroImage: {
-    position: "absolute",
-
-    top: 0,
-    left: 0,
-
-    width: "100%",
-    height: "100%",
-  },
-
-  heroFade: {
-    position: "absolute",
-
-    left: 0,
-    right: 0,
-    bottom: 0,
-
-    height: 80,
-
-    backgroundColor: Colors.darkOverlay,
-  },
-
-  // ===========================================================
-  // LOGIN PANEL
-  // ===========================================================
-
-  loginPanel: {
-    marginTop: -15,
-
-    minHeight: 430,
-
-    backgroundColor: Colors.backgroundSecondary,
-
-    borderTopLeftRadius: 38,
-    borderTopRightRadius: 38,
-
-    paddingHorizontal: 32,
-    paddingTop: 35,
-    paddingBottom: 35,
-
-    overflow: "hidden",
-  },
-
-  // ===========================================================
-  // DECORATION
-  // ===========================================================
-
-  decorativeCircleOne: {
-    position: "absolute",
-
-    width: 180,
-    height: 180,
-
-    borderRadius: 90,
-
-    left: -110,
-    bottom: -80,
-
-    borderWidth: 1,
-
-    borderColor: "rgba(255,60,0,0.16)",
-  },
-
-  decorativeCircleTwo: {
-    position: "absolute",
-
-    width: 240,
-    height: 240,
-
-    borderRadius: 120,
-
-    right: -160,
-    top: 30,
-
-    borderWidth: 1,
-
-    borderColor: "rgba(255,60,0,0.08)",
-  },
-
-  // ===========================================================
-  // TITLE
-  // ===========================================================
-
-  loginTitle: {
-    color: Colors.textPrimary,
-
-    fontSize: Fonts.size.heading,
-
-    fontFamily: Fonts.regular,
-
-    lineHeight: 38,
-
-    marginBottom: 7,
-  },
-
-  redText: {
-    color: Colors.primary,
-    fontFamily: Fonts.regular,
-  },
-
-  // ===========================================================
-  // SUBTITLE
-  // ===========================================================
-
-  subtitle: {
-    color: Colors.textSecondary,
-
-    fontSize: Fonts.size.xl,
-
-    fontFamily: Fonts.regular,
-
-    marginBottom: 30,
-  },
-
-  // ===========================================================
-  // MOBILE INPUT
-  // ===========================================================
-
-  mobileInputContainer: {
-    width: "103",
-
-    height: 60,
-
-    borderWidth: 1.8,
-
-    borderColor: Colors.borderLight,
-
-    borderRadius: 40,
-
-    backgroundColor: Colors.surface,
-
-    flexDirection: "row",
-
-    alignItems: "center",
-
-    paddingHorizontal: 20,
-  },
-
-  countrySection: {
-    flexDirection: "row",
-
-    alignItems: "center",
-
-    minWidth: 83,
-  },
-
-  indiaFlag: {
-    fontSize: Fonts.size.lg,
-
-    marginRight: 10,
-  },
-
-  countryCode: {
-    color: Colors.textPrimary,
-
-    fontSize: Fonts.size.xxl,
-
-    fontFamily: Fonts.regular,
-
-    marginRight: 8,
-  },
-
-  divider: {
-    width: 1,
-
-    height: 38,
-
-    backgroundColor: Colors.borderLight,
-
-    marginRight: 18,
-  },
-
-  mobileInput: {
-    flex: 1,
-
-    height: 40,
-    width:50,
-  
-
-    color: Colors.textPrimary,
-
-    fontSize: Fonts.size.xl,
-
-    fontFamily: Fonts.regular,
-
-    paddingVertical: 10,
-  },
-
-  // ===========================================================
-  // OTP BUTTON
-  // ===========================================================
-
-  otpButton: {
-    height: 60,
-
-    marginTop: 28,
-
-    borderRadius: 38,
-
-    backgroundColor: Colors.primary,
-
-    flexDirection: "row",
-
-    alignItems: "center",
-
-    justifyContent: "center",
-
-    shadowColor: Colors.primary,
-
-    shadowOffset: {
-      width: 0,
-      height: 8,
+const createStyles = (colors) =>
+  StyleSheet.create({
+    // ===========================================================
+    // MAIN
+    // ===========================================================
+
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
     },
 
-    shadowOpacity: 0.25,
+    keyboardContainer: {
+      flex: 1,
+    },
 
-    shadowRadius: 15,
+    scrollContent: {
+      flexGrow: 1,
+      backgroundColor: colors.background,
+    },
 
-    elevation: 8,
-  },
+    // ===========================================================
+    // HERO
+    // ===========================================================
 
-  otpButtonPressed: {
-    opacity: 0.8,
+    heroContainer: {
+      width: "100%",
+      height: 520,
+      position: "relative",
+      overflow: "hidden",
+    },
 
-    transform: [
-      {
-        scale: 0.98,
+    heroImage: {
+      position: "absolute",
+
+      top: 0,
+      left: 0,
+
+      width: "100%",
+      height: "100%",
+    },
+
+    heroFade: {
+      position: "absolute",
+
+      left: 0,
+      right: 0,
+      bottom: 0,
+
+      height: 80,
+
+      backgroundColor: colors.overlayDark,
+    },
+
+    // ===========================================================
+    // LOGIN PANEL
+    // ===========================================================
+
+    loginPanel: {
+      marginTop: -15,
+
+      minHeight: 430,
+
+      backgroundColor: colors.surface,
+
+      borderTopLeftRadius: 38,
+      borderTopRightRadius: 38,
+
+      paddingHorizontal: 32,
+      paddingTop: 35,
+      paddingBottom: 35,
+
+      overflow: "hidden",
+    },
+
+    // ===========================================================
+    // DECORATION
+    // ===========================================================
+
+    decorativeCircleOne: {
+      position: "absolute",
+
+      width: 180,
+      height: 180,
+
+      borderRadius: 90,
+
+      left: -110,
+      bottom: -80,
+
+      borderWidth: 1,
+
+      borderColor: "rgba(255,60,0,0.16)",
+    },
+
+    decorativeCircleTwo: {
+      position: "absolute",
+
+      width: 240,
+      height: 240,
+
+      borderRadius: 120,
+
+      right: -160,
+      top: 30,
+
+      borderWidth: 1,
+
+      borderColor: "rgba(255,60,0,0.08)",
+    },
+
+    // ===========================================================
+    // TITLE
+    // ===========================================================
+
+    loginTitle: {
+      color: colors.textPrimary,
+
+      fontSize: Fonts.size.heading,
+
+      fontFamily: Fonts.regular,
+
+      lineHeight: 38,
+
+      marginBottom: 7,
+    },
+
+    redText: {
+      color: colors.primary,
+      fontFamily: Fonts.regular,
+    },
+
+    // ===========================================================
+    // SUBTITLE
+    // ===========================================================
+
+    subtitle: {
+      color: colors.textSecondary,
+
+      fontSize: Fonts.size.xl,
+
+      fontFamily: Fonts.regular,
+
+      marginBottom: 30,
+    },
+
+    // ===========================================================
+    // MOBILE INPUT
+    // ===========================================================
+
+    mobileInputContainer: {
+      width: "103",
+
+      height: 60,
+
+      borderWidth: 1.8,
+
+      borderColor: colors.borderLight,
+
+      borderRadius: 40,
+
+      backgroundColor: colors.surface,
+
+      flexDirection: "row",
+
+      alignItems: "center",
+
+      paddingHorizontal: 20,
+    },
+
+    countrySection: {
+      flexDirection: "row",
+
+      alignItems: "center",
+
+      minWidth: 83,
+    },
+
+    indiaFlag: {
+      fontSize: Fonts.size.lg,
+
+      marginRight: 10,
+    },
+
+    countryCode: {
+      color: colors.textPrimary,
+
+      fontSize: Fonts.size.xxl,
+
+      fontFamily: Fonts.regular,
+
+      marginRight: 8,
+    },
+
+    divider: {
+      width: 1,
+
+      height: 38,
+
+      backgroundColor: colors.borderLight,
+
+      marginRight: 18,
+    },
+
+    mobileInput: {
+      flex: 1,
+
+      height: 40,
+      width: 50,
+
+      color: colors.textPrimary,
+
+      fontSize: Fonts.size.xl,
+
+      fontFamily: Fonts.regular,
+
+      paddingVertical: 10,
+    },
+
+    // ===========================================================
+    // OTP BUTTON
+    // ===========================================================
+
+    otpButton: {
+      height: 60,
+
+      marginTop: 28,
+
+      borderRadius: 38,
+
+      backgroundColor: colors.primary,
+
+      flexDirection: "row",
+
+      alignItems: "center",
+
+      justifyContent: "center",
+
+      shadowColor: colors.primary,
+
+      shadowOffset: {
+        width: 0,
+        height: 8,
       },
-    ],
-  },
 
-  otpButtonDisabled: {
-    opacity: 0.6,
-  },
+      shadowOpacity: 0.25,
 
-  otpButtonText: {
-    color: Colors.white,
+      shadowRadius: 15,
 
-    fontSize: Fonts.size.lg,
+      elevation: 8,
+    },
 
-    fontFamily: Fonts.regular,
-  },
+    otpButtonPressed: {
+      opacity: 0.8,
 
-  arrow: {
-    color: Colors.white,
+      transform: [
+        {
+          scale: 0.98,
+        },
+      ],
+    },
 
-    fontSize: Fonts.size.display,
+    otpButtonDisabled: {
+      opacity: 0.6,
+    },
 
-    fontFamily: Fonts.regular,
+    otpButtonText: {
+      color: colors.white,
 
-    marginLeft: 13,
+      fontSize: Fonts.size.lg,
 
-    marginTop: -3,
-  },
+      fontFamily: Fonts.regular,
+    },
 
-  // ===========================================================
-  // SECURITY
-  // ===========================================================
+    arrow: {
+      color: colors.white,
 
-  securityContainer: {
-    flexDirection: "row",
+      fontSize: Fonts.size.display,
 
-    alignItems: "center",
+      fontFamily: Fonts.regular,
 
-    justifyContent: "center",
+      marginLeft: 13,
 
-    marginTop: 27,
+      marginTop: -3,
+    },
 
-    paddingHorizontal: 5,
-  },
+    // ===========================================================
+    // SECURITY
+    // ===========================================================
 
-  securityText: {
-    color: Colors.textSecondary,
+    securityContainer: {
+      flexDirection: "row",
 
-    fontSize: Fonts.size.base,
+      alignItems: "center",
 
-    fontFamily: Fonts.regular,
+      justifyContent: "center",
 
-    marginLeft: 10,
+      marginTop: 27,
 
-    flexShrink: 1,
+      paddingHorizontal: 5,
+    },
 
-    textAlign: "center",
+    securityText: {
+      color: colors.textSecondary,
 
-    lineHeight: 21,
-  },
-});
+      fontSize: Fonts.size.base,
+
+      fontFamily: Fonts.regular,
+
+      marginLeft: 10,
+
+      flexShrink: 1,
+
+      textAlign: "center",
+
+      lineHeight: 21,
+    },
+  });

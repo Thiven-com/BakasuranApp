@@ -1,20 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import {
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    View,
-    useWindowDimensions,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
 } from "react-native";
 
-import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 const faqs = [
   {
@@ -38,6 +38,8 @@ const faqs = [
 ];
 
 export default function CancellationRefundScreen() {
+  const { colors: Colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
   const { width } = useWindowDimensions();
 
   const [activeTab, setActiveTab] = useState("cancellation");
@@ -52,16 +54,12 @@ export default function CancellationRefundScreen() {
   const horizontalPadding = compact ? 14 : 20;
   const cardGap = 12;
 
-  const paymentCardWidth =
-    (width - horizontalPadding * 2 - cardGap - 24) / 2;
+  const paymentCardWidth = (width - horizontalPadding * 2 - cardGap - 24) / 2;
 
   const selectTab = (tab) => {
     setActiveTab(tab);
 
-    const y =
-      tab === "cancellation"
-        ? cancellationY.current
-        : refundY.current;
+    const y = tab === "cancellation" ? cancellationY.current : refundY.current;
 
     scrollRef.current?.scrollTo({
       y: Math.max(0, y - 12),
@@ -77,7 +75,7 @@ export default function CancellationRefundScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
         backgroundColor={Colors.background}
-        barStyle="light-content"
+        barStyle={isDark ? "light-content" : "dark-content"}
       />
 
       <ScrollView
@@ -109,13 +107,11 @@ export default function CancellationRefundScreen() {
           </Pressable>
 
           <View style={styles.heroText}>
-            <Text style={styles.heroTitle}>
-              Cancellation{"\n"}& Refund
-            </Text>
+            <Text style={styles.heroTitle}>Cancellation{"\n"}& Refund</Text>
 
             <Text style={styles.heroDescription}>
-              We understand plans can change. Here’s everything
-              you need to know about cancellations and refunds.
+              We understand plans can change. Here’s everything you need to know
+              about cancellations and refunds.
             </Text>
           </View>
 
@@ -159,11 +155,7 @@ export default function CancellationRefundScreen() {
             </View>
 
             <View style={styles.cancelCircle}>
-              <Ionicons
-                name="close"
-                size={49}
-                color={Colors.white}
-              />
+              <Ionicons name="close" size={49} color={Colors.white} />
             </View>
 
             <View style={styles.artBase} />
@@ -188,27 +180,16 @@ export default function CancellationRefundScreen() {
               color={Colors.white}
             />
 
-            <Text style={styles.tabText}>
-              Order Cancellation
-            </Text>
+            <Text style={styles.tabText}>Order Cancellation</Text>
           </Pressable>
 
           <Pressable
             onPress={() => selectTab("refund")}
-            style={[
-              styles.tab,
-              activeTab === "refund" && styles.activeTab,
-            ]}
+            style={[styles.tab, activeTab === "refund" && styles.activeTab]}
           >
-            <Ionicons
-              name="cash-outline"
-              size={29}
-              color={Colors.white}
-            />
+            <Ionicons name="cash-outline" size={29} color={Colors.white} />
 
-            <Text style={styles.tabText}>
-              Refund Policy
-            </Text>
+            <Text style={styles.tabText}>Refund Policy</Text>
           </Pressable>
         </View>
 
@@ -219,17 +200,14 @@ export default function CancellationRefundScreen() {
         <View
           style={styles.panel}
           onLayout={(event) => {
-            cancellationY.current =
-              event.nativeEvent.layout.y;
+            cancellationY.current = event.nativeEvent.layout.y;
           }}
         >
-          <Text style={styles.panelTitle}>
-            Order Cancellation
-          </Text>
+          <Text style={styles.panelTitle}>Order Cancellation</Text>
 
           <Text style={styles.panelDescription}>
-            You can request cancellation shortly after placing
-            your order, subject to its current status.
+            You can request cancellation shortly after placing your order,
+            subject to its current status.
           </Text>
 
           <View style={styles.timeline}>
@@ -244,9 +222,7 @@ export default function CancellationRefundScreen() {
                 />
               </View>
 
-              <Text style={styles.stepTitle}>
-                Request{"\n"}Cancellation
-              </Text>
+              <Text style={styles.stepTitle}>Request{"\n"}Cancellation</Text>
 
               <Text style={styles.stepDescription}>
                 Go to My Orders and select Cancel
@@ -264,9 +240,7 @@ export default function CancellationRefundScreen() {
                 />
               </View>
 
-              <Text style={styles.stepTitle}>
-                Approval{"\n"}by Restaurant
-              </Text>
+              <Text style={styles.stepTitle}>Approval{"\n"}by Restaurant</Text>
 
               <Text style={styles.stepDescription}>
                 We’ll send your request to the restaurant
@@ -284,9 +258,7 @@ export default function CancellationRefundScreen() {
                 />
               </View>
 
-              <Text style={styles.stepTitle}>
-                Get Notified
-              </Text>
+              <Text style={styles.stepTitle}>Get Notified</Text>
 
               <Text style={styles.stepDescription}>
                 You’ll receive an update on your request
@@ -301,15 +273,9 @@ export default function CancellationRefundScreen() {
             ]}
             onPress={goToOrders}
           >
-            <Text style={styles.actionButtonText}>
-              Go to My Orders
-            </Text>
+            <Text style={styles.actionButtonText}>Go to My Orders</Text>
 
-            <Ionicons
-              name="arrow-forward"
-              size={20}
-              color={Colors.white}
-            />
+            <Ionicons name="arrow-forward" size={20} color={Colors.white} />
           </Pressable>
         </View>
 
@@ -323,13 +289,11 @@ export default function CancellationRefundScreen() {
             refundY.current = event.nativeEvent.layout.y;
           }}
         >
-          <Text style={styles.panelTitle}>
-            Refund Policy
-          </Text>
+          <Text style={styles.panelTitle}>Refund Policy</Text>
 
           <Text style={styles.panelDescription}>
-            If your order is cancelled, any eligible refund will
-            be processed according to the payment method used.
+            If your order is cancelled, any eligible refund will be processed
+            according to the payment method used.
           </Text>
 
           <View style={styles.paymentCards}>
@@ -352,13 +316,11 @@ export default function CancellationRefundScreen() {
               </View>
 
               <View style={styles.paymentTextContainer}>
-                <Text style={styles.paymentTitle}>
-                  Online Payment
-                </Text>
+                <Text style={styles.paymentTitle}>Online Payment</Text>
 
                 <Text style={styles.paymentDescription}>
-                  Eligible refunds are generally processed within
-                  3–5 business days.
+                  Eligible refunds are generally processed within 3–5 business
+                  days.
                 </Text>
               </View>
             </View>
@@ -374,21 +336,15 @@ export default function CancellationRefundScreen() {
               ]}
             >
               <View style={styles.paymentIcon}>
-                <Ionicons
-                  name="cash-outline"
-                  size={29}
-                  color={Colors.white}
-                />
+                <Ionicons name="cash-outline" size={29} color={Colors.white} />
               </View>
 
               <View style={styles.paymentTextContainer}>
-                <Text style={styles.paymentTitle}>
-                  Cash on Delivery
-                </Text>
+                <Text style={styles.paymentTitle}>Cash on Delivery</Text>
 
                 <Text style={styles.paymentDescription}>
-                  Eligible refunds may be provided as wallet credit
-                  or another approved method.
+                  Eligible refunds may be provided as wallet credit or another
+                  approved method.
                 </Text>
               </View>
             </View>
@@ -400,53 +356,32 @@ export default function CancellationRefundScreen() {
         ========================================= */}
 
         <View style={styles.faqSection}>
-          <Text style={styles.faqHeading}>
-            Frequently Asked Questions
-          </Text>
+          <Text style={styles.faqHeading}>Frequently Asked Questions</Text>
 
           {faqs.map((item, index) => {
             const expanded = expandedFaq === index;
 
             return (
-              <View
-                key={item.question}
-                style={styles.faqCard}
-              >
+              <View key={item.question} style={styles.faqCard}>
                 <Pressable
-                  onPress={() =>
-                    setExpandedFaq(
-                      expanded ? null : index
-                    )
-                  }
+                  onPress={() => setExpandedFaq(expanded ? null : index)}
                   style={styles.faqQuestion}
                 >
                   <View style={styles.faqIcon}>
-                    <Ionicons
-                      name={item.icon}
-                      size={23}
-                      color={Colors.white}
-                    />
+                    <Ionicons name={item.icon} size={23} color={Colors.white} />
                   </View>
 
-                  <Text style={styles.faqQuestionText}>
-                    {item.question}
-                  </Text>
+                  <Text style={styles.faqQuestionText}>{item.question}</Text>
 
                   <Ionicons
-                    name={
-                      expanded
-                        ? "chevron-up"
-                        : "chevron-down"
-                    }
+                    name={expanded ? "chevron-up" : "chevron-down"}
                     size={23}
                     color={Colors.white}
                   />
                 </Pressable>
 
                 {expanded && (
-                  <Text style={styles.faqAnswer}>
-                    {item.answer}
-                  </Text>
+                  <Text style={styles.faqAnswer}>{item.answer}</Text>
                 )}
               </View>
             );
@@ -457,15 +392,14 @@ export default function CancellationRefundScreen() {
             FOOTER
         ========================================= */}
 
-        <Text style={styles.footer}>
-          Bakasuran · Cancellation & Refund
-        </Text>
+        <Text style={styles.footer}>Bakasuran · Cancellation & Refund</Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Colors) => {
+  return StyleSheet.create({
   // =========================================
   // SCREEN
   // =========================================
@@ -654,7 +588,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     overflow: "hidden",
     marginBottom: 20,
-    backgroundColor: Colors.backgroundLight,
+    backgroundColor: Colors.backgroundElement,
   },
 
   tab: {
@@ -910,4 +844,5 @@ const styles = StyleSheet.create({
     fontSize: Fonts.size.xl,
     marginTop: 12,
   },
-});
+  });
+};

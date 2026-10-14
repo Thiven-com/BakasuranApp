@@ -1,18 +1,11 @@
 import { Stack } from "expo-router";
 
-import Colors from "../constants/Colors";
+import { ThemeProvider } from "../hooks/use-theme";
 
-const RootLayout = () => {
+export default function RootLayout() {
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: {
-          backgroundColor: Colors.background,
-        },
-      }}
-    />
+    <ThemeProvider>
+      <Stack screenOptions={{ headerShown: false }} />
+    </ThemeProvider>
   );
-};
-
-export default RootLayout;
+}

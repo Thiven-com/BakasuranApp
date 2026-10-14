@@ -1,18 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
+import { useMemo } from "react";
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
-import Colors from "../constants/Colors";
+import { useTheme } from "../hooks/use-theme";
 import Fonts from "../constants/Fonts";
 
 const OrderSuccessScreen = () => {
+  const { colors: Colors } = useTheme();
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
   const params = useLocalSearchParams();
 
   const orderId = params.orderId || "BAKA10245";
@@ -212,12 +215,12 @@ const OrderSuccessScreen = () => {
           style={styles.continueButton}
           activeOpacity={0.85}
           onPress={() => {
-            router.replace("/(tabs)");
+            router.replace("/MyOrdersScreen");
           }}
         >
           <Ionicons name="restaurant-outline" size={21} color={Colors.white} />
 
-          <Text style={styles.continueButtonText}>Continue Ordering</Text>
+          <Text style={styles.continueButtonText}>View My Orders</Text>
         </TouchableOpacity>
 
         {/* =====================================
@@ -242,7 +245,7 @@ const OrderSuccessScreen = () => {
 
 export default OrderSuccessScreen;
 
-const styles = StyleSheet.create({
+const createStyles = (Colors) => StyleSheet.create({
   /* =====================================
      CONTAINER
   ===================================== */
@@ -277,7 +280,7 @@ const styles = StyleSheet.create({
 
     borderRadius: 30,
 
-    backgroundColor: "#0D1010",
+    backgroundColor: Colors.backgroundElement,
   },
 
   glow: {
@@ -690,7 +693,7 @@ const styles = StyleSheet.create({
   },
 
   successTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.extraBold,
 
@@ -706,7 +709,7 @@ const styles = StyleSheet.create({
 
     fontFamily: Fonts.medium,
 
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
 
     textAlign: "center",
   },
@@ -748,7 +751,7 @@ const styles = StyleSheet.create({
   orderId: {
     marginTop: 3,
 
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
 
@@ -818,7 +821,7 @@ const styles = StyleSheet.create({
   },
 
   itemName: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
 
@@ -828,11 +831,11 @@ const styles = StyleSheet.create({
   restaurantName: {
     marginTop: 4,
 
-    color: Colors.textSecondary,
+    color: Colors.goldDark,
 
     fontFamily: Fonts.medium,
 
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.base,
   },
 
   orderMeta: {
@@ -898,11 +901,11 @@ const styles = StyleSheet.create({
   },
 
   deliveryTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.semiBold,
 
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.xs,
   },
 
   deliveryText: {
@@ -912,7 +915,7 @@ const styles = StyleSheet.create({
 
     fontFamily: Fonts.regular,
 
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.md,
 
     lineHeight: 17,
   },

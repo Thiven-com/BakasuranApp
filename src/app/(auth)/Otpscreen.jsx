@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Alert,
@@ -18,13 +18,18 @@ import {
   View,
 } from "react-native";
 
-import Colors from "../../constants/Colors";
+// =========================================================
+// GLOBAL COLORS & FONTS
+// =========================================================
 import Fonts from "../../constants/Fonts";
+import { useTheme } from "../../hooks/use-theme";
 
 const { width } = Dimensions.get("window");
 const OTP_LENGTH = 4;
 
 export default function OTPScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { mobile } = useLocalSearchParams();
 
   const [otp, setOtp] = useState(["", "", "", ""]);
@@ -46,9 +51,7 @@ export default function OTPScreen() {
 
   // MOBILE NUMBER
   const mobileNumber =
-    mobile && String(mobile).length > 0
-      ? String(mobile)
-      : "8886742779";
+    mobile && String(mobile).length > 0 ? String(mobile) : "8886742779";
 
   const formattedMobile =
     mobileNumber.length === 10
@@ -78,10 +81,7 @@ export default function OTPScreen() {
 
       setOtp(updatedOTP);
 
-      const nextIndex = Math.min(
-        index + digits.length,
-        OTP_LENGTH - 1
-      );
+      const nextIndex = Math.min(index + digits.length, OTP_LENGTH - 1);
 
       inputRefs.current[nextIndex]?.focus();
       return;
@@ -113,10 +113,7 @@ export default function OTPScreen() {
     const enteredOTP = otp.join("");
 
     if (enteredOTP.length !== OTP_LENGTH) {
-      Alert.alert(
-        "Invalid OTP",
-        "Please enter the complete 4-digit OTP."
-      );
+      Alert.alert("Invalid OTP", "Please enter the complete 4-digit OTP.");
       return;
     }
 
@@ -143,10 +140,7 @@ export default function OTPScreen() {
       inputRefs.current[0]?.focus();
     }, 100);
 
-    Alert.alert(
-      "OTP Sent",
-      "A new OTP has been requested."
-    );
+    Alert.alert("OTP Sent", "A new OTP has been requested.");
   };
 
   // EDIT MOBILE
@@ -158,7 +152,7 @@ export default function OTPScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
         translucent
-        backgroundColor={Colors.transparent}
+        backgroundColor="transparent"
         barStyle="light-content"
       />
 
@@ -187,11 +181,7 @@ export default function OTPScreen() {
               ]}
               onPress={() => router.back()}
             >
-              <Ionicons
-                name="arrow-back"
-                size={24}
-                color={Colors.white}
-              />
+              <Ionicons name="arrow-back" size={24} color={colors.white} />
             </Pressable>
           </View>
 
@@ -202,15 +192,11 @@ export default function OTPScreen() {
               <Text style={styles.titleRed}>OTP</Text>
             </View>
 
-            <Text style={styles.description}>
-              We've sent a 4-digit OTP to
-            </Text>
+            <Text style={styles.description}>We've sent a 4-digit OTP to</Text>
 
             {/* MOBILE NUMBER */}
             <View style={styles.mobileRow}>
-              <Text style={styles.mobileNumber}>
-                {formattedMobile}
-              </Text>
+              <Text style={styles.mobileNumber}>{formattedMobile}</Text>
 
               <Pressable onPress={handleEditMobile} hitSlop={10}>
                 <Text style={styles.editText}>Edit</Text>
@@ -226,18 +212,14 @@ export default function OTPScreen() {
                     inputRefs.current[index] = ref;
                   }}
                   value={digit}
-                  onChangeText={(value) =>
-                    handleOTPChange(value, index)
-                  }
-                  onKeyPress={(event) =>
-                    handleKeyPress(event, index)
-                  }
+                  onChangeText={(value) => handleOTPChange(value, index)}
+                  onKeyPress={(event) => handleKeyPress(event, index)}
                   keyboardType="number-pad"
                   maxLength={index === 0 ? 4 : 1}
                   textContentType="oneTimeCode"
                   autoComplete="sms-otp"
-                  selectionColor={Colors.primary}
-                  placeholderTextColor={Colors.textMuted}
+                  selectionColor={colors.primary}
+                  placeholderTextColor={colors.textMuted}
                   style={[
                     styles.otpInput,
                     digit !== "" && styles.otpInputActive,
@@ -248,23 +230,17 @@ export default function OTPScreen() {
 
             {/* RESEND OTP */}
             <View style={styles.resendRow}>
-              <Text style={styles.resendText}>
-                Didn't receive the OTP?
-              </Text>
+              <Text style={styles.resendText}>Didn't receive the OTP?</Text>
 
               {seconds > 0 ? (
                 <Text style={styles.resendRed}>
-                  {" "}Resend in 00:
+                  {" "}
+                  Resend in 00:
                   {String(seconds).padStart(2, "0")}
                 </Text>
               ) : (
-                <Pressable
-                  onPress={handleResendOTP}
-                  hitSlop={10}
-                >
-                  <Text style={styles.resendRed}>
-                    {" "}Resend OTP
-                  </Text>
+                <Pressable onPress={handleResendOTP} hitSlop={10}>
+                  <Text style={styles.resendRed}> Resend OTP</Text>
                 </Pressable>
               )}
             </View>
@@ -274,9 +250,7 @@ export default function OTPScreen() {
               style={({ pressed }) => [
                 styles.verifyButton,
                 loading && styles.verifyButtonDisabled,
-                pressed &&
-                  !loading &&
-                  styles.verifyButtonPressed,
+                pressed && !loading && styles.verifyButtonPressed,
               ]}
               onPress={handleVerifyOTP}
               disabled={loading}
@@ -289,7 +263,7 @@ export default function OTPScreen() {
                 <Ionicons
                   name="arrow-forward"
                   size={27}
-                  color={Colors.white}
+                  color={colors.white}
                   style={styles.verifyIcon}
                 />
               )}
@@ -300,7 +274,7 @@ export default function OTPScreen() {
               <Ionicons
                 name="shield-checkmark-outline"
                 size={12}
-                color={Colors.textMuted}
+                color={colors.textMuted}
               />
 
               <Text style={styles.securityText}>
@@ -316,33 +290,33 @@ export default function OTPScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   keyboardContainer: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   scrollView: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   scrollContent: {
     flexGrow: 1,
     paddingBottom: 20,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   heroContainer: {
     width: "100%",
     height: width * 1.28,
     position: "relative",
-    backgroundColor: Colors.black,
+    backgroundColor: colors.background,
     overflow: "hidden",
   },
 
@@ -358,11 +332,11 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: Colors.overlay,
+    backgroundColor: colors.overlay,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: Colors.lightOverlay,
+    borderColor: colors.overlayLight,
   },
 
   backButtonPressed: {
@@ -372,7 +346,7 @@ const styles = StyleSheet.create({
 
   otpSection: {
     width: "100%",
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: colors.surface,
     paddingHorizontal: 12,
     paddingTop: 25,
     paddingBottom: 25,
@@ -386,7 +360,7 @@ const styles = StyleSheet.create({
   },
 
   titleWhite: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: Fonts.size.xxl,
     fontFamily: Fonts.extraBold,
     fontWeight: "800",
@@ -394,7 +368,7 @@ const styles = StyleSheet.create({
   },
 
   titleRed: {
-    color: Colors.primary,
+    color: colors.primary,
     fontSize: Fonts.size.xxl,
     fontFamily: Fonts.extraBold,
     fontWeight: "800",
@@ -402,7 +376,7 @@ const styles = StyleSheet.create({
   },
 
   description: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     fontSize: Fonts.size.xl,
     fontFamily: Fonts.regular,
     lineHeight: 20,
@@ -416,7 +390,7 @@ const styles = StyleSheet.create({
   },
 
   mobileNumber: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: Fonts.size.xl,
     fontFamily: Fonts.bold,
     fontWeight: "700",
@@ -424,7 +398,7 @@ const styles = StyleSheet.create({
   },
 
   editText: {
-    color: Colors.primary,
+    color: colors.primary,
     fontSize: Fonts.size.sm,
     fontFamily: Fonts.semiBold,
     fontWeight: "600",
@@ -444,10 +418,10 @@ const styles = StyleSheet.create({
     width: Math.min((width - 80) / 4, 60),
     height: 54,
     borderRadius: 9,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
-    color: Colors.textPrimary,
+    borderColor: colors.border,
+    color: colors.textPrimary,
     textAlign: "center",
     fontSize: Fonts.size.xxl,
     fontFamily: Fonts.bold,
@@ -456,8 +430,8 @@ const styles = StyleSheet.create({
   },
 
   otpInputActive: {
-    borderColor: Colors.borderLight,
-    backgroundColor: Colors.card,
+    borderColor: colors.borderLight,
+    backgroundColor: colors.card,
   },
 
   resendRow: {
@@ -469,13 +443,13 @@ const styles = StyleSheet.create({
   },
 
   resendText: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     fontSize: Fonts.size.xl,
     fontFamily: Fonts.regular,
   },
 
   resendRed: {
-    color: Colors.primary,
+    color: colors.primary,
     fontSize: Fonts.size.xl,
     fontFamily: Fonts.bold,
     fontWeight: "700",
@@ -485,11 +459,11 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 60,
     borderRadius: 25,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: Colors.primary,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.25,
     shadowRadius: 10,
@@ -506,7 +480,7 @@ const styles = StyleSheet.create({
   },
 
   verifyText: {
-    color: Colors.white,
+    color: colors.white,
     fontSize: Fonts.size.xxl,
     fontFamily: Fonts.bold,
     fontWeight: "700",
@@ -524,7 +498,7 @@ const styles = StyleSheet.create({
   },
 
   securityText: {
-    color: Colors.textMuted,
+    color: colors.textMuted,
     fontSize: Fonts.size.base,
     fontFamily: Fonts.regular,
     marginLeft: 4,

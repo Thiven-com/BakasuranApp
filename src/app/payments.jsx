@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   SafeAreaView,
@@ -13,14 +13,16 @@ import {
   View,
 } from "react-native";
 
-import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 /* =========================================================
    PAYMENT SCREEN
 ========================================================= */
 
 export default function PaymentsScreen() {
+  const { colors: Colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
   const [showForm, setShowForm] = useState(false);
 
   const [cardNumber, setCardNumber] = useState("");
@@ -28,8 +30,7 @@ export default function PaymentsScreen() {
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
 
-  const [selectedPayment, setSelectedPayment] =
-    useState("card");
+  const [selectedPayment, setSelectedPayment] = useState("card");
 
   const [paymentMethods, setPaymentMethods] = useState([
     {
@@ -39,7 +40,7 @@ export default function PaymentsScreen() {
       lastFour: "4242",
       name: "Raju Kumar",
       expiry: "12/28",
-      color: "#f82408",
+      color: Colors.info,
     },
     {
       id: 2,
@@ -48,7 +49,7 @@ export default function PaymentsScreen() {
       lastFour: "5678",
       name: "Raju Kumar",
       expiry: "09/27",
-      color: "#f82408",
+      color: Colors.warning,
     },
   ]);
 
@@ -57,13 +58,9 @@ export default function PaymentsScreen() {
   ===================================================== */
 
   const handleCardNumber = (value) => {
-    const numbers = value
-      .replace(/\D/g, "")
-      .slice(0, 16);
+    const numbers = value.replace(/\D/g, "").slice(0, 16);
 
-    const formatted = numbers
-      .replace(/(.{4})/g, "$1 ")
-      .trim();
+    const formatted = numbers.replace(/(.{4})/g, "$1 ").trim();
 
     setCardNumber(formatted);
   };
@@ -73,14 +70,10 @@ export default function PaymentsScreen() {
   ===================================================== */
 
   const handleExpiry = (value) => {
-    const numbers = value
-      .replace(/\D/g, "")
-      .slice(0, 4);
+    const numbers = value.replace(/\D/g, "").slice(0, 4);
 
     if (numbers.length >= 3) {
-      setExpiry(
-        `${numbers.slice(0, 2)}/${numbers.slice(2)}`
-      );
+      setExpiry(`${numbers.slice(0, 2)}/${numbers.slice(2)}`);
     } else {
       setExpiry(numbers);
     }
@@ -91,38 +84,25 @@ export default function PaymentsScreen() {
   ===================================================== */
 
   const handleSaveCard = () => {
-    const cleanCardNumber =
-      cardNumber.replace(/\s/g, "");
+    const cleanCardNumber = cardNumber.replace(/\s/g, "");
 
     if (cleanCardNumber.length !== 16) {
-      Alert.alert(
-        "Invalid Card",
-        "Please enter a valid 16-digit card number."
-      );
+      Alert.alert("Invalid Card", "Please enter a valid 16-digit card number.");
       return;
     }
 
     if (!cardName.trim()) {
-      Alert.alert(
-        "Required",
-        "Please enter the name on the card."
-      );
+      Alert.alert("Required", "Please enter the name on the card.");
       return;
     }
 
     if (expiry.length !== 5) {
-      Alert.alert(
-        "Invalid Expiry",
-        "Please enter expiry in MM/YY format."
-      );
+      Alert.alert("Invalid Expiry", "Please enter expiry in MM/YY format.");
       return;
     }
 
     if (cvv.length !== 3) {
-      Alert.alert(
-        "Invalid CVV",
-        "Please enter a valid 3-digit CVV."
-      );
+      Alert.alert("Invalid CVV", "Please enter a valid 3-digit CVV.");
       return;
     }
 
@@ -138,10 +118,7 @@ export default function PaymentsScreen() {
       color: Colors.info,
     };
 
-    setPaymentMethods((previous) => [
-      ...previous,
-      newCard,
-    ]);
+    setPaymentMethods((previous) => [...previous, newCard]);
 
     setCardNumber("");
     setCardName("");
@@ -151,7 +128,7 @@ export default function PaymentsScreen() {
 
     Alert.alert(
       "Card Added",
-      "Your payment method has been added successfully."
+      "Your payment method has been added successfully.",
     );
   };
 
@@ -173,13 +150,11 @@ export default function PaymentsScreen() {
           style: "destructive",
           onPress: () => {
             setPaymentMethods((previous) =>
-              previous.filter(
-                (item) => item.id !== id
-              )
+              previous.filter((item) => item.id !== id),
             );
           },
         },
-      ]
+      ],
     );
   };
 
@@ -198,7 +173,7 @@ export default function PaymentsScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
-        barStyle="light-content"
+        barStyle={isDark ? "light-content" : "dark-content"}
         backgroundColor={Colors.background}
       />
 
@@ -212,16 +187,10 @@ export default function PaymentsScreen() {
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
-          <Ionicons
-            name="chevron-back"
-            size={26}
-            color={Colors.white}
-          />
+          <Ionicons name="chevron-back" size={26} color={Colors.textPrimary} />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>
-          Payment Methods
-        </Text>
+        <Text style={styles.headerTitle}>Payment Methods</Text>
 
         <View style={styles.headerSpace} />
       </View>
@@ -236,9 +205,7 @@ export default function PaymentsScreen() {
         ================================================= */}
 
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>
-            Your Payment Methods
-          </Text>
+          <Text style={styles.title}>Your Payment Methods</Text>
 
           <Text style={styles.subtitle}>
             Manage your cards and payment options
@@ -254,18 +221,15 @@ export default function PaymentsScreen() {
             <Ionicons
               name="shield-checkmark-outline"
               size={23}
-              color={Colors.primary}
+              color={Colors.success}
             />
           </View>
 
           <View style={styles.secureContent}>
-            <Text style={styles.secureTitle}>
-              Secure Payments
-            </Text>
+            <Text style={styles.secureTitle}>Secure Payments</Text>
 
             <Text style={styles.secureText}>
-              Your payment information is protected
-              and encrypted.
+              Your payment information is protected and encrypted.
             </Text>
           </View>
         </View>
@@ -281,12 +245,9 @@ export default function PaymentsScreen() {
                 key={item.id}
                 style={[
                   styles.paymentCard,
-                  selectedPayment === String(item.id) &&
-                    styles.selectedCard,
+                  selectedPayment === String(item.id) && styles.selectedCard,
                 ]}
-                onPress={() =>
-                  setSelectedPayment(String(item.id))
-                }
+                onPress={() => setSelectedPayment(String(item.id))}
                 activeOpacity={0.8}
               >
                 {/* CARD ICON */}
@@ -299,20 +260,14 @@ export default function PaymentsScreen() {
                     },
                   ]}
                 >
-                  <Ionicons
-                    name="card-outline"
-                    size={25}
-                    color={item.color}
-                  />
+                  <Ionicons name="card-outline" size={25} color={item.color} />
                 </View>
 
                 {/* CARD DETAILS */}
 
                 <View style={styles.cardInfo}>
                   <View style={styles.cardTitleRow}>
-                    <Text style={styles.cardType}>
-                      {item.cardType}
-                    </Text>
+                    <Text style={styles.cardType}>{item.cardType}</Text>
 
                     <View
                       style={[
@@ -339,22 +294,16 @@ export default function PaymentsScreen() {
                     •••• •••• •••• {item.lastFour}
                   </Text>
 
-                  <Text style={styles.cardName}>
-                    {item.name}
-                  </Text>
+                  <Text style={styles.cardName}>{item.name}</Text>
 
-                  <Text style={styles.expiryText}>
-                    Expires {item.expiry}
-                  </Text>
+                  <Text style={styles.expiryText}>Expires {item.expiry}</Text>
                 </View>
 
                 {/* DELETE */}
 
                 <TouchableOpacity
                   style={styles.deleteButton}
-                  onPress={() =>
-                    handleDelete(item.id)
-                  }
+                  onPress={() => handleDelete(item.id)}
                   activeOpacity={0.7}
                 >
                   <Ionicons
@@ -384,9 +333,7 @@ export default function PaymentsScreen() {
               color={Colors.white}
             />
 
-            <Text style={styles.addButtonText}>
-              Add New Card
-            </Text>
+            <Text style={styles.addButtonText}>Add New Card</Text>
           </TouchableOpacity>
         )}
 
@@ -397,27 +344,16 @@ export default function PaymentsScreen() {
         {showForm && (
           <View style={styles.formCard}>
             <View style={styles.formHeader}>
-              <Text style={styles.formTitle}>
-                Add New Card
-              </Text>
+              <Text style={styles.formTitle}>Add New Card</Text>
 
-              <TouchableOpacity
-                onPress={handleCancel}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name="close"
-                  size={25}
-                  color={Colors.textSecondary}
-                />
+              <TouchableOpacity onPress={handleCancel} activeOpacity={0.7}>
+                <Ionicons name="close" size={25} color={Colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
             {/* CARD NUMBER */}
 
-            <Text style={styles.inputLabel}>
-              Card Number
-            </Text>
+            <Text style={styles.inputLabel}>Card Number</Text>
 
             <View style={styles.inputContainer}>
               <Ionicons
@@ -439,9 +375,7 @@ export default function PaymentsScreen() {
 
             {/* CARD NAME */}
 
-            <Text style={styles.inputLabel}>
-              Name on Card
-            </Text>
+            <Text style={styles.inputLabel}>Name on Card</Text>
 
             <View style={styles.inputContainer}>
               <Ionicons
@@ -464,9 +398,7 @@ export default function PaymentsScreen() {
 
             <View style={styles.row}>
               <View style={styles.halfInput}>
-                <Text style={styles.inputLabel}>
-                  Expiry
-                </Text>
+                <Text style={styles.inputLabel}>Expiry</Text>
 
                 <View style={styles.inputContainer}>
                   <Ionicons
@@ -488,9 +420,7 @@ export default function PaymentsScreen() {
               </View>
 
               <View style={styles.halfInput}>
-                <Text style={styles.inputLabel}>
-                  CVV
-                </Text>
+                <Text style={styles.inputLabel}>CVV</Text>
 
                 <View style={styles.inputContainer}>
                   <Ionicons
@@ -502,11 +432,7 @@ export default function PaymentsScreen() {
                   <TextInput
                     value={cvv}
                     onChangeText={(value) =>
-                      setCvv(
-                        value
-                          .replace(/\D/g, "")
-                          .slice(0, 3)
-                      )
+                      setCvv(value.replace(/\D/g, "").slice(0, 3))
                     }
                     placeholder="CVV"
                     placeholderTextColor={Colors.textMuted}
@@ -532,9 +458,7 @@ export default function PaymentsScreen() {
                 color={Colors.white}
               />
 
-              <Text style={styles.saveButtonText}>
-                Save Card
-              </Text>
+              <Text style={styles.saveButtonText}>Save Card</Text>
             </TouchableOpacity>
 
             {/* CANCEL */}
@@ -544,9 +468,7 @@ export default function PaymentsScreen() {
               onPress={handleCancel}
               activeOpacity={0.7}
             >
-              <Text style={styles.cancelText}>
-                Cancel
-              </Text>
+              <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -555,9 +477,7 @@ export default function PaymentsScreen() {
             OTHER PAYMENT OPTIONS
         ================================================= */}
 
-        <Text style={styles.sectionTitle}>
-          Other Payment Options
-        </Text>
+        <Text style={styles.sectionTitle}>Other Payment Options</Text>
 
         <View style={styles.otherCard}>
           {/* UPI */}
@@ -568,7 +488,7 @@ export default function PaymentsScreen() {
             onPress={() =>
               Alert.alert(
                 "UPI",
-                "UPI payment will be available during checkout."
+                "UPI payment will be available during checkout.",
               )
             }
           >
@@ -588,13 +508,9 @@ export default function PaymentsScreen() {
             </View>
 
             <View style={styles.otherInfo}>
-              <Text style={styles.otherTitle}>
-                UPI
-              </Text>
+              <Text style={styles.otherTitle}>UPI</Text>
 
-              <Text style={styles.otherSubtitle}>
-                Pay using any UPI app
-              </Text>
+              <Text style={styles.otherSubtitle}>Pay using any UPI app</Text>
             </View>
 
             <Ionicons
@@ -607,15 +523,12 @@ export default function PaymentsScreen() {
           {/* CASH */}
 
           <TouchableOpacity
-            style={[
-              styles.otherRow,
-              styles.lastOtherRow,
-            ]}
+            style={[styles.otherRow, styles.lastOtherRow]}
             activeOpacity={0.7}
             onPress={() =>
               Alert.alert(
                 "Cash on Delivery",
-                "Cash on Delivery will be available during checkout."
+                "Cash on Delivery will be available during checkout.",
               )
             }
           >
@@ -623,21 +536,15 @@ export default function PaymentsScreen() {
               style={[
                 styles.otherIcon,
                 {
-                  backgroundColor: `${Colors.primary}18`,
+                  backgroundColor: `${Colors.success}18`,
                 },
               ]}
             >
-              <Ionicons
-                name="cash-outline"
-                size={22}
-                color={Colors.primary}
-              />
+              <Ionicons name="cash-outline" size={22} color={Colors.success} />
             </View>
 
             <View style={styles.otherInfo}>
-              <Text style={styles.otherTitle}>
-                Cash on Delivery
-              </Text>
+              <Text style={styles.otherTitle}>Cash on Delivery</Text>
 
               <Text style={styles.otherSubtitle}>
                 Pay when your order arrives
@@ -657,11 +564,7 @@ export default function PaymentsScreen() {
         ================================================= */}
 
         <View style={styles.bottomSecurity}>
-          <Ionicons
-            name="shield-checkmark"
-            size={18}
-            color={Colors.primary}
-          />
+          <Ionicons name="shield-checkmark" size={18} color={Colors.success} />
 
           <Text style={styles.bottomSecurityText}>
             Your payment details are safe and secure
@@ -676,475 +579,476 @@ export default function PaymentsScreen() {
    STYLES
 ========================================================= */
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+const createStyles = (Colors) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
 
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 40,
-  },
+    scrollContent: {
+      paddingHorizontal: 16,
+      paddingBottom: 40,
+    },
 
-  /* ================= HEADER ================= */
+    /* ================= HEADER ================= */
 
-  header: {
-    height: 62,
-    paddingHorizontal: 16,
+    header: {
+      height: 62,
+      paddingHorizontal: 16,
 
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
 
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.border,
+    },
 
-  backButton: {
-    width: 42,
-    height: 42,
+    backButton: {
+      width: 42,
+      height: 42,
 
-    borderRadius: 21,
+      borderRadius: 21,
 
-    backgroundColor: Colors.card,
+      backgroundColor: Colors.card,
 
-    justifyContent: "center",
-    alignItems: "center",
+      justifyContent: "center",
+      alignItems: "center",
 
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
 
-  headerTitle: {
-    color: Colors.textPrimary,
+    headerTitle: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xxl,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xl,
+    },
 
-  headerSpace: {
-    width: 42,
-  },
+    headerSpace: {
+      width: 42,
+    },
 
-  /* ================= TITLE ================= */
+    /* ================= TITLE ================= */
 
-  titleContainer: {
-    marginTop: 22,
-    marginBottom: 18,
-  },
+    titleContainer: {
+      marginTop: 22,
+      marginBottom: 18,
+    },
 
-  title: {
-    color: Colors.textPrimary,
+    title: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xxl,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xxl,
+    },
 
-  subtitle: {
-    color: Colors.textSecondary,
+    subtitle: {
+      color: Colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.sm,
 
-    marginTop: 6,
-  },
+      marginTop: 6,
+    },
 
-  /* ================= SECURE ================= */
+    /* ================= SECURE ================= */
 
-  secureCard: {
-    backgroundColor: Colors.surface,
+    secureCard: {
+      backgroundColor: Colors.surface,
 
-    borderRadius: 15,
+      borderRadius: 15,
 
-    borderWidth: 1,
-    borderColor: Colors.border,
+      borderWidth: 1,
+      borderColor: Colors.border,
 
-    padding: 13,
+      padding: 13,
 
-    flexDirection: "row",
-    alignItems: "center",
+      flexDirection: "row",
+      alignItems: "center",
 
-    marginBottom: 18,
-  },
+      marginBottom: 18,
+    },
 
-  secureIcon: {
-    width: 42,
-    height: 42,
+    secureIcon: {
+      width: 42,
+      height: 42,
 
-    borderRadius: 12,
+      borderRadius: 12,
 
-    backgroundColor: Colors.backgroundSecondary,
+      backgroundColor: Colors.backgroundSecondary,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  secureContent: {
-    flex: 1,
+    secureContent: {
+      flex: 1,
 
-    marginLeft: 11,
-  },
+      marginLeft: 11,
+    },
 
-  secureTitle: {
-    color: Colors.textPrimary,
+    secureTitle: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xl,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.md,
+    },
 
-  secureText: {
-    color: Colors.textSecondary,
+    secureText: {
+      color: Colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xs,
 
-    marginTop: 3,
-  },
+      marginTop: 3,
+    },
 
-  /* ================= PAYMENT CARDS ================= */
+    /* ================= PAYMENT CARDS ================= */
 
-  methodsContainer: {
-    gap: 13,
-  },
+    methodsContainer: {
+      gap: 13,
+    },
 
-  paymentCard: {
-    minHeight: 145,
+    paymentCard: {
+      minHeight: 145,
 
-    backgroundColor: Colors.card,
+      backgroundColor: Colors.card,
 
-    borderRadius: 18,
+      borderRadius: 18,
 
-    borderWidth: 1,
-    borderColor: Colors.border,
+      borderWidth: 1,
+      borderColor: Colors.border,
 
-    padding: 15,
+      padding: 15,
 
-    flexDirection: "row",
-  },
+      flexDirection: "row",
+    },
 
-  selectedCard: {
-    borderColor: Colors.primary,
-  },
+    selectedCard: {
+      borderColor: Colors.primary,
+    },
 
-  cardIcon: {
-    width: 46,
-    height: 46,
+    cardIcon: {
+      width: 46,
+      height: 46,
 
-    borderRadius: 13,
+      borderRadius: 13,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  cardInfo: {
-    flex: 1,
+    cardInfo: {
+      flex: 1,
 
-    marginLeft: 13,
-  },
+      marginLeft: 13,
+    },
 
-  cardTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+    cardTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
 
-  cardType: {
-    color: Colors.textPrimary,
+    cardType: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xl,
+      fontFamily: Fonts.extraBold,
+      fontSize: Fonts.size.md,
 
-    letterSpacing: 1,
-  },
+      letterSpacing: 1,
+    },
 
-  defaultBadge: {
-    paddingHorizontal: 7,
-    paddingVertical: 4,
+    defaultBadge: {
+      paddingHorizontal: 7,
+      paddingVertical: 4,
 
-    borderRadius: 6,
+      borderRadius: 6,
 
-    marginLeft: 8,
-  },
+      marginLeft: 8,
+    },
 
-  defaultText: {
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xl,
+    defaultText: {
+      fontFamily: Fonts.extraBold,
+      fontSize: Fonts.xs,
 
-    letterSpacing: 0.5,
-  },
+      letterSpacing: 0.5,
+    },
 
-  cardNumber: {
-    color: Colors.textPrimary,
+    cardNumber: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.base,
 
-    letterSpacing: 1.5,
+      letterSpacing: 1.5,
 
-    marginTop: 11,
-  },
+      marginTop: 11,
+    },
 
-  cardName: {
-    color: Colors.textSecondary,
+    cardName: {
+      color: Colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xs,
 
-    textTransform: "uppercase",
+      textTransform: "uppercase",
 
-    marginTop: 9,
-  },
+      marginTop: 9,
+    },
 
-  expiryText: {
-    color: Colors.textMuted,
+    expiryText: {
+      color: Colors.textMuted,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xs,
 
-    marginTop: 3,
-  },
+      marginTop: 3,
+    },
 
-  deleteButton: {
-    width: 38,
-    height: 38,
+    deleteButton: {
+      width: 38,
+      height: 38,
 
-    borderRadius: 12,
+      borderRadius: 12,
 
-    backgroundColor: Colors.surface,
+      backgroundColor: Colors.surface,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  /* ================= ADD ================= */
+    /* ================= ADD ================= */
 
-  addButton: {
-    height: 56,
+    addButton: {
+      height: 56,
 
-    borderRadius: 28,
+      borderRadius: 28,
 
-    backgroundColor: Colors.primary,
+      backgroundColor: Colors.primary,
 
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
 
-    marginTop: 18,
-  },
+      marginTop: 18,
+    },
 
-  addButtonText: {
-    color: Colors.white,
+    addButtonText: {
+      color: Colors.white,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xxl,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.base,
 
-    marginLeft: 8,
-  },
+      marginLeft: 8,
+    },
 
-  /* ================= FORM ================= */
+    /* ================= FORM ================= */
 
-  formCard: {
-    backgroundColor: Colors.card,
+    formCard: {
+      backgroundColor: Colors.card,
 
-    borderRadius: 18,
+      borderRadius: 18,
 
-    borderWidth: 1,
-    borderColor: Colors.border,
+      borderWidth: 1,
+      borderColor: Colors.border,
 
-    padding: 16,
+      padding: 16,
 
-    marginTop: 18,
-  },
+      marginTop: 18,
+    },
 
-  formHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    formHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
 
-    marginBottom: 10,
-  },
+      marginBottom: 10,
+    },
 
-  formTitle: {
-    color: Colors.textPrimary,
+    formTitle: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xxl,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xl,
+    },
 
-  inputLabel: {
-    color: Colors.textSecondary,
+    inputLabel: {
+      color: Colors.textSecondary,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.xl,
+      fontFamily: Fonts.semiBold,
+      fontSize: Fonts.size.sm,
 
-    marginTop: 14,
-    marginBottom: 8,
-  },
+      marginTop: 14,
+      marginBottom: 8,
+    },
 
-  inputContainer: {
-    minHeight: 52,
+    inputContainer: {
+      minHeight: 52,
 
-    borderRadius: 13,
+      borderRadius: 13,
 
-    backgroundColor: Colors.backgroundSecondary,
+      backgroundColor: Colors.backgroundSecondary,
 
-    borderWidth: 1,
-    borderColor: Colors.border,
+      borderWidth: 1,
+      borderColor: Colors.border,
 
-    flexDirection: "row",
-    alignItems: "center",
+      flexDirection: "row",
+      alignItems: "center",
 
-    paddingHorizontal: 14,
-  },
+      paddingHorizontal: 14,
+    },
 
-  input: {
-    flex: 1,
+    input: {
+      flex: 1,
 
-    color: Colors.textPrimary,
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.md,
 
-    marginLeft: 10,
+      marginLeft: 10,
 
-    paddingVertical: 10,
-  },
+      paddingVertical: 10,
+    },
 
-  row: {
-    flexDirection: "row",
+    row: {
+      flexDirection: "row",
 
-    gap: 10,
-  },
+      gap: 10,
+    },
 
-  halfInput: {
-    flex: 1,
-  },
+    halfInput: {
+      flex: 1,
+    },
 
-  saveButton: {
-    height: 56,
+    saveButton: {
+      height: 56,
 
-    borderRadius: 28,
+      borderRadius: 28,
 
-    backgroundColor: Colors.primary,
+      backgroundColor: Colors.primary,
 
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
 
-    marginTop: 25,
-  },
+      marginTop: 25,
+    },
 
-  saveButtonText: {
-    color: Colors.white,
+    saveButtonText: {
+      color: Colors.white,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xxl,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.base,
 
-    marginLeft: 8,
-  },
+      marginLeft: 8,
+    },
 
-  cancelButton: {
-    height: 48,
+    cancelButton: {
+      height: 48,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  cancelText: {
-    color: Colors.textSecondary,
+    cancelText: {
+      color: Colors.textSecondary,
 
-    fontFamily: Fonts.medium,
-    fontSize: Fonts.size.xl,
-  },
+      fontFamily: Fonts.medium,
+      fontSize: Fonts.size.md,
+    },
 
-  /* ================= OTHER ================= */
+    /* ================= OTHER ================= */
 
-  sectionTitle: {
-    color: Colors.textPrimary,
+    sectionTitle: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xxl,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xl,
 
-    marginTop: 27,
-    marginBottom: 13,
-  },
+      marginTop: 27,
+      marginBottom: 13,
+    },
 
-  otherCard: {
-    backgroundColor: Colors.card,
+    otherCard: {
+      backgroundColor: Colors.card,
 
-    borderRadius: 18,
+      borderRadius: 18,
 
-    borderWidth: 1,
-    borderColor: Colors.border,
+      borderWidth: 1,
+      borderColor: Colors.border,
 
-    overflow: "hidden",
-  },
+      overflow: "hidden",
+    },
 
-  otherRow: {
-    minHeight: 72,
+    otherRow: {
+      minHeight: 72,
 
-    flexDirection: "row",
-    alignItems: "center",
+      flexDirection: "row",
+      alignItems: "center",
 
-    paddingHorizontal: 14,
+      paddingHorizontal: 14,
 
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.border,
+    },
 
-  lastOtherRow: {
-    borderBottomWidth: 0,
-  },
+    lastOtherRow: {
+      borderBottomWidth: 0,
+    },
 
-  otherIcon: {
-    width: 43,
-    height: 43,
+    otherIcon: {
+      width: 43,
+      height: 43,
 
-    borderRadius: 13,
+      borderRadius: 13,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  otherInfo: {
-    flex: 1,
+    otherInfo: {
+      flex: 1,
 
-    marginLeft: 12,
-  },
+      marginLeft: 12,
+    },
 
-  otherTitle: {
-    color: Colors.textPrimary,
+    otherTitle: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xl,
-  },
+      fontFamily: Fonts.semiBold,
+      fontSize: Fonts.size.md,
+    },
 
-  otherSubtitle: {
-    color: Colors.textSecondary,
+    otherSubtitle: {
+      color: Colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xs,
 
-    marginTop: 4,
-  },
+      marginTop: 4,
+    },
 
-  /* ================= SECURITY ================= */
+    /* ================= SECURITY ================= */
 
-  bottomSecurity: {
-    flexDirection: "row",
+    bottomSecurity: {
+      flexDirection: "row",
 
-    alignItems: "center",
-    justifyContent: "center",
+      alignItems: "center",
+      justifyContent: "center",
 
-    marginTop: 25,
-  },
+      marginTop: 25,
+    },
 
-  bottomSecurityText: {
-    color: Colors.textMuted,
+    bottomSecurityText: {
+      color: Colors.textMuted,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xs,
 
-    marginLeft: 7,
-  },
-});
+      marginLeft: 7,
+    },
+  });

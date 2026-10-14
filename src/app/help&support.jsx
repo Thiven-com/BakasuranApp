@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Linking,
@@ -14,10 +14,12 @@ import {
   View,
 } from "react-native";
 
-import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 export default function HelpSupportScreen() {
+  const { colors: Colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
   const [expandedFaq, setExpandedFaq] = useState(null);
   const [message, setMessage] = useState("");
 
@@ -55,28 +57,18 @@ export default function HelpSupportScreen() {
   ];
 
   const toggleFaq = (id) => {
-    setExpandedFaq((previous) =>
-      previous === id ? null : id
-    );
+    setExpandedFaq((previous) => (previous === id ? null : id));
   };
 
   const handleCall = () => {
     Linking.openURL("tel:+919876543210").catch(() => {
-      Alert.alert(
-        "Unable to Call",
-        "Calling is not available on this device."
-      );
+      Alert.alert("Unable to Call", "Calling is not available on this device.");
     });
   };
 
   const handleEmail = () => {
-    Linking.openURL(
-      "mailto:support@bakasuran.com"
-    ).catch(() => {
-      Alert.alert(
-        "Unable to Open Email",
-        "No email application is available."
-      );
+    Linking.openURL("mailto:support@bakasuran.com").catch(() => {
+      Alert.alert("Unable to Open Email", "No email application is available.");
     });
   };
 
@@ -84,7 +76,7 @@ export default function HelpSupportScreen() {
     if (!message.trim()) {
       Alert.alert(
         "Message Required",
-        "Please enter your message before submitting."
+        "Please enter your message before submitting.",
       );
       return;
     }
@@ -97,14 +89,14 @@ export default function HelpSupportScreen() {
           text: "OK",
           onPress: () => setMessage(""),
         },
-      ]
+      ],
     );
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
-        barStyle="light-content"
+        barStyle={isDark ? "light-content" : "dark-content"}
         backgroundColor={Colors.background}
       />
 
@@ -119,13 +111,11 @@ export default function HelpSupportScreen() {
           <Ionicons
             name="chevron-back"
             size={26}
-            color={Colors.white}
+            color={Colors.textPrimary}
           />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>
-          Help & Support
-        </Text>
+        <Text style={styles.headerTitle}>Help & Support</Text>
 
         <View style={styles.headerSpace} />
       </View>
@@ -138,9 +128,7 @@ export default function HelpSupportScreen() {
         {/* ================= TITLE ================= */}
 
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>
-            How can we help?
-          </Text>
+          <Text style={styles.title}>How can we help?</Text>
 
           <Text style={styles.subtitle}>
             Find answers or contact our support team
@@ -151,20 +139,13 @@ export default function HelpSupportScreen() {
 
         <View style={styles.contactCard}>
           <View style={styles.contactIcon}>
-            <Ionicons
-              name="headset-outline"
-              size={30}
-              color={Colors.primary}
-            />
+            <Ionicons name="headset-outline" size={30} color={Colors.primary} />
           </View>
 
-          <Text style={styles.contactTitle}>
-            Need Help?
-          </Text>
+          <Text style={styles.contactTitle}>Need Help?</Text>
 
           <Text style={styles.contactText}>
-            Our support team is here to help you with
-            your orders and account.
+            Our support team is here to help you with your orders and account.
           </Text>
 
           <View style={styles.contactButtons}>
@@ -175,34 +156,23 @@ export default function HelpSupportScreen() {
               onPress={handleCall}
               activeOpacity={0.8}
             >
-              <Ionicons
-                name="call-outline"
-                size={25}
-                color={Colors.white}
-              />
+              <Ionicons name="call-outline" size={25} color={Colors.white} />
 
-              <Text style={styles.contactButtonText}>
-                Call Us
-              </Text>
+              <Text style={styles.contactButtonText}>Call Us</Text>
             </TouchableOpacity>
 
             {/* EMAIL */}
 
             <TouchableOpacity
-              style={[
-                styles.contactButton,
-                styles.emailButton,
-              ]}
+              style={[styles.contactButton, styles.emailButton]}
               onPress={handleEmail}
               activeOpacity={0.8}
             >
-              <Ionicons
-                name="mail-outline"
-                size={25}
-                color={Colors.white}
-              />
+              <Ionicons name="mail-outline" size={25} color={Colors.primary} />
 
-              <Text style={styles.contactButtonText}>
+              <Text
+                style={[styles.contactButtonText, styles.emailButtonText]}
+              >
                 Email Us
               </Text>
             </TouchableOpacity>
@@ -211,9 +181,7 @@ export default function HelpSupportScreen() {
 
         {/* ================= QUICK HELP ================= */}
 
-        <Text style={styles.sectionTitle}>
-          Quick Help
-        </Text>
+        <Text style={styles.sectionTitle}>Quick Help</Text>
 
         <View style={styles.quickHelpCard}>
           {/* ORDERS */}
@@ -239,9 +207,7 @@ export default function HelpSupportScreen() {
             </View>
 
             <View style={styles.quickContent}>
-              <Text style={styles.quickTitle}>
-                My Orders
-              </Text>
+              <Text style={styles.quickTitle}>My Orders</Text>
 
               <Text style={styles.quickSubtitle}>
                 Track or manage your orders
@@ -278,9 +244,7 @@ export default function HelpSupportScreen() {
             </View>
 
             <View style={styles.quickContent}>
-              <Text style={styles.quickTitle}>
-                Delivery Address
-              </Text>
+              <Text style={styles.quickTitle}>Delivery Address</Text>
 
               <Text style={styles.quickSubtitle}>
                 Manage your saved addresses
@@ -297,10 +261,7 @@ export default function HelpSupportScreen() {
           {/* PAYMENT */}
 
           <TouchableOpacity
-            style={[
-              styles.quickHelpRow,
-              styles.lastQuickHelpRow,
-            ]}
+            style={[styles.quickHelpRow, styles.lastQuickHelpRow]}
             activeOpacity={0.7}
             onPress={() => router.push("/payments")}
           >
@@ -312,17 +273,11 @@ export default function HelpSupportScreen() {
                 },
               ]}
             >
-              <Ionicons
-                name="card-outline"
-                size={25}
-                color={Colors.primary}
-              />
+              <Ionicons name="card-outline" size={25} color={Colors.primary} />
             </View>
 
             <View style={styles.quickContent}>
-              <Text style={styles.quickTitle}>
-                Payment Methods
-              </Text>
+              <Text style={styles.quickTitle}>Payment Methods</Text>
 
               <Text style={styles.quickSubtitle}>
                 Manage your payment options
@@ -339,22 +294,18 @@ export default function HelpSupportScreen() {
 
         {/* ================= FAQ ================= */}
 
-        <Text style={styles.sectionTitle}>
-          Frequently Asked Questions
-        </Text>
+        <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
 
         <View style={styles.faqCard}>
           {faqs.map((faq, index) => {
-            const isExpanded =
-              expandedFaq === faq.id;
+            const isExpanded = expandedFaq === faq.id;
 
             return (
               <View
                 key={faq.id}
                 style={[
                   styles.faqItem,
-                  index === faqs.length - 1 &&
-                    styles.lastFaqItem,
+                  index === faqs.length - 1 && styles.lastFaqItem,
                 ]}
               >
                 <TouchableOpacity
@@ -370,16 +321,10 @@ export default function HelpSupportScreen() {
                     />
                   </View>
 
-                  <Text style={styles.questionText}>
-                    {faq.question}
-                  </Text>
+                  <Text style={styles.questionText}>{faq.question}</Text>
 
                   <Ionicons
-                    name={
-                      isExpanded
-                        ? "chevron-up"
-                        : "chevron-down"
-                    }
+                    name={isExpanded ? "chevron-up" : "chevron-down"}
                     size={19}
                     color={Colors.textSecondary}
                   />
@@ -387,9 +332,7 @@ export default function HelpSupportScreen() {
 
                 {isExpanded && (
                   <View style={styles.answerContainer}>
-                    <Text style={styles.answerText}>
-                      {faq.answer}
-                    </Text>
+                    <Text style={styles.answerText}>{faq.answer}</Text>
                   </View>
                 )}
               </View>
@@ -399,14 +342,10 @@ export default function HelpSupportScreen() {
 
         {/* ================= CONTACT MESSAGE ================= */}
 
-        <Text style={styles.sectionTitle}>
-          Contact Support
-        </Text>
+        <Text style={styles.sectionTitle}>Contact Support</Text>
 
         <View style={styles.messageCard}>
-          <Text style={styles.messageTitle}>
-            Send us a message
-          </Text>
+          <Text style={styles.messageTitle}>Send us a message</Text>
 
           <Text style={styles.messageSubtitle}>
             Tell us how we can help you.
@@ -435,15 +374,9 @@ export default function HelpSupportScreen() {
             onPress={handleSubmit}
             activeOpacity={0.8}
           >
-            <Ionicons
-              name="send-outline"
-              size={20}
-              color={Colors.white}
-            />
+            <Ionicons name="send-outline" size={20} color={Colors.white} />
 
-            <Text style={styles.submitText}>
-              Send Message
-            </Text>
+            <Text style={styles.submitText}>Send Message</Text>
           </TouchableOpacity>
         </View>
 
@@ -451,17 +384,11 @@ export default function HelpSupportScreen() {
 
         <View style={styles.supportInfo}>
           <View style={styles.supportInfoIcon}>
-            <Ionicons
-              name="time-outline"
-              size={19}
-              color={Colors.primary}
-            />
+            <Ionicons name="time-outline" size={19} color={Colors.primary} />
           </View>
 
           <View style={styles.supportInfoContent}>
-            <Text style={styles.supportInfoTitle}>
-              Support Hours
-            </Text>
+            <Text style={styles.supportInfoTitle}>Support Hours</Text>
 
             <Text style={styles.supportInfoText}>
               Monday - Sunday • 9:00 AM - 10:00 PM
@@ -471,13 +398,9 @@ export default function HelpSupportScreen() {
 
         {/* ================= BOTTOM ================= */}
 
-        <Text style={styles.bottomText}>
-          BAKASURAN Support
-        </Text>
+        <Text style={styles.bottomText}>BAKASURAN Support</Text>
 
-        <Text style={styles.versionText}>
-          Version 1.0.0
-        </Text>
+        <Text style={styles.versionText}>Version 1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -487,7 +410,7 @@ export default function HelpSupportScreen() {
    STYLES
 ========================================================= */
 
-const styles = StyleSheet.create({
+const createStyles = (Colors) => StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -527,7 +450,7 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.xxl,
@@ -545,7 +468,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.extraBold,
     fontSize: Fonts.size.xxl,
@@ -589,7 +512,7 @@ const styles = StyleSheet.create({
   },
 
   contactTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.extraBold,
     fontSize: Fonts.size.xl,
@@ -639,6 +562,10 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
 
+  emailButtonText: {
+    color: Colors.primary,
+  },
+
   contactButtonText: {
     color: Colors.white,
 
@@ -651,7 +578,7 @@ const styles = StyleSheet.create({
   /* ================= SECTION ================= */
 
   sectionTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.regular,
     fontSize: Fonts.size.xxl,
@@ -706,7 +633,7 @@ const styles = StyleSheet.create({
   },
 
   quickTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.regular,
     fontSize: Fonts.size.xl,
@@ -767,7 +694,7 @@ const styles = StyleSheet.create({
   questionText: {
     flex: 1,
 
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.medium,
     fontSize: Fonts.size.base,
@@ -805,7 +732,7 @@ const styles = StyleSheet.create({
   },
 
   messageTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.regular,
     fontSize: Fonts.size.xl,
@@ -842,7 +769,7 @@ const styles = StyleSheet.create({
 
     minHeight: 85,
 
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.regular,
     fontSize: Fonts.size.xl,
@@ -911,7 +838,7 @@ const styles = StyleSheet.create({
   },
 
   supportInfoTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.regular,
     fontSize: Fonts.size.base,

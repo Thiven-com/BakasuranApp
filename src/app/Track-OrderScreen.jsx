@@ -1,17 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
+import { useMemo } from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
-import Colors from "../constants/Colors";
+import { useTheme } from "../hooks/use-theme";
 import Fonts from "../constants/Fonts";
 
 const TrackOrderScreen = () => {
+  const { colors: Colors } = useTheme();
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
   const params = useLocalSearchParams();
 
   const orderId = params.orderId || "BAKA10245";
@@ -29,13 +32,13 @@ const TrackOrderScreen = () => {
           activeOpacity={0.8}
           onPress={() => router.back()}
         >
-          <Ionicons name="chevron-back" size={24} color={Colors.white} />
+          <Ionicons name="chevron-back" size={24} color={Colors.textPrimary} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Track Order</Text>
 
         <TouchableOpacity style={styles.headerButton} activeOpacity={0.8}>
-          <Ionicons name="help-circle-outline" size={23} color={Colors.white} />
+          <Ionicons name="help-circle-outline" size={23} color={Colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -74,17 +77,19 @@ const TrackOrderScreen = () => {
             <View style={styles.progressActive} />
 
             <View style={styles.progressSteps}>
-              <ProgressStep icon="checkmark" title="Order" active completed />
+              <ProgressStep icon="checkmark" title="Order" active completed styles={styles} Colors={Colors} />
 
               <ProgressStep
                 icon="restaurant-outline"
                 title="Preparing"
                 active
+                styles={styles}
+                Colors={Colors}
               />
 
-              <ProgressStep icon="bicycle-outline" title="On the way" />
+              <ProgressStep icon="bicycle-outline" title="On the way" styles={styles} Colors={Colors} />
 
-              <ProgressStep icon="home-outline" title="Delivered" />
+              <ProgressStep icon="home-outline" title="Delivered" styles={styles} Colors={Colors} />
             </View>
           </View>
         </View>
@@ -319,7 +324,7 @@ const TrackOrderScreen = () => {
    PROGRESS STEP
 ========================================= */
 
-const ProgressStep = ({ icon, title, active, completed }) => {
+const ProgressStep = ({ icon, title, active, completed, styles, Colors }) => {
   return (
     <View style={styles.progressStep}>
       <View
@@ -347,7 +352,7 @@ const ProgressStep = ({ icon, title, active, completed }) => {
 
 export default TrackOrderScreen;
 
-const styles = StyleSheet.create({
+const createStyles = (Colors) => StyleSheet.create({
   /* =========================================
      MAIN
   ========================================= */
@@ -396,7 +401,7 @@ const styles = StyleSheet.create({
 
     marginLeft: 12,
 
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.xl,
@@ -437,7 +442,7 @@ const styles = StyleSheet.create({
   orderId: {
     marginTop: 3,
 
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.base,
@@ -478,7 +483,7 @@ const styles = StyleSheet.create({
   statusTitle: {
     marginTop: 18,
 
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.lg,
@@ -585,7 +590,7 @@ const styles = StyleSheet.create({
   },
 
   progressTitleActive: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.semiBold,
   },
@@ -608,13 +613,13 @@ const styles = StyleSheet.create({
 
     position: "relative",
 
-    backgroundColor: "#151A1A",
+    backgroundColor: Colors.backgroundElement,
   },
 
   mapBackground: {
     flex: 1,
 
-    backgroundColor: "#141919",
+    backgroundColor: Colors.backgroundSecondary,
 
     overflow: "hidden",
   },
@@ -622,7 +627,7 @@ const styles = StyleSheet.create({
   road: {
     position: "absolute",
 
-    backgroundColor: "#272D2D",
+    backgroundColor: Colors.divider,
 
     borderRadius: 20,
   },
@@ -819,7 +824,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
 
-    backgroundColor: "#202525",
+    backgroundColor: Colors.surface,
 
     borderWidth: 2,
     borderColor: Colors.white,
@@ -841,7 +846,7 @@ const styles = StyleSheet.create({
 
     borderLeftColor: "transparent",
     borderRightColor: "transparent",
-    borderTopColor: "#202525",
+    borderTopColor: Colors.surface,
   },
 
   /* DELIVERY MARKER */
@@ -990,7 +995,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
 
-    backgroundColor: Colors.card,
+    backgroundColor: Colors.surface,
 
     borderWidth: 1,
     borderColor: Colors.border,
@@ -1014,7 +1019,7 @@ const styles = StyleSheet.create({
   partnerName: {
     marginTop: 3,
 
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.base,
@@ -1030,7 +1035,7 @@ const styles = StyleSheet.create({
   partnerRatingText: {
     marginLeft: 4,
 
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.medium,
     fontSize: Fonts.size.xs,
@@ -1087,7 +1092,7 @@ const styles = StyleSheet.create({
   },
 
   detailsTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.base,
@@ -1138,7 +1143,7 @@ const styles = StyleSheet.create({
   detailValue: {
     marginTop: 2,
 
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.medium,
     fontSize: Fonts.size.sm,
@@ -1194,7 +1199,7 @@ const styles = StyleSheet.create({
   addressTitle: {
     marginTop: 3,
 
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.sm,
@@ -1240,7 +1245,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
 
-    backgroundColor: Colors.card,
+    backgroundColor: Colors.surface,
   },
 
   helpContent: {
@@ -1250,7 +1255,7 @@ const styles = StyleSheet.create({
   },
 
   helpTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.semiBold,
     fontSize: Fonts.size.sm,

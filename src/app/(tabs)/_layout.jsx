@@ -1,10 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 
-import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
+import { useTheme } from "../../hooks/use-theme";
 
 const TabsLayout = () => {
+  const { colors, isDark } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
@@ -13,15 +15,16 @@ const TabsLayout = () => {
           height: 82,
           paddingTop: 10,
           paddingBottom: 12,
-          backgroundColor: "#0f1010",
-          borderTopWidth: 0,
+          backgroundColor: colors.background,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
           shadowColor: "#000",
           shadowOpacity: 0.2,
           shadowRadius: 10,
           elevation: 8,
         },
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: "#7b7b7b",
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: isDark ? "#7B7B7B" : "#6B7280",
         tabBarLabelStyle: {
           fontFamily: Fonts.medium,
           fontSize: 11,

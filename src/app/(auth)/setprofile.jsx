@@ -1,22 +1,21 @@
-
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useState } from "react";
 
 import {
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
 import Fonts from "../../constants/Fonts";
@@ -37,7 +36,7 @@ export default function SetProfileScreen() {
       if (!permission.granted) {
         Alert.alert(
           "Permission required",
-          "Allow photo library access to select your profile picture."
+          "Allow photo library access to select your profile picture.",
         );
         return;
       }
@@ -82,10 +81,7 @@ export default function SetProfileScreen() {
     }
 
     if (!location.trim()) {
-      Alert.alert(
-        "Required",
-        "Please enter your city, state, or pincode."
-      );
+      Alert.alert("Required", "Please enter your city, state, or pincode.");
       return;
     }
 
@@ -100,10 +96,7 @@ export default function SetProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="#050505"
-      />
+      <StatusBar barStyle="light-content" backgroundColor="#050505" />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -123,11 +116,7 @@ export default function SetProfileScreen() {
             ]}
             accessibilityLabel="Go back"
           >
-            <Ionicons
-              name="chevron-back"
-              size={30}
-              color="#FFFFFF"
-            />
+            <Ionicons name="chevron-back" size={30} color="#FFFFFF" />
           </Pressable>
 
           {/* PROFILE IMAGE */}
@@ -140,11 +129,7 @@ export default function SetProfileScreen() {
                   resizeMode="cover"
                 />
               ) : (
-                <Ionicons
-                  name="person"
-                  size={170}
-                  color="#F5F5F5"
-                />
+                <Ionicons name="person" size={170} color="#F5F5F5" />
               )}
             </View>
 
@@ -156,11 +141,7 @@ export default function SetProfileScreen() {
               onPress={handlePickImage}
               accessibilityLabel="Choose profile picture"
             >
-              <Ionicons
-                name="camera"
-                size={30}
-                color="#FFFFFF"
-              />
+              <Ionicons name="camera" size={30} color="#FFFFFF" />
             </Pressable>
           </View>
 

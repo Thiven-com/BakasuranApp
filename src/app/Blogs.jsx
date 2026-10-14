@@ -1,31 +1,23 @@
-
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import {
-    Image,
-    ImageBackground,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-    useWindowDimensions,
+  Image,
+  ImageBackground,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
 } from "react-native";
 
-import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
-
-const RED = Colors.primary;
-const WHITE = Colors.white;
-const MUTED = Colors.textMuted;
-const BORDER = Colors.border;
-const BG = Colors.background;
-const CARD = Colors.backgroundLight;
+import { useTheme } from "../hooks/use-theme";
 
 const categories = [
   "All",
@@ -51,8 +43,7 @@ const articles = [
     id: "paneer",
     category: "Recipes",
     title: "Top 5 Must-Try Paneer Dishes in India",
-    description:
-      "From creamy classics to spicy delights, here are the best...",
+    description: "From creamy classics to spicy delights, here are the best...",
     date: "10 Mar 2024",
     time: "4 min read",
     image: require("../../assets/images/paneer_dish.png"),
@@ -71,8 +62,7 @@ const articles = [
     id: "spices",
     category: "Food Tips",
     title: "5 Essential Spices in Indian Cooking",
-    description:
-      "Discover the spices that bring Indian food to life.",
+    description: "Discover the spices that bring Indian food to life.",
     date: "5 Mar 2024",
     time: "4 min read",
     image: require("../../assets/images/indian_spices.png"),
@@ -90,7 +80,14 @@ const articles = [
 ];
 
 export default function BlogsScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { width } = useWindowDimensions();
+
+  const RED = colors.primary;
+  const WHITE = colors.white;
+  const MUTED = colors.textMuted;
+  const BG = colors.background;
 
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchVisible, setSearchVisible] = useState(false);
@@ -105,8 +102,7 @@ export default function BlogsScreen() {
 
     return articles.filter((item) => {
       const matchesCategory =
-        selectedCategory === "All" ||
-        item.category === selectedCategory;
+        selectedCategory === "All" || item.category === selectedCategory;
 
       const matchesSearch =
         !query ||
@@ -134,16 +130,13 @@ export default function BlogsScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
-        barStyle="light-content"
+        barStyle={isDark ? "light-content" : "dark-content"}
         backgroundColor={BG}
       />
 
       <ScrollView
         style={styles.screen}
-        contentContainerStyle={[
-          styles.content,
-          { paddingHorizontal: padding },
-        ]}
+        contentContainerStyle={[styles.content, { paddingHorizontal: padding }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -160,7 +153,7 @@ export default function BlogsScreen() {
                 <Ionicons
                   name="chevron-back"
                   size={25}
-                  color={WHITE}
+                  color={colors.textPrimary}
                 />
               </TouchableOpacity>
 
@@ -180,7 +173,7 @@ export default function BlogsScreen() {
             <Ionicons
               name="search-outline"
               size={25}
-              color={WHITE}
+              color={colors.textPrimary}
             />
           </Pressable>
         </View>
@@ -188,11 +181,7 @@ export default function BlogsScreen() {
         {/* SEARCH */}
         {searchVisible && (
           <View style={styles.searchField}>
-            <Ionicons
-              name="search-outline"
-              size={21}
-              color={MUTED}
-            />
+            <Ionicons name="search-outline" size={21} color={MUTED} />
 
             <TextInput
               value={search}
@@ -206,11 +195,7 @@ export default function BlogsScreen() {
 
             {!!search && (
               <Pressable onPress={() => setSearch("")}>
-                <Ionicons
-                  name="close-circle"
-                  size={21}
-                  color={MUTED}
-                />
+                <Ionicons name="close-circle" size={21} color={MUTED} />
               </Pressable>
             )}
           </View>
@@ -230,10 +215,7 @@ export default function BlogsScreen() {
               <Pressable
                 key={item}
                 onPress={() => setSelectedCategory(item)}
-                style={[
-                  styles.categoryChip,
-                  active && styles.categoryActive,
-                ]}
+                style={[styles.categoryChip, active && styles.categoryActive]}
               >
                 <Text
                   style={[
@@ -260,16 +242,11 @@ export default function BlogsScreen() {
               imageStyle={styles.featuredImageStyle}
               resizeMode="cover"
             >
-              <View
-                pointerEvents="none"
-                style={styles.featuredShade}
-              />
+              <View pointerEvents="none" style={styles.featuredShade} />
 
               <View style={styles.featuredContent}>
                 <View style={styles.featuredBadge}>
-                  <Text style={styles.featuredBadgeText}>
-                    Featured
-                  </Text>
+                  <Text style={styles.featuredBadgeText}>Featured</Text>
                 </View>
 
                 <Text style={styles.featuredTitle}>
@@ -277,41 +254,23 @@ export default function BlogsScreen() {
                 </Text>
 
                 <Text style={styles.featuredDescription}>
-                  Explore the rich history, spices and traditions
-                  that make biryani a timeless favorite.
+                  Explore the rich history, spices and traditions that make
+                  biryani a timeless favorite.
                 </Text>
 
                 <View style={styles.featuredMeta}>
-                  <Ionicons
-                    name="calendar-outline"
-                    size={16}
-                    color={WHITE}
-                  />
-                  <Text style={styles.featuredMetaText}>
-                    {featured.date}
-                  </Text>
+                  <Ionicons name="calendar-outline" size={16} color={WHITE} />
+                  <Text style={styles.featuredMetaText}>{featured.date}</Text>
 
                   <View style={styles.metaDivider} />
 
-                  <Ionicons
-                    name="time-outline"
-                    size={17}
-                    color={WHITE}
-                  />
-                  <Text style={styles.featuredMetaText}>
-                    {featured.time}
-                  </Text>
+                  <Ionicons name="time-outline" size={17} color={WHITE} />
+                  <Text style={styles.featuredMetaText}>{featured.time}</Text>
                 </View>
 
                 <View style={styles.readMore}>
-                  <Text style={styles.readMoreText}>
-                    Read More
-                  </Text>
-                  <Ionicons
-                    name="arrow-forward"
-                    size={19}
-                    color={WHITE}
-                  />
+                  <Text style={styles.readMoreText}>Read More</Text>
+                  <Ionicons name="arrow-forward" size={19} color={WHITE} />
                 </View>
               </View>
 
@@ -325,9 +284,7 @@ export default function BlogsScreen() {
         {/* LATEST ARTICLES */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>
-            {selectedCategory === "All"
-              ? "Latest Articles"
-              : selectedCategory}
+            {selectedCategory === "All" ? "Latest Articles" : selectedCategory}
           </Text>
 
           <Pressable
@@ -338,11 +295,7 @@ export default function BlogsScreen() {
             style={styles.seeAll}
           >
             <Text style={styles.seeAllText}>See All</Text>
-            <Ionicons
-              name="arrow-forward"
-              size={19}
-              color={RED}
-            />
+            <Ionicons name="arrow-forward" size={19} color={RED} />
           </Pressable>
         </View>
 
@@ -352,10 +305,7 @@ export default function BlogsScreen() {
             <Pressable
               key={item.id}
               onPress={() => openArticle(item)}
-              style={[
-                styles.articleCard,
-                { width: cardWidth },
-              ]}
+              style={[styles.articleCard, { width: cardWidth }]}
             >
               <Image
                 source={item.image}
@@ -364,17 +314,11 @@ export default function BlogsScreen() {
               />
 
               <View style={styles.articleBody}>
-                <Text
-                  style={styles.articleTitle}
-                  numberOfLines={2}
-                >
+                <Text style={styles.articleTitle} numberOfLines={2}>
                   {item.title}
                 </Text>
 
-                <Text
-                  style={styles.articleDescription}
-                  numberOfLines={2}
-                >
+                <Text style={styles.articleDescription} numberOfLines={2}>
                   {item.description}
                 </Text>
 
@@ -382,22 +326,18 @@ export default function BlogsScreen() {
                   <Ionicons
                     name="calendar-outline"
                     size={15}
-                    color={WHITE}
+                    color={colors.textSecondary}
                   />
-                  <Text style={styles.articleMetaText}>
-                    {item.date}
-                  </Text>
+                  <Text style={styles.articleMetaText}>{item.date}</Text>
                 </View>
 
                 <View style={styles.articleMeta}>
                   <Ionicons
                     name="time-outline"
                     size={16}
-                    color={WHITE}
+                    color={colors.textSecondary}
                   />
-                  <Text style={styles.articleMetaText}>
-                    {item.time}
-                  </Text>
+                  <Text style={styles.articleMetaText}>{item.time}</Text>
                 </View>
               </View>
             </Pressable>
@@ -407,14 +347,8 @@ export default function BlogsScreen() {
         {/* EMPTY SEARCH RESULT */}
         {filteredArticles.length === 0 && (
           <View style={styles.emptyState}>
-            <Ionicons
-              name="search-outline"
-              size={38}
-              color={MUTED}
-            />
-            <Text style={styles.emptyTitle}>
-              No articles found
-            </Text>
+            <Ionicons name="search-outline" size={38} color={MUTED} />
+            <Text style={styles.emptyTitle}>No articles found</Text>
             <Text style={styles.emptyDescription}>
               Try a different search or category.
             </Text>
@@ -425,15 +359,15 @@ export default function BlogsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   screen: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   content: {
@@ -464,14 +398,14 @@ const styles = StyleSheet.create({
     height: 42,
     borderRadius: 21,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
 
   heading: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: Fonts.size.lg,
     fontFamily: Fonts.regular,
     fontWeight: "800",
@@ -479,7 +413,7 @@ const styles = StyleSheet.create({
   },
 
   subtitle: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     fontSize: Fonts.size.xl,
     fontFamily: Fonts.regular,
     lineHeight: 20,
@@ -491,8 +425,8 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: Colors.backgroundLight,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -506,13 +440,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
 
   searchInput: {
     flex: 1,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: Fonts.size.base,
     fontFamily: Fonts.regular,
     paddingVertical: 12,
@@ -534,25 +468,25 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: Colors.backgroundLight,
+    backgroundColor: colors.backgroundElement,
     borderWidth: 1.5,
-    borderColor: Colors.border,
+    borderColor: colors.border,
   },
 
   categoryActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
 
   categoryText: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: Fonts.size.base,
     fontFamily: Fonts.regular,
     fontWeight: "600",
   },
 
   categoryTextActive: {
-    color: Colors.white,
+    color: colors.white,
     fontFamily: Fonts.regular,
   },
 
@@ -563,8 +497,8 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     overflow: "hidden",
     borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
 
   featuredImage: {
@@ -579,7 +513,7 @@ const styles = StyleSheet.create({
   featuredShade: {
     ...StyleSheet.absoluteFillObject,
     width: "78%",
-    backgroundColor: Colors.overlayDark,
+    backgroundColor: colors.overlayDark,
   },
 
   featuredContent: {
@@ -593,18 +527,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 24,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     marginBottom: 12,
   },
 
   featuredBadgeText: {
-    color: Colors.white,
+    color: colors.white,
     fontSize: Fonts.size.base,
     fontFamily: Fonts.regular,
   },
 
   featuredTitle: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: 23,
     lineHeight: 29,
     fontFamily: Fonts.regular,
@@ -613,7 +547,7 @@ const styles = StyleSheet.create({
   },
 
   featuredDescription: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     fontSize: Fonts.size.md,
     lineHeight: 17,
     fontFamily: Fonts.regular,
@@ -629,7 +563,7 @@ const styles = StyleSheet.create({
   },
 
   featuredMetaText: {
-    color: Colors.white,
+    color: colors.white,
     fontSize: 13,
     fontFamily: Fonts.regular,
   },
@@ -637,7 +571,7 @@ const styles = StyleSheet.create({
   metaDivider: {
     height: 16,
     width: 1,
-    backgroundColor: Colors.borderLight,
+    backgroundColor: colors.borderLight,
     marginHorizontal: 3,
   },
 
@@ -645,7 +579,7 @@ const styles = StyleSheet.create({
     minHeight: 42,
     paddingHorizontal: 15,
     borderRadius: 24,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -653,7 +587,7 @@ const styles = StyleSheet.create({
   },
 
   readMoreText: {
-    color: Colors.white,
+    color: colors.white,
     fontSize: Fonts.size.base,
     fontFamily: Fonts.regular,
   },
@@ -670,7 +604,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 8,
     borderRadius: 5,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
   },
 
   sectionHeader: {
@@ -683,7 +617,7 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     flex: 1,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: Fonts.size.xxl,
     fontFamily: Fonts.regular,
     fontWeight: "800",
@@ -696,7 +630,7 @@ const styles = StyleSheet.create({
   },
 
   seeAllText: {
-    color: Colors.primary,
+    color: colors.primary,
     fontSize: Fonts.size.md,
     fontFamily: Fonts.regular,
   },
@@ -712,14 +646,14 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderRadius: 17,
     borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: Colors.backgroundLight,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
 
   articleImage: {
     width: "100%",
     height: 125,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
   },
 
   articleBody: {
@@ -729,7 +663,7 @@ const styles = StyleSheet.create({
   },
 
   articleTitle: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: Fonts.size.xl,
     lineHeight: 20,
     fontFamily: Fonts.regular,
@@ -738,7 +672,7 @@ const styles = StyleSheet.create({
   },
 
   articleDescription: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     fontSize: Fonts.size.md,
     lineHeight: 20,
     fontFamily: Fonts.regular,
@@ -755,7 +689,7 @@ const styles = StyleSheet.create({
   },
 
   articleMetaText: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     fontSize: 13,
     fontFamily: Fonts.regular,
     flexShrink: 1,
@@ -767,14 +701,14 @@ const styles = StyleSheet.create({
   },
 
   emptyTitle: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: Fonts.size.lg,
     fontFamily: Fonts.bold,
     marginTop: 12,
   },
 
   emptyDescription: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     fontSize: Fonts.size.sm,
     fontFamily: Fonts.regular,
     marginTop: 6,

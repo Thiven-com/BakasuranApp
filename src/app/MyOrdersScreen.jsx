@@ -1,16 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
-    FlatList,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
-import Colors from "../constants/Colors";
+import { useTheme } from "../hooks/use-theme";
 import Fonts from "../constants/Fonts";
 
 const orders = [
@@ -67,6 +67,8 @@ const orders = [
 const filters = ["All Orders", "Ongoing", "Completed", "Cancelled"];
 
 const OrdersScreen = () => {
+  const { colors: Colors } = useTheme();
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
   const [activeFilter, setActiveFilter] = useState("All Orders");
 
   const filteredOrders = orders.filter((order) => {
@@ -107,7 +109,7 @@ const OrdersScreen = () => {
 
   const handleAction = (item) => {
     if (item.action === "Track") {
-      // Add tracking navigation later
+      router.push("/Track-OrderScreen");
       return;
     }
 
@@ -117,7 +119,7 @@ const OrdersScreen = () => {
     }
 
     if (item.action === "View") {
-      // Add order details navigation later
+      router.push("/Order-Details");
       return;
     }
   };
@@ -212,7 +214,7 @@ const OrdersScreen = () => {
           activeOpacity={0.8}
           onPress={() => router.back()}
         >
-          <Ionicons name="chevron-back" size={25} color={Colors.white} />
+          <Ionicons name="chevron-back" size={25} color={Colors.textPrimary} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>My Orders</Text>
@@ -221,7 +223,7 @@ const OrdersScreen = () => {
           <Ionicons
             name="notifications-outline"
             size={23}
-            color={Colors.white}
+            color={Colors.textPrimary}
           />
 
           <View style={styles.notificationDot} />
@@ -300,7 +302,7 @@ const OrdersScreen = () => {
 
 export default OrdersScreen;
 
-const styles = StyleSheet.create({
+const createStyles = (Colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -340,7 +342,7 @@ const styles = StyleSheet.create({
 
     marginLeft: 12,
 
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.xl,
@@ -499,10 +501,10 @@ const styles = StyleSheet.create({
   },
 
   orderName: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+    fontFamily: Fonts.medium,
+    fontSize: 13,
 
     marginBottom: 5,
   },
@@ -632,7 +634,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     marginTop: 20,
 
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.xl,

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -11,8 +11,8 @@ import {
   View,
 } from "react-native";
 
-import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
+import { useTheme } from "../../hooks/use-theme";
 
 // ============================================================
 // RESTAURANT DATA
@@ -22,7 +22,7 @@ const initialRestaurants = [
   {
     id: "1",
     name: "Spice House",
-    image: require("../../../assets/images/spice_house.jpg"),
+    image: require("../../../assets/images/Restaurant1.png"),
     cuisine: "Biryani • North Indian • Chinese",
     rating: "4.5",
     time: "30-40 mins",
@@ -33,7 +33,7 @@ const initialRestaurants = [
   {
     id: "2",
     name: "Pizza Planet",
-    image: require("../../../assets/images/pizza_planet.jpg"),
+    image: require("../../../assets/images/Restaurant3.png"),
     cuisine: "Pizza • Italian • Fast Food",
     rating: "4.2",
     time: "25-35 mins",
@@ -44,7 +44,7 @@ const initialRestaurants = [
   {
     id: "3",
     name: "Burger Mania",
-    image: require("../../../assets/images/burger_mania.jpg"),
+    image: require("../../../assets/images/Restaurant2.png"),
     cuisine: "Burgers • Fast Food • Beverages",
     rating: "4.3",
     time: "20-30 mins",
@@ -52,6 +52,7 @@ const initialRestaurants = [
     offer: "10% OFF",
     price: "₹250 for two",
   },
+
   {
     id: "4",
     name: "Udupi Ruchi",
@@ -143,11 +144,24 @@ const initialDishes = [
 // ============================================================
 
 const Wishlist = () => {
+  const { colors: Colors } = useTheme();
+  const styles = useMemo(() => makeStyles(Colors), [Colors]);
   const [activeTab, setActiveTab] = useState("restaurants");
 
   const [restaurants, setRestaurants] = useState(initialRestaurants);
 
   const [dishes, setDishes] = useState(initialDishes);
+
+  // ==========================================================
+  // OPEN RESTAURANT  (file: app/Restaurants/[id].jsx)
+  // ==========================================================
+
+  const openRestaurant = (id) => {
+    router.push({
+      pathname: "/Restaurant/[id]",
+      params: { id },
+    });
+  };
 
   // ==========================================================
   // REMOVE RESTAURANT
@@ -211,7 +225,7 @@ const Wishlist = () => {
       <TouchableOpacity
         style={styles.restaurantCard}
         activeOpacity={0.9}
-        onPress={() => router.push(`/restaurant/${item.id}`)}
+        onPress={() => openRestaurant(item.id)}
       >
         {/* IMAGE */}
 
@@ -437,7 +451,7 @@ const Wishlist = () => {
           onPress={() => router.back()}
           activeOpacity={0.8}
         >
-          <Ionicons name="arrow-back" size={22} color={Colors.white} />
+          <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
@@ -532,7 +546,7 @@ export default Wishlist;
 // STYLES
 // ============================================================
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -568,7 +582,7 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.extraBold,
     fontSize: 20,
   },
@@ -621,7 +635,7 @@ const styles = StyleSheet.create({
   tabText: {
     color: Colors.textSecondary,
     fontFamily: Fonts.semiBold,
-    fontSize: 12,
+    fontSize: 15,
   },
 
   activeTabText: {
@@ -697,9 +711,9 @@ const styles = StyleSheet.create({
 
   restaurantName: {
     flex: 1,
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
-    fontSize: 15,
+    fontSize: 20,
   },
 
   heartButton: {
@@ -710,9 +724,9 @@ const styles = StyleSheet.create({
   },
 
   cuisine: {
-    color: Colors.textSecondary,
+    color: Colors.goldDark,
     fontFamily: Fonts.regular,
-    fontSize: 10,
+    fontSize: 15,
     marginTop: 5,
   },
 
@@ -727,16 +741,16 @@ const styles = StyleSheet.create({
     height: 25,
     paddingHorizontal: 7,
     borderRadius: 6,
-    backgroundColor: "rgba(34,197,94,0.18)",
+    backgroundColor: "#168A3A",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
 
   ratingText: {
-    color: Colors.success,
+    color: Colors.white,
     fontFamily: Fonts.bold,
-    fontSize: 10,
+    fontSize: 15,
     marginLeft: 4,
   },
 
@@ -754,9 +768,9 @@ const styles = StyleSheet.create({
   },
 
   timeText: {
-    color: Colors.textSecondary,
+    color: Colors.success,
     fontFamily: Fonts.medium,
-    fontSize: 10,
+    fontSize: 15,
   },
 
   locationRow: {
@@ -769,14 +783,14 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.textSecondary,
     fontFamily: Fonts.regular,
-    fontSize: 9,
+    fontSize: 13,
     marginLeft: 5,
   },
 
   priceText: {
-    color: Colors.textMuted,
+    color: Colors.success,
     fontFamily: Fonts.regular,
-    fontSize: 9,
+    fontSize: 13,
     marginTop: 9,
   },
 
@@ -839,15 +853,15 @@ const styles = StyleSheet.create({
 
   dishName: {
     flex: 1,
-    color: Colors.white,
+    color: Colors.goldDark,
     fontFamily: Fonts.bold,
-    fontSize: 14,
+    fontSize: 16,
   },
 
   dishRestaurant: {
     color: Colors.textSecondary,
     fontFamily: Fonts.regular,
-    fontSize: 9,
+    fontSize: 13,
     marginTop: 4,
   },
 
@@ -878,7 +892,7 @@ const styles = StyleSheet.create({
   },
 
   dishPrice: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
     fontSize: 14,
   },
@@ -937,7 +951,7 @@ const styles = StyleSheet.create({
   },
 
   emptyTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.extraBold,
     fontSize: 20,
     marginTop: 18,

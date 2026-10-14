@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   SafeAreaView,
@@ -13,10 +13,12 @@ import {
   View,
 } from "react-native";
 
-import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 export default function Addresses() {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [showForm, setShowForm] = useState(false);
 
   const [addressType, setAddressType] = useState("Home");
@@ -38,7 +40,7 @@ export default function Addresses() {
       landmark: "Near City Center",
       city: "Hyderabad",
       pincode: "500001",
-      color: "#f82408",
+      color: colors.info,
       icon: "home-outline",
     },
     {
@@ -89,15 +91,15 @@ export default function Addresses() {
       addressType === "Home"
         ? "#f82408"
         : addressType === "Work"
-        ? "#f82408"
-        : Colors.warning;
+          ? "#f82408"
+          : Colors.warning;
 
     const typeIcon =
       addressType === "Home"
         ? "home-outline"
         : addressType === "Work"
-        ? "briefcase-outline"
-        : "location-outline";
+          ? "briefcase-outline"
+          : "location-outline";
 
     const newAddress = {
       id: Date.now(),
@@ -116,10 +118,7 @@ export default function Addresses() {
 
     clearForm();
 
-    Alert.alert(
-      "Address Added",
-      "Your address has been added successfully."
-    );
+    Alert.alert("Address Added", "Your address has been added successfully.");
   };
 
   /* =====================================================
@@ -155,11 +154,11 @@ export default function Addresses() {
           style: "destructive",
           onPress: () => {
             setAddresses((previous) =>
-              previous.filter((item) => item.id !== id)
+              previous.filter((item) => item.id !== id),
             );
           },
         },
-      ]
+      ],
     );
   };
 
@@ -182,8 +181,8 @@ export default function Addresses() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor={Colors.background}
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
       />
 
       {/* =================================================
@@ -196,11 +195,7 @@ export default function Addresses() {
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
-          <Ionicons
-            name="chevron-back"
-            size={26}
-            color={Colors.white}
-          />
+          <Ionicons name="chevron-back" size={26} color={colors.textPrimary} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Addresses</Text>
@@ -244,21 +239,13 @@ export default function Addresses() {
                       },
                     ]}
                   >
-                    <Ionicons
-                      name={item.icon}
-                      size={22}
-                      color={item.color}
-                    />
+                    <Ionicons name={item.icon} size={22} color={item.color} />
                   </View>
 
                   <View style={styles.addressTitleContainer}>
-                    <Text style={styles.addressType}>
-                      {item.type}
-                    </Text>
+                    <Text style={styles.addressType}>{item.type}</Text>
 
-                    <Text style={styles.addressName}>
-                      {item.name}
-                    </Text>
+                    <Text style={styles.addressName}>{item.name}</Text>
                   </View>
 
                   <TouchableOpacity
@@ -269,7 +256,7 @@ export default function Addresses() {
                     <Ionicons
                       name="create-outline"
                       size={19}
-                      color={Colors.white}
+                      color={colors.primary}
                     />
                   </TouchableOpacity>
                 </View>
@@ -281,24 +268,20 @@ export default function Addresses() {
                     <Ionicons
                       name="call-outline"
                       size={16}
-                      color={Colors.textSecondary}
+                      color={colors.textSecondary}
                     />
 
-                    <Text style={styles.detailText}>
-                      {item.mobile}
-                    </Text>
+                    <Text style={styles.detailText}>{item.mobile}</Text>
                   </View>
 
                   <View style={styles.detailRow}>
                     <Ionicons
                       name="location-outline"
                       size={16}
-                      color={Colors.textSecondary}
+                      color={colors.textSecondary}
                     />
 
-                    <Text style={styles.detailText}>
-                      {item.address}
-                    </Text>
+                    <Text style={styles.detailText}>{item.address}</Text>
                   </View>
 
                   {item.landmark ? (
@@ -306,12 +289,10 @@ export default function Addresses() {
                       <Ionicons
                         name="navigate-outline"
                         size={16}
-                        color={Colors.textSecondary}
+                        color={colors.textSecondary}
                       />
 
-                      <Text style={styles.detailText}>
-                        {item.landmark}
-                      </Text>
+                      <Text style={styles.detailText}>{item.landmark}</Text>
                     </View>
                   ) : null}
 
@@ -319,7 +300,7 @@ export default function Addresses() {
                     <Ionicons
                       name="business-outline"
                       size={16}
-                      color={Colors.textSecondary}
+                      color={colors.textSecondary}
                     />
 
                     <Text style={styles.detailText}>
@@ -338,12 +319,10 @@ export default function Addresses() {
                   <Ionicons
                     name="trash-outline"
                     size={17}
-                    color={Colors.error}
+                    color={colors.error}
                   />
 
-                  <Text style={styles.deleteText}>
-                    Remove Address
-                  </Text>
+                  <Text style={styles.deleteText}>Remove Address</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -360,15 +339,9 @@ export default function Addresses() {
             onPress={() => setShowForm(true)}
             activeOpacity={0.8}
           >
-            <Ionicons
-              name="add"
-              size={25}
-              color={Colors.white}
-            />
+            <Ionicons name="add" size={25} color={colors.white} />
 
-            <Text style={styles.addButtonText}>
-              Add New Address
-            </Text>
+            <Text style={styles.addButtonText}>Add New Address</Text>
           </TouchableOpacity>
         )}
 
@@ -379,27 +352,16 @@ export default function Addresses() {
         {showForm && (
           <View style={styles.formCard}>
             <View style={styles.formHeader}>
-              <Text style={styles.formTitle}>
-                Add New Address
-              </Text>
+              <Text style={styles.formTitle}>Add New Address</Text>
 
-              <TouchableOpacity
-                onPress={clearForm}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name="close"
-                  size={25}
-                  color={Colors.textSecondary}
-                />
+              <TouchableOpacity onPress={clearForm} activeOpacity={0.7}>
+                <Ionicons name="close" size={25} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
             {/* ADDRESS TYPE */}
 
-            <Text style={styles.inputLabel}>
-              Address Type
-            </Text>
+            <Text style={styles.inputLabel}>Address Type</Text>
 
             <View style={styles.typeContainer}>
               {["Home", "Work", "Other"].map((type) => (
@@ -407,8 +369,7 @@ export default function Addresses() {
                   key={type}
                   style={[
                     styles.typeButton,
-                    addressType === type &&
-                      styles.typeButtonActive,
+                    addressType === type && styles.typeButtonActive,
                   ]}
                   onPress={() => setAddressType(type)}
                   activeOpacity={0.8}
@@ -418,22 +379,19 @@ export default function Addresses() {
                       type === "Home"
                         ? "home-outline"
                         : type === "Work"
-                        ? "briefcase-outline"
-                        : "location-outline"
+                          ? "briefcase-outline"
+                          : "location-outline"
                     }
                     size={18}
                     color={
-                      addressType === type
-                        ? Colors.white
-                        : Colors.textSecondary
+                      addressType === type ? colors.white : colors.textSecondary
                     }
                   />
 
                   <Text
                     style={[
                       styles.typeText,
-                      addressType === type &&
-                        styles.typeTextActive,
+                      addressType === type && styles.typeTextActive,
                     ]}
                   >
                     {type}
@@ -450,36 +408,34 @@ export default function Addresses() {
               <Ionicons
                 name="person-outline"
                 size={19}
-                color={Colors.textSecondary}
+                color={colors.textSecondary}
               />
 
               <TextInput
                 value={name}
                 onChangeText={setName}
                 placeholder="Enter your name"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 style={styles.input}
               />
             </View>
 
             {/* MOBILE */}
 
-            <Text style={styles.inputLabel}>
-              Mobile Number
-            </Text>
+            <Text style={styles.inputLabel}>Mobile Number</Text>
 
             <View style={styles.inputContainer}>
               <Ionicons
                 name="call-outline"
                 size={19}
-                color={Colors.textSecondary}
+                color={colors.textSecondary}
               />
 
               <TextInput
                 value={mobile}
                 onChangeText={setMobile}
                 placeholder="+91 98765 43210"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 keyboardType="phone-pad"
                 style={styles.input}
               />
@@ -487,53 +443,41 @@ export default function Addresses() {
 
             {/* ADDRESS */}
 
-            <Text style={styles.inputLabel}>
-              Complete Address
-            </Text>
+            <Text style={styles.inputLabel}>Complete Address</Text>
 
-            <View
-              style={[
-                styles.inputContainer,
-                styles.textAreaContainer,
-              ]}
-            >
+            <View style={[styles.inputContainer, styles.textAreaContainer]}>
               <Ionicons
                 name="location-outline"
                 size={19}
-                color={Colors.textSecondary}
+                color={colors.textSecondary}
               />
 
               <TextInput
                 value={address}
                 onChangeText={setAddress}
                 placeholder="House no, street, area"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 multiline
-                style={[
-                  styles.input,
-                  styles.textArea,
-                ]}
+                style={[styles.input, styles.textArea]}
               />
             </View>
 
             {/* LANDMARK */}
 
-            <Text style={styles.inputLabel}>
-              Landmark
-            </Text>
+            <Text style={styles.inputLabel}>Landmark</Text>
 
             <View style={styles.inputContainer}>
               <Ionicons
                 name="navigate-outline"
                 size={19}
-                color={Colors.textSecondary}
+                color={colors.textSecondary}
               />
 
               <TextInput
                 value={landmark}
                 onChangeText={setLandmark}
                 placeholder="Nearby landmark"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 style={styles.input}
               />
             </View>
@@ -546,14 +490,14 @@ export default function Addresses() {
               <Ionicons
                 name="business-outline"
                 size={19}
-                color={Colors.textSecondary}
+                color={colors.textSecondary}
               />
 
               <TextInput
                 value={city}
                 onChangeText={setCity}
                 placeholder="Enter city"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 style={styles.input}
               />
             </View>
@@ -566,14 +510,14 @@ export default function Addresses() {
               <Ionicons
                 name="map-outline"
                 size={19}
-                color={Colors.textSecondary}
+                color={colors.textSecondary}
               />
 
               <TextInput
                 value={pincode}
                 onChangeText={setPincode}
                 placeholder="Enter pincode"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 keyboardType="number-pad"
                 maxLength={6}
                 style={styles.input}
@@ -590,12 +534,10 @@ export default function Addresses() {
               <Ionicons
                 name="checkmark-circle-outline"
                 size={21}
-                color={Colors.white}
+                color={colors.white}
               />
 
-              <Text style={styles.saveButtonText}>
-                Save Address
-              </Text>
+              <Text style={styles.saveButtonText}>Save Address</Text>
             </TouchableOpacity>
 
             {/* CANCEL */}
@@ -605,9 +547,7 @@ export default function Addresses() {
               onPress={clearForm}
               activeOpacity={0.7}
             >
-              <Text style={styles.cancelText}>
-                Cancel
-              </Text>
+              <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -622,17 +562,14 @@ export default function Addresses() {
               <Ionicons
                 name="location-outline"
                 size={42}
-                color={Colors.primary}
+                color={colors.primary}
               />
             </View>
 
-            <Text style={styles.emptyTitle}>
-              No Addresses Yet
-            </Text>
+            <Text style={styles.emptyTitle}>No Addresses Yet</Text>
 
             <Text style={styles.emptyText}>
-              Add your delivery address to order
-              delicious food.
+              Add your delivery address to order delicious food.
             </Text>
           </View>
         )}
@@ -645,421 +582,422 @@ export default function Addresses() {
    STYLES
 ========================================================= */
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+const createStyles = (colors) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 40,
-  },
+    scrollContent: {
+      paddingHorizontal: 16,
+      paddingBottom: 40,
+    },
 
-  /* ================= HEADER ================= */
+    /* ================= HEADER ================= */
 
-  header: {
-    height: 62,
-    paddingHorizontal: 16,
+    header: {
+      height: 62,
+      paddingHorizontal: 16,
 
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
 
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
 
-  backButton: {
-    width: 42,
-    height: 42,
+    backButton: {
+      width: 42,
+      height: 42,
 
-    borderRadius: 21,
+      borderRadius: 21,
 
-    backgroundColor: Colors.card,
+      backgroundColor: colors.card,
 
-    alignItems: "center",
-    justifyContent: "center",
+      alignItems: "center",
+      justifyContent: "center",
 
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
-  headerTitle: {
-    color: Colors.textPrimary,
+    headerTitle: {
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xxl,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xxl,
+    },
 
-  headerSpace: {
-    width: 42,
-  },
+    headerSpace: {
+      width: 42,
+    },
 
-  /* ================= TITLE ================= */
+    /* ================= TITLE ================= */
 
-  titleContainer: {
-    marginTop: 22,
-    marginBottom: 18,
-  },
+    titleContainer: {
+      marginTop: 22,
+      marginBottom: 18,
+    },
 
-  title: {
-    color: Colors.textPrimary,
+    title: {
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xxl,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xxl,
+    },
 
-  subtitle: {
-    color: Colors.textSecondary,
+    subtitle: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.base,
 
-    marginTop: 6,
-  },
+      marginTop: 6,
+    },
 
-  /* ================= ADDRESS ================= */
+    /* ================= ADDRESS ================= */
 
-  addressList: {
-    gap: 14,
-  },
+    addressList: {
+      gap: 14,
+    },
 
-  addressCard: {
-    backgroundColor: Colors.card,
+    addressCard: {
+      backgroundColor: colors.card,
 
-    borderRadius: 18,
+      borderRadius: 18,
 
-    borderWidth: 1,
-    borderColor: Colors.border,
+      borderWidth: 1,
+      borderColor: colors.border,
 
-    padding: 15,
-  },
+      padding: 15,
+    },
 
-  addressTop: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+    addressTop: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
 
-  addressIcon: {
-    width: 45,
-    height: 45,
+    addressIcon: {
+      width: 45,
+      height: 45,
 
-    borderRadius: 14,
+      borderRadius: 14,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  addressTitleContainer: {
-    flex: 1,
-    marginLeft: 12,
-  },
+    addressTitleContainer: {
+      flex: 1,
+      marginLeft: 12,
+    },
 
-  addressType: {
-    color: Colors.textPrimary,
+    addressType: {
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xxl,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xxl,
+    },
 
-  addressName: {
-    color: Colors.textSecondary,
+    addressName: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xl,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xl,
 
-    marginTop: 3,
-  },
+      marginTop: 3,
+    },
 
-  editButton: {
-    width: 38,
-    height: 38,
+    editButton: {
+      width: 38,
+      height: 38,
 
-    borderRadius: 12,
+      borderRadius: 12,
 
-    backgroundColor: Colors.backgroundSecondary,
+      backgroundColor: colors.backgroundElement,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  addressDetails: {
-    marginTop: 16,
+    addressDetails: {
+      marginTop: 16,
 
-    paddingTop: 13,
+      paddingTop: 13,
 
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
 
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    detailRow: {
+      flexDirection: "row",
+      alignItems: "center",
 
-    marginBottom: 10,
-  },
+      marginBottom: 10,
+    },
 
-  detailText: {
-    flex: 1,
+    detailText: {
+      flex: 1,
 
-    color: Colors.textSecondary,
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.base,
 
-    marginLeft: 10,
+      marginLeft: 10,
 
-    lineHeight: 19,
-  },
+      lineHeight: 19,
+    },
 
-  deleteButton: {
-    flexDirection: "row",
-    alignItems: "center",
+    deleteButton: {
+      flexDirection: "row",
+      alignItems: "center",
 
-    marginTop: 5,
-    paddingTop: 12,
+      marginTop: 5,
+      paddingTop: 12,
 
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
 
-  deleteText: {
-    color: Colors.error,
+    deleteText: {
+      color: colors.error,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.xl,
+      fontFamily: Fonts.semiBold,
+      fontSize: Fonts.size.xl,
 
-    marginLeft: 7,
-  },
+      marginLeft: 7,
+    },
 
-  /* ================= ADD ================= */
+    /* ================= ADD ================= */
 
-  addButton: {
-    height: 56,
+    addButton: {
+      height: 56,
 
-    borderRadius: 28,
+      borderRadius: 28,
 
-    backgroundColor: Colors.primary,
+      backgroundColor: colors.primary,
 
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
 
-    marginTop: 18,
-  },
+      marginTop: 18,
+    },
 
-  addButtonText: {
-    color: Colors.white,
+    addButtonText: {
+      color: colors.white,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xl,
 
-    marginLeft: 8,
-  },
+      marginLeft: 8,
+    },
 
-  /* ================= FORM ================= */
+    /* ================= FORM ================= */
 
-  formCard: {
-    backgroundColor: Colors.card,
+    formCard: {
+      backgroundColor: colors.card,
 
-    borderRadius: 18,
+      borderRadius: 18,
 
-    borderWidth: 1,
-    borderColor: Colors.border,
+      borderWidth: 1,
+      borderColor: colors.border,
 
-    padding: 16,
+      padding: 16,
 
-    marginTop: 18,
-  },
+      marginTop: 18,
+    },
 
-  formHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    formHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
 
-    marginBottom: 20,
-  },
+      marginBottom: 20,
+    },
 
-  formTitle: {
-    color: Colors.textPrimary,
+    formTitle: {
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xl,
+    },
 
-  inputLabel: {
-    color: Colors.textSecondary,
+    inputLabel: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.sm,
+      fontFamily: Fonts.semiBold,
+      fontSize: Fonts.size.sm,
 
-    marginBottom: 8,
-    marginTop: 13,
-  },
+      marginBottom: 8,
+      marginTop: 13,
+    },
 
-  typeContainer: {
-    flexDirection: "row",
-    gap: 8,
-  },
+    typeContainer: {
+      flexDirection: "row",
+      gap: 8,
+    },
 
-  typeButton: {
-    flex: 1,
+    typeButton: {
+      flex: 1,
 
-    height: 44,
+      height: 44,
 
-    borderRadius: 12,
+      borderRadius: 12,
 
-    backgroundColor: Colors.backgroundSecondary,
+      backgroundColor: colors.backgroundElement,
 
-    borderWidth: 1,
-    borderColor: Colors.border,
+      borderWidth: 1,
+      borderColor: colors.border,
 
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  typeButtonActive: {
-    backgroundColor: Colors.primary,
+    typeButtonActive: {
+      backgroundColor: colors.primary,
 
-    borderColor: Colors.primary,
-  },
+      borderColor: colors.primary,
+    },
 
-  typeText: {
-    color: Colors.textSecondary,
+    typeText: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.sm,
+      fontFamily: Fonts.semiBold,
+      fontSize: Fonts.size.sm,
 
-    marginLeft: 6,
-  },
+      marginLeft: 6,
+    },
 
-  typeTextActive: {
-    color: Colors.white,
-  },
+    typeTextActive: {
+      color: colors.white,
+    },
 
-  inputContainer: {
-    minHeight: 52,
+    inputContainer: {
+      minHeight: 52,
 
-    borderRadius: 13,
+      borderRadius: 13,
 
-    backgroundColor: Colors.backgroundSecondary,
+      backgroundColor: colors.backgroundElement,
 
-    borderWidth: 1,
-    borderColor: Colors.border,
+      borderWidth: 1,
+      borderColor: colors.border,
 
-    flexDirection: "row",
-    alignItems: "center",
+      flexDirection: "row",
+      alignItems: "center",
 
-    paddingHorizontal: 14,
-  },
+      paddingHorizontal: 14,
+    },
 
-  input: {
-    flex: 1,
+    input: {
+      flex: 1,
 
-    color: Colors.textPrimary,
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.md,
 
-    marginLeft: 10,
+      marginLeft: 10,
 
-    paddingVertical: 10,
-  },
+      paddingVertical: 10,
+    },
 
-  textAreaContainer: {
-    alignItems: "flex-start",
+    textAreaContainer: {
+      alignItems: "flex-start",
 
-    paddingTop: 13,
-  },
+      paddingTop: 13,
+    },
 
-  textArea: {
-    minHeight: 75,
+    textArea: {
+      minHeight: 75,
 
-    textAlignVertical: "top",
-  },
+      textAlignVertical: "top",
+    },
 
-  saveButton: {
-    height: 56,
+    saveButton: {
+      height: 56,
 
-    borderRadius: 28,
+      borderRadius: 28,
 
-    backgroundColor: Colors.primary,
+      backgroundColor: colors.primary,
 
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
 
-    marginTop: 25,
-  },
+      marginTop: 25,
+    },
 
-  saveButtonText: {
-    color: Colors.white,
+    saveButtonText: {
+      color: colors.white,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.base,
 
-    marginLeft: 8,
-  },
+      marginLeft: 8,
+    },
 
-  cancelButton: {
-    height: 48,
+    cancelButton: {
+      height: 48,
 
-    justifyContent: "center",
-    alignItems: "center",
+      justifyContent: "center",
+      alignItems: "center",
 
-    marginTop: 4,
-  },
+      marginTop: 4,
+    },
 
-  cancelText: {
-    color: Colors.textSecondary,
+    cancelText: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.medium,
-    fontSize: Fonts.size.md,
-  },
+      fontFamily: Fonts.medium,
+      fontSize: Fonts.size.md,
+    },
 
-  /* ================= EMPTY ================= */
+    /* ================= EMPTY ================= */
 
-  emptyContainer: {
-    alignItems: "center",
+    emptyContainer: {
+      alignItems: "center",
 
-    paddingVertical: 70,
-  },
+      paddingVertical: 70,
+    },
 
-  emptyIcon: {
-    width: 90,
-    height: 90,
+    emptyIcon: {
+      width: 90,
+      height: 90,
 
-    borderRadius: 45,
+      borderRadius: 45,
 
-    backgroundColor: Colors.surface,
+      backgroundColor: colors.surface,
 
-    justifyContent: "center",
-    alignItems: "center",
+      justifyContent: "center",
+      alignItems: "center",
 
-    marginBottom: 18,
-  },
+      marginBottom: 18,
+    },
 
-  emptyTitle: {
-    color: Colors.textPrimary,
+    emptyTitle: {
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.lg,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.lg,
+    },
 
-  emptyText: {
-    color: Colors.textSecondary,
+    emptyText: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.sm,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.sm,
 
-    textAlign: "center",
+      textAlign: "center",
 
-    lineHeight: 20,
+      lineHeight: 20,
 
-    marginTop: 8,
+      marginTop: 8,
 
-    paddingHorizontal: 40,
-  },
-});
+      paddingHorizontal: 40,
+    },
+  });

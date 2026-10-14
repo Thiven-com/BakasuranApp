@@ -1,18 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useMemo } from "react";
 
 import {
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
-import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 const termsSections = [
   {
@@ -75,7 +76,7 @@ const termsSections = [
     content:
       "You must not misuse the app, submit false information, engage in fraudulent transactions, interfere with its operation, attempt unauthorized access, harass restaurants or delivery personnel, or use the service for unlawful purposes. We may investigate suspected misuse and take proportionate action where appropriate.",
   },
-  
+
   {
     icon: "lock-closed-outline",
     title: "11. Privacy",
@@ -88,7 +89,7 @@ const termsSections = [
     content:
       "We aim to keep the service available and functioning correctly but cannot guarantee uninterrupted access. Features may be updated, suspended, or discontinued for maintenance, operational needs, security, or legal reasons. We will take reasonable steps where appropriate to minimize disruption.",
   },
-  
+
   {
     icon: "ban-outline",
     title: "13. Suspension and Termination",
@@ -101,7 +102,7 @@ const termsSections = [
     content:
       "We may revise these Terms & Conditions to reflect changes to our services, business practices, or legal requirements. Updated terms will be made available in the app or through another appropriate channel, with an updated effective date where applicable.",
   },
-  
+
   {
     icon: "mail-outline",
     title: "15. Contact Us",
@@ -111,11 +112,14 @@ const termsSections = [
 ];
 
 export default function TermsConditionsScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor={Colors.background}
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
       />
 
       {/* HEADER */}
@@ -126,11 +130,7 @@ export default function TermsConditionsScreen() {
           activeOpacity={0.75}
           accessibilityLabel="Go back"
         >
-          <Ionicons
-            name="arrow-back"
-            size={22}
-            color={Colors.white}
-          />
+          <Ionicons name="arrow-back" size={22} color={colors.textPrimary} />
         </TouchableOpacity>
 
         <View style={styles.headerTextContainer}>
@@ -147,7 +147,7 @@ export default function TermsConditionsScreen() {
           <Ionicons
             name="document-text-outline"
             size={24}
-            color={Colors.primary}
+            color={colors.primary}
           />
         </View>
       </View>
@@ -161,58 +161,39 @@ export default function TermsConditionsScreen() {
         {/* INTRODUCTION CARD */}
         <View style={styles.introCard}>
           <View style={styles.introIcon}>
-            <Ionicons
-              name="reader-outline"
-              size={32}
-              color={Colors.primary}
-            />
+            <Ionicons name="reader-outline" size={32} color={colors.primary} />
           </View>
 
-          <Text style={styles.introTitle}>
-            Terms of Service
-          </Text>
+          <Text style={styles.introTitle}>Terms of Service</Text>
 
           <Text style={styles.introDescription}>
-            These terms explain the rules, responsibilities,
-            and conditions that apply when you use Bakasuran.
+            These terms explain the rules, responsibilities, and conditions that
+            apply when you use Bakasuran.
           </Text>
-
-          
         </View>
 
         {/* TERMS SECTIONS */}
         {termsSections.map((section) => (
-          <View
-            key={section.title}
-            style={styles.sectionCard}
-          >
+          <View key={section.title} style={styles.sectionCard}>
             <View style={styles.sectionHeading}>
               <View style={styles.sectionIcon}>
                 <Ionicons
                   name={section.icon}
                   size={20}
-                  color={Colors.primary}
+                  color={colors.primary}
                 />
               </View>
 
-              <Text style={styles.sectionTitle}>
-                {section.title}
-              </Text>
+              <Text style={styles.sectionTitle}>{section.title}</Text>
             </View>
 
-            <Text style={styles.sectionContent}>
-              {section.content}
-            </Text>
+            <Text style={styles.sectionContent}>{section.content}</Text>
           </View>
         ))}
 
         {/* FOOTER */}
         <View style={styles.footer}>
-          <Ionicons
-            name="heart"
-            size={28}
-            color={Colors.primary}
-          />
+          <Ionicons name="heart" size={28} color={colors.primary} />
 
           <Text style={styles.footerTitle}>
             Thank you for choosing Bakasuran!
@@ -229,10 +210,10 @@ export default function TermsConditionsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   header: {
@@ -241,18 +222,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: colors.border,
   },
 
   backButton: {
     width: 42,
     height: 42,
     borderRadius: 14,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -263,18 +244,18 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: Fonts.size.lg,
     fontFamily: Fonts.bold,
     fontWeight: "800",
   },
 
   headerTitleRed: {
-    color: Colors.primary,
+    color: colors.primary,
   },
 
   headerSubtitle: {
-    color: Colors.textMuted,
+    color: colors.textMuted,
     fontSize: Fonts.size.xl,
     fontFamily: Fonts.regular,
     marginTop: 4,
@@ -284,7 +265,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 14,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -300,11 +281,11 @@ const styles = StyleSheet.create({
   },
 
   introCard: {
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
     marginBottom: 20,
     alignItems: "center",
   },
@@ -313,16 +294,16 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 22,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.backgroundElement,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 14,
   },
 
   introTitle: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: Fonts.size.xxl,
     fontFamily: Fonts.regular,
     fontWeight: "800",
@@ -331,22 +312,20 @@ const styles = StyleSheet.create({
   },
 
   introDescription: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     fontSize: Fonts.size.xl,
     fontFamily: Fonts.regular,
     lineHeight: 22,
     textAlign: "center",
   },
 
- 
-
   sectionCard: {
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
   },
 
   sectionHeading: {
@@ -359,7 +338,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.backgroundElement,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 11,
@@ -367,14 +346,14 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     flex: 1,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: Fonts.size.xxl,
     fontFamily: Fonts.regular,
     fontWeight: "700",
   },
 
   sectionContent: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     fontSize: Fonts.size.xl,
     fontFamily: Fonts.regular,
     lineHeight: 23,
@@ -387,7 +366,7 @@ const styles = StyleSheet.create({
   },
 
   footerTitle: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     fontSize: Fonts.size.xxl,
     fontFamily: Fonts.regular,
     fontWeight: "600",
@@ -396,7 +375,7 @@ const styles = StyleSheet.create({
   },
 
   footerSubtitle: {
-    color: Colors.textMuted,
+    color: colors.textMuted,
     fontSize: Fonts.size.base,
     fontFamily: Fonts.regular,
     marginTop: 5,

@@ -1,14 +1,14 @@
 import { useMemo, useState } from "react";
 
 import {
-    Dimensions,
-    Image,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
@@ -16,11 +16,12 @@ import { router } from "expo-router";
 
 import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 const { width } = Dimensions.get("window");
 
 /* =========================================================
-   RESPONSIVE SIZE
+   RESPONSIVE SIZE 
 ========================================================= */
 
 const scale = (value) => {
@@ -48,8 +49,7 @@ const notifications = [
     id: "2",
     category: "Orders",
     title: "Order Confirmed",
-    description:
-      "Your order #BAKA10245 from\nSpice House has been confirmed.",
+    description: "Your order #BAKA10245 from\nSpice House has been confirmed.",
     time: "15 min ago",
     unread: true,
     type: "icon",
@@ -63,8 +63,7 @@ const notifications = [
     id: "3",
     category: "Offers",
     title: "Special Offer Just for You! 🎉",
-    description:
-      "Get 40% OFF on all burgers\nthis weekend. Use code:",
+    description: "Get 40% OFF on all burgers\nthis weekend. Use code:",
     coupon: " BURGER40",
     time: "2 hours ago",
     unread: false,
@@ -76,8 +75,7 @@ const notifications = [
     id: "4",
     category: "Orders",
     title: "Your order is being prepared",
-    description:
-      "Spice House is preparing your\nMargherita Pizza.",
+    description: "Spice House is preparing your\nMargherita Pizza.",
     time: "3 hours ago",
     unread: false,
     image: require("../../assets/images/onboardingimage1.png"),
@@ -90,8 +88,7 @@ const notifications = [
     id: "5",
     category: "Offers",
     title: "Flat ₹100 OFF",
-    description:
-      "On orders above ₹399.\nValid till 31st Oct 2024.",
+    description: "On orders above ₹399.\nValid till 31st Oct 2024.",
     time: "1 day ago",
     unread: false,
     type: "icon",
@@ -118,8 +115,7 @@ const notifications = [
     id: "7",
     category: "Orders",
     title: "Order Delivered",
-    description:
-      "Your Hakka Noodles from\nThe Grand Bowl has been delivered.",
+    description: "Your Hakka Noodles from\nThe Grand Bowl has been delivered.",
     time: "3 days ago",
     unread: false,
     image: require("../../assets/images/onboardingimage1.png"),
@@ -132,8 +128,7 @@ const notifications = [
     id: "8",
     category: "Offers",
     title: "Welcome to BAKASURAN! ❤️",
-    description:
-      "Get amazing offers, track orders\nand enjoy delicious food.",
+    description: "Get amazing offers, track orders\nand enjoy delicious food.",
     time: "5 days ago",
     unread: false,
     type: "icon",
@@ -146,19 +141,15 @@ const notifications = [
    TABS
 ========================================================= */
 
-const tabs = [
-  "All",
-  "Orders",
-  "Offers",
-  "Updates",
-  "System",
-];
+const tabs = ["All", "Orders", "Offers", "Updates", "System"];
 
 /* =========================================================
    SCREEN
 ========================================================= */
 
 export default function Notifications() {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [activeTab, setActiveTab] = useState("All");
   const [items, setItems] = useState(notifications);
 
@@ -173,15 +164,11 @@ export default function Notifications() {
 
     if (activeTab === "Updates") {
       return items.filter(
-        (item) =>
-          item.category === "System" ||
-          item.category === "Orders"
+        (item) => item.category === "System" || item.category === "Orders",
       );
     }
 
-    return items.filter(
-      (item) => item.category === activeTab
-    );
+    return items.filter((item) => item.category === activeTab);
   }, [activeTab, items]);
 
   /* =======================================================
@@ -204,8 +191,8 @@ export default function Notifications() {
               ...notification,
               unread: false,
             }
-          : notification
-      )
+          : notification,
+      ),
     );
 
     if (item.category === "Orders") {
@@ -231,17 +218,22 @@ export default function Notifications() {
             style={[
               styles.iconBackground,
               {
-                backgroundColor:
-                  item.iconColor === Colors.warning
+                backgroundColor: isDark
+                  ? item.iconColor === Colors.warning
                     ? "#39270B"
-                    : "#321010",
+                    : "#321010"
+                  : colors.backgroundElement,
               },
             ]}
           >
             <Ionicons
               name={item.icon}
               size={scale(48)}
-              color={item.iconColor}
+              color={
+                item.iconColor === Colors.warning
+                  ? colors.warning
+                  : colors.primary
+              }
             />
           </View>
         )}
@@ -254,18 +246,18 @@ export default function Notifications() {
               styles.statusBadge,
               {
                 backgroundColor:
-                  item.badgeColor || Colors.primary,
+                  item.badgeColor === Colors.success
+                    ? colors.success
+                    : colors.primary,
               },
             ]}
           >
             <Ionicons
               name={
-                item.badgeIcon === "ellipse"
-                  ? "notifications"
-                  : item.badgeIcon
+                item.badgeIcon === "ellipse" ? "notifications" : item.badgeIcon
               }
               size={scale(19)}
-              color={Colors.white}
+              color={colors.white}
             />
           </View>
         )}
@@ -284,17 +276,13 @@ export default function Notifications() {
           <Ionicons
             name="notifications-off-outline"
             size={scale(48)}
-            color={Colors.textMuted}
+            color={colors.textMuted}
           />
         </View>
 
-        <Text style={styles.emptyTitle}>
-          No Notifications
-        </Text>
+        <Text style={styles.emptyTitle}>No Notifications</Text>
 
-        <Text style={styles.emptyDescription}>
-          You're all caught up!
-        </Text>
+        <Text style={styles.emptyDescription}>You're all caught up!</Text>
       </View>
     );
   };
@@ -306,8 +294,8 @@ export default function Notifications() {
   return (
     <View style={styles.container}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor={Colors.background}
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
       />
 
       {/* =================================================
@@ -330,15 +318,13 @@ export default function Notifications() {
             <Ionicons
               name="chevron-back"
               size={scale(39)}
-              color={Colors.white}
+              color={colors.textPrimary}
             />
           </TouchableOpacity>
 
           {/* TITLE */}
 
-          <Text style={styles.headerTitle}>
-            Notifications
-          </Text>
+          <Text style={styles.headerTitle}>Notifications</Text>
 
           {/* DELETE */}
 
@@ -350,7 +336,7 @@ export default function Notifications() {
             <Ionicons
               name="trash-outline"
               size={scale(31)}
-              color={Colors.white}
+              color={colors.textPrimary}
             />
           </TouchableOpacity>
         </View>
@@ -368,17 +354,9 @@ export default function Notifications() {
                 key={tab}
                 activeOpacity={0.8}
                 onPress={() => setActiveTab(tab)}
-                style={[
-                  styles.tab,
-                  active && styles.activeTab,
-                ]}
+                style={[styles.tab, active && styles.activeTab]}
               >
-                <Text
-                  style={[
-                    styles.tabText,
-                    active && styles.activeTabText,
-                  ]}
-                >
+                <Text style={[styles.tabText, active && styles.activeTabText]}>
                   {tab}
                 </Text>
               </TouchableOpacity>
@@ -394,8 +372,7 @@ export default function Notifications() {
           style={styles.scrollView}
           contentContainerStyle={[
             styles.scrollContent,
-            filteredNotifications.length === 0 &&
-              styles.emptyScrollContent,
+            filteredNotifications.length === 0 && styles.emptyScrollContent,
           ]}
           showsVerticalScrollIndicator={false}
           bounces={false}
@@ -406,13 +383,10 @@ export default function Notifications() {
                 <TouchableOpacity
                   key={item.id}
                   activeOpacity={0.85}
-                  onPress={() =>
-                    handleNotificationPress(item)
-                  }
+                  onPress={() => handleNotificationPress(item)}
                   style={[
                     styles.notificationCard,
-                    item.unread &&
-                      styles.unreadNotificationCard,
+                    item.unread && styles.unreadNotificationCard,
                   ]}
                 >
                   {/* IMAGE / ICON */}
@@ -425,38 +399,22 @@ export default function Notifications() {
                     {/* TOP ROW */}
 
                     <View style={styles.titleRow}>
-                      <Text
-                        style={styles.notificationTitle}
-                        numberOfLines={1}
-                      >
+                      <Text style={styles.notificationTitle} numberOfLines={1}>
                         {item.title}
                       </Text>
 
-                      <Text style={styles.timeText}>
-                        {item.time}
-                      </Text>
+                      <Text style={styles.timeText}>{item.time}</Text>
                     </View>
 
                     {/* DESCRIPTION */}
 
                     <View style={styles.descriptionRow}>
-                      <View
-                        style={
-                          styles.descriptionContainer
-                        }
-                      >
-                        <Text
-                          style={styles.descriptionText}
-                          numberOfLines={2}
-                        >
+                      <View style={styles.descriptionContainer}>
+                        <Text style={styles.descriptionText} numberOfLines={2}>
                           {item.description}
 
                           {item.coupon && (
-                            <Text
-                              style={styles.couponText}
-                            >
-                              {item.coupon}
-                            </Text>
+                            <Text style={styles.couponText}>{item.coupon}</Text>
                           )}
                         </Text>
                       </View>
@@ -466,7 +424,7 @@ export default function Notifications() {
                       <Ionicons
                         name="chevron-forward"
                         size={scale(29)}
-                        color={Colors.textSecondary}
+                        color={colors.textSecondary}
                         style={styles.arrow}
                       />
                     </View>
@@ -474,9 +432,7 @@ export default function Notifications() {
 
                   {/* UNREAD DOT */}
 
-                  {item.unread && (
-                    <View style={styles.unreadDot} />
-                  )}
+                  {item.unread && <View style={styles.unreadDot} />}
                 </TouchableOpacity>
               ))}
 
@@ -491,448 +447,449 @@ export default function Notifications() {
    STYLES
 ========================================================= */
 
-const styles = StyleSheet.create({
-  /* =======================================================
+const createStyles = (colors) =>
+  StyleSheet.create({
+    /* =======================================================
      SCREEN
   ======================================================= */
 
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  screenBorder: {
-    flex: 1,
+    screenBorder: {
+      flex: 1,
 
-    marginHorizontal: scale(1),
-    marginVertical: scale(1),
+      marginHorizontal: scale(1),
+      marginVertical: scale(1),
 
-    borderWidth: 1.5,
-    borderColor: "#202933",
+      borderWidth: 1.5,
+      borderColor: colors.border,
 
-    borderRadius: scale(38),
+      borderRadius: scale(38),
 
-    overflow: "hidden",
+      overflow: "hidden",
 
-    backgroundColor: Colors.background,
-  },
+      backgroundColor: colors.background,
+    },
 
-  /* =======================================================
+    /* =======================================================
      HEADER
   ======================================================= */
 
-  header: {
-    height: scale(100),
+    header: {
+      height: scale(100),
 
-    paddingHorizontal: scale(28),
+      paddingHorizontal: scale(28),
 
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
 
-  headerButton: {
-    width: scale(58),
-    height: scale(58),
+    headerButton: {
+      width: scale(58),
+      height: scale(58),
 
-    borderRadius: scale(20),
+      borderRadius: scale(20),
 
-    backgroundColor: Colors.surface,
+      backgroundColor: colors.surface,
 
-    borderWidth: 1,
-    borderColor: "#242C36",
+      borderWidth: 1,
+      borderColor: colors.border,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  headerTitle: {
-    color: Colors.white,
+    headerTitle: {
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.bold,
+      fontFamily: Fonts.bold,
 
-    fontSize: scale(28),
+      fontSize: scale(28),
 
-    lineHeight: scale(35),
+      lineHeight: scale(35),
 
-    flex: 1,
+      flex: 1,
 
-    textAlign: "center",
+      textAlign: "center",
 
-    marginHorizontal: scale(10),
-  },
+      marginHorizontal: scale(10),
+    },
 
-  /* =======================================================
+    /* =======================================================
      TABS
   ======================================================= */
 
-  tabsContainer: {
-    flexDirection: "row",
+    tabsContainer: {
+      flexDirection: "row",
 
-    paddingHorizontal: scale(14),
+      paddingHorizontal: scale(14),
 
-    marginBottom: scale(18),
+      marginBottom: scale(18),
 
-    gap: scale(8),
-  },
-
-  tab: {
-    flex: 1,
-
-    height: scale(58),
-
-    borderRadius: scale(30),
-
-    backgroundColor: "#0F141D",
-
-    borderWidth: 1,
-    borderColor: "#222A35",
-
-    justifyContent: "center",
-    alignItems: "center",
-
-    paddingHorizontal: scale(5),
-  },
-
-  activeTab: {
-    backgroundColor: Colors.primary,
-
-    borderColor: Colors.primary,
-
-    shadowColor: Colors.primary,
-
-    shadowOffset: {
-      width: 0,
-      height: 5,
+      gap: scale(8),
     },
 
-    shadowOpacity: 0.45,
+    tab: {
+      flex: 1,
 
-    shadowRadius: 12,
+      height: scale(58),
 
-    elevation: 8,
-  },
+      borderRadius: scale(30),
 
-  tabText: {
-    color: "#A4A9BA",
+      backgroundColor: colors.backgroundElement,
 
-    fontFamily: Fonts.medium,
+      borderWidth: 1,
+      borderColor: colors.border,
 
-    fontSize: scale(15),
-  },
+      justifyContent: "center",
+      alignItems: "center",
 
-  activeTabText: {
-    color: Colors.white,
+      paddingHorizontal: scale(5),
+    },
 
-    fontFamily: Fonts.semiBold,
-  },
+    activeTab: {
+      backgroundColor: colors.primary,
 
-  /* =======================================================
+      borderColor: colors.primary,
+
+      shadowColor: colors.primary,
+
+      shadowOffset: {
+        width: 0,
+        height: 5,
+      },
+
+      shadowOpacity: 0.45,
+
+      shadowRadius: 12,
+
+      elevation: 8,
+    },
+
+    tabText: {
+      color: colors.textSecondary,
+
+      fontFamily: Fonts.medium,
+
+      fontSize: scale(15),
+    },
+
+    activeTabText: {
+      color: colors.white,
+
+      fontFamily: Fonts.semiBold,
+    },
+
+    /* =======================================================
      SCROLL
   ======================================================= */
 
-  scrollView: {
-    flex: 1,
-  },
+    scrollView: {
+      flex: 1,
+    },
 
-  scrollContent: {
-    paddingHorizontal: scale(16),
-    paddingTop: scale(1),
-  },
+    scrollContent: {
+      paddingHorizontal: scale(16),
+      paddingTop: scale(1),
+    },
 
-  emptyScrollContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-  },
+    emptyScrollContent: {
+      flexGrow: 1,
+      justifyContent: "center",
+    },
 
-  /* =======================================================
+    /* =======================================================
      NOTIFICATION CARD
   ======================================================= */
 
-  notificationCard: {
-    minHeight: scale(142),
+    notificationCard: {
+      minHeight: scale(142),
 
-    width: "100%",
+      width: "100%",
 
-    borderRadius: scale(25),
+      borderRadius: scale(25),
 
-    backgroundColor: "#10151D",
+      backgroundColor: colors.card,
 
-    borderWidth: 1.3,
-    borderColor: "#252E39",
+      borderWidth: 1.3,
+      borderColor: colors.border,
 
-    marginBottom: scale(12),
+      marginBottom: scale(12),
 
-    padding: scale(13),
+      padding: scale(13),
 
-    flexDirection: "row",
+      flexDirection: "row",
 
-    position: "relative",
+      position: "relative",
 
-    overflow: "hidden",
-  },
-
-  unreadNotificationCard: {
-    backgroundColor: "#260D12",
-
-    borderColor: "#7E1A22",
-
-    shadowColor: Colors.primary,
-
-    shadowOffset: {
-      width: 0,
-      height: 4,
+      overflow: "hidden",
     },
 
-    shadowOpacity: 0.32,
+    unreadNotificationCard: {
+      backgroundColor: `${colors.primary}18`,
 
-    shadowRadius: 10,
+      borderColor: `${colors.primary}66`,
 
-    elevation: 5,
-  },
+      shadowColor: colors.primary,
 
-  /* =======================================================
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+
+      shadowOpacity: 0.32,
+
+      shadowRadius: 10,
+
+      elevation: 5,
+    },
+
+    /* =======================================================
      IMAGE
   ======================================================= */
 
-  imageContainer: {
-    width: scale(137),
-    height: scale(112),
+    imageContainer: {
+      width: scale(137),
+      height: scale(112),
 
-    borderRadius: scale(19),
+      borderRadius: scale(19),
 
-    overflow: "hidden",
+      overflow: "hidden",
 
-    backgroundColor: "#191D22",
+      backgroundColor: colors.backgroundElement,
 
-    marginRight: scale(15),
+      marginRight: scale(15),
 
-    position: "relative",
+      position: "relative",
 
-    alignSelf: "center",
-  },
+      alignSelf: "center",
+    },
 
-  notificationImage: {
-    width: "100%",
-    height: "100%",
-  },
+    notificationImage: {
+      width: "100%",
+      height: "100%",
+    },
 
-  /* =======================================================
+    /* =======================================================
      ICON TILE
   ======================================================= */
 
-  iconBackground: {
-    flex: 1,
+    iconBackground: {
+      flex: 1,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  /* =======================================================
+    /* =======================================================
      STATUS BADGE
   ======================================================= */
 
-  statusBadge: {
-    position: "absolute",
+    statusBadge: {
+      position: "absolute",
 
-    right: scale(6),
-    bottom: scale(6),
+      right: scale(6),
+      bottom: scale(6),
 
-    width: scale(39),
-    height: scale(39),
+      width: scale(39),
+      height: scale(39),
 
-    borderRadius: scale(20),
+      borderRadius: scale(20),
 
-    justifyContent: "center",
-    alignItems: "center",
+      justifyContent: "center",
+      alignItems: "center",
 
-    borderWidth: 2,
-    borderColor: "#10151D",
-  },
+      borderWidth: 2,
+      borderColor: colors.card,
+    },
 
-  /* =======================================================
+    /* =======================================================
      CONTENT
   ======================================================= */
 
-  notificationContent: {
-    flex: 1,
+    notificationContent: {
+      flex: 1,
 
-    paddingTop: scale(3),
+      paddingTop: scale(3),
 
-    minWidth: 0,
-  },
+      minWidth: 0,
+    },
 
-  titleRow: {
-    flexDirection: "row",
+    titleRow: {
+      flexDirection: "row",
 
-    alignItems: "flex-start",
+      alignItems: "flex-start",
 
-    paddingRight: scale(10),
-  },
+      paddingRight: scale(10),
+    },
 
-  notificationTitle: {
-    flex: 1,
+    notificationTitle: {
+      flex: 1,
 
-    color: Colors.white,
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.bold,
+      fontFamily: Fonts.bold,
 
-    fontSize: scale(19),
+      fontSize: scale(19),
 
-    lineHeight: scale(25),
+      lineHeight: scale(25),
 
-    marginRight: scale(7),
-  },
+      marginRight: scale(7),
+    },
 
-  timeText: {
-    color: "#A5A9B6",
+    timeText: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.medium,
+      fontFamily: Fonts.medium,
 
-    fontSize: scale(13),
+      fontSize: scale(13),
 
-    lineHeight: scale(20),
+      lineHeight: scale(20),
 
-    marginTop: scale(2),
+      marginTop: scale(2),
 
-    minWidth: scale(65),
+      minWidth: scale(65),
 
-    textAlign: "right",
-  },
+      textAlign: "right",
+    },
 
-  /* =======================================================
+    /* =======================================================
      DESCRIPTION
   ======================================================= */
 
-  descriptionRow: {
-    flex: 1,
+    descriptionRow: {
+      flex: 1,
 
-    flexDirection: "row",
+      flexDirection: "row",
 
-    alignItems: "flex-end",
+      alignItems: "flex-end",
 
-    marginTop: scale(4),
-  },
+      marginTop: scale(4),
+    },
 
-  descriptionContainer: {
-    flex: 1,
+    descriptionContainer: {
+      flex: 1,
 
-    paddingRight: scale(2),
-  },
+      paddingRight: scale(2),
+    },
 
-  descriptionText: {
-    color: "#AEB2BF",
+    descriptionText: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.regular,
+      fontFamily: Fonts.regular,
 
-    fontSize: scale(15),
+      fontSize: scale(15),
 
-    lineHeight: scale(23),
-  },
+      lineHeight: scale(23),
+    },
 
-  couponText: {
-    color: Colors.primary,
+    couponText: {
+      color: colors.primary,
 
-    fontFamily: Fonts.bold,
+      fontFamily: Fonts.bold,
 
-    fontSize: scale(15),
-  },
+      fontSize: scale(15),
+    },
 
-  /* =======================================================
+    /* =======================================================
      ARROW
   ======================================================= */
 
-  arrow: {
-    alignSelf: "center",
+    arrow: {
+      alignSelf: "center",
 
-    marginLeft: scale(4),
+      marginLeft: scale(4),
 
-    marginRight: scale(-2),
-  },
+      marginRight: scale(-2),
+    },
 
-  /* =======================================================
+    /* =======================================================
      UNREAD DOT
   ======================================================= */
 
-  unreadDot: {
-    position: "absolute",
+    unreadDot: {
+      position: "absolute",
 
-    right: scale(16),
-    top: scale(25),
+      right: scale(16),
+      top: scale(25),
 
-    width: scale(12),
-    height: scale(12),
+      width: scale(12),
+      height: scale(12),
 
-    borderRadius: scale(6),
+      borderRadius: scale(6),
 
-    backgroundColor: Colors.primary,
+      backgroundColor: colors.primary,
 
-    shadowColor: Colors.primary,
+      shadowColor: colors.primary,
 
-    shadowOffset: {
-      width: 0,
-      height: 0,
+      shadowOffset: {
+        width: 0,
+        height: 0,
+      },
+
+      shadowOpacity: 0.8,
+
+      shadowRadius: 7,
+
+      elevation: 5,
     },
 
-    shadowOpacity: 0.8,
-
-    shadowRadius: 7,
-
-    elevation: 5,
-  },
-
-  /* =======================================================
+    /* =======================================================
      EMPTY STATE
   ======================================================= */
 
-  emptyContainer: {
-    alignItems: "center",
+    emptyContainer: {
+      alignItems: "center",
 
-    justifyContent: "center",
+      justifyContent: "center",
 
-    paddingHorizontal: scale(30),
-  },
+      paddingHorizontal: scale(30),
+    },
 
-  emptyIconCircle: {
-    width: scale(90),
-    height: scale(90),
+    emptyIconCircle: {
+      width: scale(90),
+      height: scale(90),
 
-    borderRadius: scale(45),
+      borderRadius: scale(45),
 
-    backgroundColor: Colors.surface,
+      backgroundColor: colors.surface,
 
-    borderWidth: 1,
-    borderColor: Colors.border,
+      borderWidth: 1,
+      borderColor: colors.border,
 
-    justifyContent: "center",
-    alignItems: "center",
+      justifyContent: "center",
+      alignItems: "center",
 
-    marginBottom: scale(18),
-  },
+      marginBottom: scale(18),
+    },
 
-  emptyTitle: {
-    color: Colors.white,
+    emptyTitle: {
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.bold,
+      fontFamily: Fonts.bold,
 
-    fontSize: scale(22),
+      fontSize: scale(22),
 
-    marginBottom: scale(6),
-  },
+      marginBottom: scale(6),
+    },
 
-  emptyDescription: {
-    color: Colors.textSecondary,
+    emptyDescription: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.regular,
+      fontFamily: Fonts.regular,
 
-    fontSize: scale(15),
-  },
+      fontSize: scale(15),
+    },
 
-  /* =======================================================
+    /* =======================================================
      BOTTOM
   ======================================================= */
 
-  bottomSpace: {
-    height: scale(25),
-  },
-});
+    bottomSpace: {
+      height: scale(25),
+    },
+  });

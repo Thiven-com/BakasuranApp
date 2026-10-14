@@ -1,19 +1,21 @@
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-    Dimensions,
-    FlatList,
-    Image,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  FlatList,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const { width } = Dimensions.get("window");
 
-// Banner dimensions
-const BANNER_WIDTH = width - 24;
-const BANNER_HEIGHT = 105;
+const BANNER_GAP = 12;
+const BANNER_WIDTH = width - 32;
+const BANNER_HEIGHT = 150;
+const BANNER_INTERVAL = BANNER_WIDTH + BANNER_GAP;
+
 const banners = [
   {
     id: "1",
@@ -32,48 +34,37 @@ const banners = [
   },
 ];
 
-const BannersScreen = () => {
+export default function BannersScreen() {
   const [activeIndex, setActiveIndex] = useState(0);
-
   const flatListRef = useRef(null);
 
-  // --------------------------------
-  // AUTO SLIDE
-  // --------------------------------
+  // Auto-slide
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveIndex((currentIndex) => {
-        const nextIndex =
-          currentIndex === banners.length - 1 ? 0 : currentIndex + 1;
+      const nextIndex = (activeIndex + 1) % banners.length;
 
-        flatListRef.current?.scrollToOffset({
-          offset: nextIndex * BANNER_WIDTH,
-          animated: true,
-        });
-
-        return nextIndex;
+      flatListRef.current?.scrollToOffset({
+        offset: nextIndex * BANNER_INTERVAL,
+        animated: true,
       });
+
+      setActiveIndex(nextIndex);
     }, 4000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [activeIndex]);
 
-  // --------------------------------
-  // MANUAL SWIPE
-  // --------------------------------
+  // Manual swipe
   const handleScroll = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / BANNER_INTERVAL);
 
-    const index = Math.round(offsetX / BANNER_WIDTH);
-
-    if (index >= 0 && index < banners.length && index !== activeIndex) {
+    if (index >= 0 && index < banners.length) {
       setActiveIndex(index);
     }
   };
 
-  // --------------------------------
-  // BANNER CLICK
-  // --------------------------------
+  // Banner navigation
   const handleBannerPress = (item) => {
     router.push(item.route);
   };
@@ -85,13 +76,18 @@ const BannersScreen = () => {
         data={banners}
         horizontal
         showsHorizontalScrollIndicator={false}
-        snapToInterval={BANNER_WIDTH}
+        snapToInterval={BANNER_INTERVAL}
         decelerationRate="fast"
         disableIntervalMomentum
         keyExtractor={(item) => item.id}
         onScroll={handleScroll}
         scrollEventThrottle={16}
         contentContainerStyle={styles.listContent}
+        getItemLayout={(_, index) => ({
+          length: BANNER_INTERVAL,
+          offset: BANNER_INTERVAL * index,
+          index,
+        })}
         renderItem={({ item }) => (
           <TouchableOpacity
             activeOpacity={0.9}
@@ -101,13 +97,13 @@ const BannersScreen = () => {
             <Image
               source={item.image}
               style={styles.banner}
-              resizeMode="contain"
+              resizeMode="cover"
             />
           </TouchableOpacity>
         )}
       />
 
-      {/* PAGINATION */}
+      {/* Pagination dots */}
       <View style={styles.dotsContainer}>
         {banners.map((item, index) => (
           <View
@@ -118,9 +114,7 @@ const BannersScreen = () => {
       </View>
     </View>
   );
-};
-
-export default BannersScreen;
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -129,26 +123,16 @@ const styles = StyleSheet.create({
   },
 
   listContent: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 16,
+    gap: BANNER_GAP,
   },
 
   bannerWrapper: {
     width: BANNER_WIDTH,
     height: BANNER_HEIGHT,
-    borderRadius: 16,
+    borderRadius: 10,
     overflow: "hidden",
-    backgroundColor: "#080808",
-
-    // Small premium shadow
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-
-    elevation: 5,
+    backgroundColor: "#FFFFFF",
   },
 
   banner: {
@@ -160,7 +144,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 9,
+    marginTop: 8,
     gap: 6,
   },
 
@@ -168,7 +152,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#555555",
+    backgroundColor: "#777777",
   },
 
   activeDot: {

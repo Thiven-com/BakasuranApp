@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import {
   Alert,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,10 +12,12 @@ import {
   View,
 } from "react-native";
 
-import Colors from "../constants/Colors";
+import { useTheme } from "../hooks/use-theme";
 import Fonts from "../constants/Fonts";
 
 const CheckoutScreen = () => {
+  const { colors: Colors } = useTheme();
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
   // ==========================================================
   // STATE
   // ==========================================================
@@ -97,7 +100,7 @@ const CheckoutScreen = () => {
       title: "Wallet",
       subtitle: "Amazon Pay, Mobikwik & more",
       icon: "wallet-outline",
-      iconColor: Colors.white,
+      iconColor: Colors.textPrimary,
     },
     {
       id: "cod",
@@ -153,10 +156,25 @@ const CheckoutScreen = () => {
   // PLACE ORDER
   // ==========================================================
 
+  // File must exist at: app/order-success.jsx
+  const goToSuccess = () => {
+    router.replace("/order-success");
+  };
+
   const handlePlaceOrder = () => {
     if (!paymentMethod) {
-      Alert.alert("Select Payment", "Please select a payment method.");
+      if (Platform.OS === "web") {
+        window.alert("Please select a payment method.");
+      } else {
+        Alert.alert("Select Payment", "Please select a payment method.");
+      }
+      return;
+    }
 
+    // Alert.alert buttons do not work on web, so use window.confirm there
+    if (Platform.OS === "web") {
+      const confirmed = window.confirm(`Place your order for ₹${grandTotal}?`);
+      if (confirmed) goToSuccess();
       return;
     }
 
@@ -167,9 +185,7 @@ const CheckoutScreen = () => {
       },
       {
         text: "Place Order",
-        onPress: () => {
-          router.replace("/order-success");
-        },
+        onPress: goToSuccess,
       },
     ]);
   };
@@ -219,7 +235,7 @@ const CheckoutScreen = () => {
           onPress={() => router.back()}
           activeOpacity={0.8}
         >
-          <Ionicons name="arrow-back" size={22} color={Colors.white} />
+          <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Checkout</Text>
@@ -476,7 +492,7 @@ export default CheckoutScreen;
 // STYLES
 // ============================================================
 
-const styles = StyleSheet.create({
+const createStyles = (Colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -508,7 +524,7 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.extraBold,
     fontSize: 20,
   },
@@ -615,34 +631,35 @@ const styles = StyleSheet.create({
   },
 
   addressType: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
-    fontSize: 15,
+    fontSize: 19,
   },
 
   addressLine1: {
-    color: Colors.textSecondary,
+    color: Colors.textPrimary,
     fontFamily: Fonts.medium,
-    fontSize: 11,
+    fontSize: 17,
     marginTop: 4,
   },
 
   addressLine2: {
     color: Colors.textSecondary,
     fontFamily: Fonts.regular,
-    fontSize: 10,
+    fontSize: 19,
     marginTop: 2,
   },
 
   changeButton: {
     paddingHorizontal: 4,
     paddingVertical: 8,
+    backgroundColor: Colors.primaryDark,
   },
 
   changeText: {
-    color: Colors.primary,
+    color: "#ffffff",
     fontFamily: Fonts.bold,
-    fontSize: 10,
+    fontSize: 14,
     textTransform: "uppercase",
   },
 
@@ -655,16 +672,16 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
-    fontSize: 15,
+    fontSize: 19,
     marginBottom: 9,
   },
 
   optionalText: {
     color: Colors.textMuted,
     fontFamily: Fonts.regular,
-    fontSize: 10,
+    fontSize: 14,
   },
 
   // ==========================================================
@@ -686,9 +703,9 @@ const styles = StyleSheet.create({
     flex: 1,
     height: "100%",
     marginLeft: 10,
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.regular,
-    fontSize: 11,
+    fontSize: 18,
   },
 
   // ==========================================================
@@ -809,15 +826,15 @@ const styles = StyleSheet.create({
   },
 
   paymentTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.semiBold,
-    fontSize: 12,
+    fontSize: 17,
   },
 
   paymentSubtitle: {
     color: Colors.textMuted,
     fontFamily: Fonts.regular,
-    fontSize: 9,
+    fontSize: 16,
     marginTop: 4,
   },
 
@@ -842,15 +859,15 @@ const styles = StyleSheet.create({
   },
 
   summaryTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
-    fontSize: 16,
+    fontSize: 19,
   },
 
   itemCount: {
     color: Colors.primary,
     fontFamily: Fonts.bold,
-    fontSize: 11,
+    fontSize: 17,
   },
 
   summaryRow: {
@@ -863,25 +880,25 @@ const styles = StyleSheet.create({
   summaryLabel: {
     color: Colors.textSecondary,
     fontFamily: Fonts.regular,
-    fontSize: 11,
+    fontSize: 16,
   },
 
   summaryValue: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.medium,
-    fontSize: 11,
+    fontSize: 16,
   },
 
   discountLabel: {
     color: Colors.success,
     fontFamily: Fonts.medium,
-    fontSize: 11,
+    fontSize: 16,
   },
 
   discountValue: {
     color: Colors.success,
     fontFamily: Fonts.bold,
-    fontSize: 11,
+    fontSize: 16,
   },
 
   summaryDivider: {
@@ -900,13 +917,13 @@ const styles = StyleSheet.create({
   },
 
   toPayLabel: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.extraBold,
     fontSize: 18,
   },
 
   toPayValue: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.extraBold,
     fontSize: 22,
   },
@@ -939,15 +956,15 @@ const styles = StyleSheet.create({
   },
 
   securityTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.medium,
-    fontSize: 10,
+    fontSize: 15,
   },
 
   securityText: {
     color: Colors.textMuted,
     fontFamily: Fonts.regular,
-    fontSize: 8,
+    fontSize: 15,
     marginTop: 2,
   },
 
@@ -984,13 +1001,13 @@ const styles = StyleSheet.create({
   placeOrderText: {
     color: Colors.white,
     fontFamily: Fonts.extraBold,
-    fontSize: 13,
+    fontSize: 15,
   },
 
   placeOrderAmount: {
     color: Colors.white,
     fontFamily: Fonts.extraBold,
-    fontSize: 13,
+    fontSize: 15,
     marginLeft: 5,
     marginRight: 10,
   },

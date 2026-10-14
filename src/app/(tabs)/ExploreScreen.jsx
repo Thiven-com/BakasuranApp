@@ -14,8 +14,8 @@ import {
   View,
 } from "react-native";
 
-import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
+import { useTheme } from "../../hooks/use-theme";
 
 // IMPORTANT:
 // Restaurant data stays inside ../Restaurant/[id].jsx
@@ -92,25 +92,25 @@ const popularCuisines = [
     id: "1",
     name: "Biryani",
     places: "120+ places",
-    image: require("../../../assets/images/biryani.png"),
+    image: require("../../../assets/images/Customer1.png"),
   },
   {
     id: "2",
     name: "South Indian",
     places: "150+ places",
-    image: require("../../../assets/images/south_indian.png"),
+    image: require("../../../assets/images/Customer2.png"),
   },
   {
     id: "3",
     name: "Dosa",
     places: "100+ places",
-    image: require("../../../assets/images/dosa.png"),
+    image: require("../../../assets/images/Customer3.png"),
   },
   {
     id: "4",
     name: "Pizza",
     places: "90+ places",
-    image: require("../../../assets/images/pizza.png"),
+    image: require("../../../assets/images/Customer4.png"),
   },
   {
     id: "5",
@@ -204,6 +204,8 @@ const restaurantList = Object.values(restaurants || {}).map((restaurant) => {
 
 export default function ExploreScreen() {
   const params = useLocalSearchParams();
+  const { colors: Colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(Colors, isDark), [Colors, isDark]);
 
   /* ==========================================================
      PARAMS
@@ -283,8 +285,10 @@ export default function ExploreScreen() {
     -------------------------------------------------------- */
 
     const search = normalize(searchText);
+    const isRestaurantBrowseQuery =
+      search === "restaurant" || search === "restaurants";
 
-    if (search) {
+    if (search && !isRestaurantBrowseQuery) {
       result = result.filter((restaurant) => {
         const name = normalize(restaurant?.name);
 
@@ -500,7 +504,7 @@ export default function ExploreScreen() {
             <Ionicons
               name={favorite ? "heart" : "heart-outline"}
               size={21}
-              color={favorite ? "#E53935" : "#222"}
+              color={favorite ? Colors.error : Colors.textSecondary}
             />
           </TouchableOpacity>
         </View>
@@ -514,7 +518,7 @@ export default function ExploreScreen() {
             </Text>
 
             <View style={styles.ratingBadge}>
-              <Ionicons name="star" size={11} color="#fff" />
+              <Ionicons name="star" size={11} color={Colors.white} />
 
               <Text style={styles.ratingText}>{restaurant.rating || "—"}</Text>
             </View>
@@ -526,7 +530,7 @@ export default function ExploreScreen() {
 
           <View style={styles.infoRow}>
             <View style={styles.infoItem}>
-              <Ionicons name="time-outline" size={14} color="#777" />
+              <Ionicons name="time-outline" size={14} color={Colors.textSecondary} />
 
               <Text style={styles.infoText}>
                 {restaurant.time || "30-40 min"}
@@ -542,7 +546,7 @@ export default function ExploreScreen() {
 
           <View style={styles.cardBottom}>
             <View style={styles.delivery}>
-              <Ionicons name="bicycle-outline" size={15} color="#555" />
+              <Ionicons name="bicycle-outline" size={15} color={Colors.textSecondary} />
 
               <Text style={styles.deliveryText}>Free delivery</Text>
             </View>
@@ -564,7 +568,7 @@ export default function ExploreScreen() {
     return (
       <View style={styles.emptyContainer}>
         <View style={styles.emptyIcon}>
-          <Ionicons name="restaurant-outline" size={42} color="#999" />
+          <Ionicons name="restaurant-outline" size={42} color={Colors.textMuted} />
         </View>
 
         <Text style={styles.emptyTitle}>No restaurants found</Text>
@@ -590,7 +594,10 @@ export default function ExploreScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={Colors.background}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -614,7 +621,7 @@ export default function ExploreScreen() {
               <View style={styles.locationRow}>
                 <Text style={styles.location}>Hitech City</Text>
 
-                <Ionicons name="chevron-down" size={14} color="#222" />
+                <Ionicons name="chevron-down" size={14} color={Colors.textPrimary} />
               </View>
 
               <Text style={styles.city}>Hyderabad</Text>
@@ -622,7 +629,7 @@ export default function ExploreScreen() {
           </View>
 
           <TouchableOpacity style={styles.profileButton} activeOpacity={0.8}>
-            <Ionicons name="person-outline" size={20} color="#222" />
+            <Ionicons name="person-outline" size={20} color={Colors.textPrimary} />
           </TouchableOpacity>
         </View>
 
@@ -638,19 +645,19 @@ export default function ExploreScreen() {
 
         <View style={styles.searchRow}>
           <View style={styles.searchBox}>
-            <Ionicons name="search" size={20} color="#777" />
+            <Ionicons name="search" size={20} color={Colors.textSecondary} />
 
             <TextInput
               value={searchText}
               onChangeText={setSearchText}
               placeholder="Search restaurants or food"
-              placeholderTextColor="#999"
+              placeholderTextColor={Colors.textMuted}
               style={styles.searchInput}
             />
 
             {searchText.length > 0 && (
               <TouchableOpacity onPress={() => setSearchText("")}>
-                <Ionicons name="close-circle" size={19} color="#999" />
+                <Ionicons name="close-circle" size={19} color={Colors.textMuted} />
               </TouchableOpacity>
             )}
           </View>
@@ -660,7 +667,7 @@ export default function ExploreScreen() {
             activeOpacity={0.85}
             onPress={openFilter}
           >
-            <Ionicons name="options-outline" size={22} color="#fff" />
+            <Ionicons name="options-outline" size={22} color={Colors.white} />
           </TouchableOpacity>
         </View>
 
@@ -742,7 +749,7 @@ export default function ExploreScreen() {
                               : "pricetag-outline"
                       }
                       size={14}
-                      color={active ? "#fff" : "#FFB000"}
+                      color={active ? Colors.white : Colors.gold}
                     />
                   )}
 
@@ -773,7 +780,7 @@ export default function ExploreScreen() {
             activeOpacity={0.8}
             onPress={openFilter}
           >
-            <Ionicons name="swap-vertical-outline" size={17} color="#444" />
+            <Ionicons name="swap-vertical-outline" size={17} color={Colors.textSecondary} />
 
             <Text style={styles.sortText}>Sort</Text>
           </TouchableOpacity>
@@ -839,7 +846,7 @@ export default function ExploreScreen() {
               <Text style={styles.modalTitle}>Filters & Sort</Text>
 
               <TouchableOpacity onPress={() => setShowFilterModal(false)}>
-                <Ionicons name="close" size={25} color="#222" />
+                <Ionicons name="close" size={25} color={Colors.textPrimary} />
               </TouchableOpacity>
             </View>
 
@@ -951,10 +958,10 @@ export default function ExploreScreen() {
    STYLES
 ============================================================ */
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors, isDark) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#060808",
+    backgroundColor: Colors.background,
   },
 
   /* HEADER */
@@ -977,7 +984,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#FFF3ED",
+    backgroundColor: isDark ? Colors.surface : Colors.backgroundElement,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,
@@ -986,7 +993,7 @@ const styles = StyleSheet.create({
   deliverText: {
     fontFamily: Fonts.regular,
     fontSize: 10,
-    color: "#f1eded",
+    color: Colors.textSecondary,
     marginBottom: 2,
   },
 
@@ -998,13 +1005,13 @@ const styles = StyleSheet.create({
   location: {
     fontFamily: Fonts.bold,
     fontSize: 15,
-    color: "#f5f5f5",
+    color: Colors.textPrimary,
   },
 
   city: {
     fontFamily: Fonts.regular,
     fontSize: 14,
-    color: "#f7f7f7",
+    color: Colors.textSecondary,
     marginTop: 2,
   },
 
@@ -1012,11 +1019,11 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: "#F6F6F6",
+    backgroundColor: Colors.surface,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#EEEEEE",
+    borderColor: Colors.border,
   },
 
   /* TITLE */
@@ -1029,14 +1036,14 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: Fonts.bold,
     fontSize: 30,
-    color: "#ffeaea",
+    color: Colors.textPrimary,
     letterSpacing: -0.5,
   },
 
   subtitle: {
     fontFamily: Fonts.regular,
     fontSize: 14,
-    color: "#ffffff",
+    color: Colors.textSecondary,
     marginTop: 4,
   },
 
@@ -1053,20 +1060,20 @@ const styles = StyleSheet.create({
   searchBox: {
     flex: 1,
     height: 52,
-    backgroundColor: "#F7F7F7",
+    backgroundColor: Colors.surface,
     borderRadius: 15,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 15,
     borderWidth: 1,
-    borderColor: "#EEEEEE",
+    borderColor: Colors.border,
   },
 
   searchInput: {
     flex: 1,
     fontFamily: Fonts.regular,
     fontSize: 13,
-    color: "#222222",
+    color: Colors.textPrimary,
     marginLeft: 9,
     paddingVertical: 0,
   },
@@ -1099,7 +1106,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: Fonts.bold,
     fontSize: 24,
-    color: "#ffffff",
+    color: Colors.textPrimary,
     letterSpacing: -0.2,
   },
 
@@ -1120,7 +1127,7 @@ const styles = StyleSheet.create({
     height: 68,
     borderRadius: 34,
     overflow: "hidden",
-    backgroundColor: "#060808",
+    backgroundColor: isDark ? Colors.surface : Colors.backgroundElement,
     borderWidth: 2,
     borderColor: "transparent",
   },
@@ -1139,7 +1146,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontFamily: Fonts.medium,
     fontSize: 18,
-    color: "#f7eded",
+    color: Colors.textPrimary,
     textAlign: "center",
   },
 
@@ -1161,8 +1168,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 13,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#E1E1E1",
-    backgroundColor: "#060808",
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -1177,11 +1184,11 @@ const styles = StyleSheet.create({
   chipText: {
     fontFamily: Fonts.bold,
     fontSize: 14,
-    color: "#ffffff",
+    color: Colors.textPrimary,
   },
 
   activeChipText: {
-    color: "#FFFFFF",
+    color: Colors.white,
     fontFamily: Fonts.semiBold,
   },
 
@@ -1199,14 +1206,14 @@ const styles = StyleSheet.create({
   restaurantTitle: {
     fontFamily: Fonts.bold,
     fontSize: 24,
-    color: "#ffffff",
+    color: Colors.textPrimary,
     letterSpacing: -0.2,
   },
 
   resultText: {
     fontFamily: Fonts.regular,
     fontSize: 12,
-    color: "#888888",
+    color: Colors.textSecondary,
     marginTop: 4,
   },
 
@@ -1214,9 +1221,9 @@ const styles = StyleSheet.create({
     height: 35,
     paddingHorizontal: 12,
     borderRadius: 10,
-    backgroundColor: "#F6F6F6",
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: "#EEEEEE",
+    borderColor: Colors.border,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -1226,7 +1233,7 @@ const styles = StyleSheet.create({
   sortText: {
     fontFamily: Fonts.semiBold,
     fontSize: 11,
-    color: "#444444",
+    color: Colors.textSecondary,
   },
 
   /* RESTAURANT LIST */
@@ -1324,7 +1331,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: Fonts.bold,
     fontSize: 20,
-    color: "#ffffff",
+    color: Colors.textPrimary,
     letterSpacing: -0.2,
     marginRight: 8,
   },
@@ -1350,7 +1357,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontFamily: Fonts.regular,
     fontSize: 17,
-    color: "#ffffff",
+    color: Colors.logoGold,
   },
 
   infoRow: {
@@ -1368,14 +1375,14 @@ const styles = StyleSheet.create({
   infoText: {
     fontFamily: Fonts.bold,
     fontSize: 15,
-    color: "#1cf808",
+    color: Colors.success,
   },
 
   dot: {
     width: 3,
     height: 3,
     borderRadius: 2,
-    backgroundColor: "#999999",
+    backgroundColor: Colors.divider,
     marginHorizontal: 8,
   },
 
@@ -1383,7 +1390,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "#F1F1F1",
+    borderTopColor: Colors.divider,
     flexDirection: "row",
     alignItems: "center",
   },
@@ -1397,14 +1404,14 @@ const styles = StyleSheet.create({
   deliveryText: {
     fontFamily: Fonts.medium,
     fontSize: 14,
-    color: "#ffffff",
+    color: Colors.textPrimary,
   },
 
   reviews: {
     marginLeft: "auto",
     fontFamily: Fonts.regular,
     fontSize: 13,
-    color: "#999999",
+    color: Colors.textSecondary,
   },
 
   /* EMPTY */
@@ -1420,7 +1427,7 @@ const styles = StyleSheet.create({
     width: 82,
     height: 82,
     borderRadius: 41,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: Colors.backgroundElement,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1428,14 +1435,14 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontFamily: Fonts.bold,
     fontSize: 18,
-    color: "#333333",
+    color: Colors.textPrimary,
     marginTop: 16,
   },
 
   emptyDescription: {
     fontFamily: Fonts.regular,
     fontSize: 12,
-    color: "#888888",
+    color: Colors.textSecondary,
     textAlign: "center",
     marginTop: 7,
     lineHeight: 19,
@@ -1480,10 +1487,10 @@ const styles = StyleSheet.create({
   popularCard: {
     width: 145,
     borderRadius: 15,
-    backgroundColor: "#080606",
+    backgroundColor: Colors.card,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#EEEEEE",
+    borderColor: Colors.border,
     paddingBottom: 11,
     elevation: 2,
     shadowColor: "#000",
@@ -1503,7 +1510,7 @@ const styles = StyleSheet.create({
   popularName: {
     fontFamily: Fonts.bold,
     fontSize: 14,
-    color: "#ffffff",
+    color: Colors.textPrimary,
     paddingHorizontal: 10,
     marginTop: 9,
   },
@@ -1511,7 +1518,7 @@ const styles = StyleSheet.create({
   popularPlaces: {
     fontFamily: Fonts.regular,
     fontSize: 13,
-    color: "#ffffff",
+    color: Colors.textSecondary,
     paddingHorizontal: 10,
     marginTop: 3,
   },
@@ -1525,7 +1532,7 @@ const styles = StyleSheet.create({
   },
 
   modal: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.surface,
     borderTopLeftRadius: 26,
     borderTopRightRadius: 26,
     paddingHorizontal: 20,
@@ -1543,13 +1550,13 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontFamily: Fonts.bold,
     fontSize: 21,
-    color: "#f8f5f5",
+    color: Colors.textPrimary,
   },
 
   modalHeading: {
     fontFamily: Fonts.bold,
     fontSize: 14,
-    color: "#333333",
+    color: Colors.textPrimary,
     marginBottom: 8,
   },
 
@@ -1564,7 +1571,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: "#AAAAAA",
+    borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 11,
@@ -1584,7 +1591,7 @@ const styles = StyleSheet.create({
   modalOptionText: {
     fontFamily: Fonts.regular,
     fontSize: 13,
-    color: "#555555",
+    color: Colors.textSecondary,
   },
 
   modalOptionTextActive: {
@@ -1603,14 +1610,14 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#DDDDDD",
+    borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.surface,
   },
 
   clearModalText: {
-    color: "#444444",
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
     fontSize: 13,
   },

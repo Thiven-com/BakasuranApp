@@ -1,4 +1,3 @@
-
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -81,11 +80,11 @@ export default function SettingsScreen() {
           onPress: () => {
             Alert.alert(
               "Cache Cleared",
-              "App cache has been cleared successfully."
+              "App cache has been cleared successfully.",
             );
           },
         },
-      ]
+      ],
     );
   };
 
@@ -94,23 +93,19 @@ export default function SettingsScreen() {
   ===================================================== */
 
   const handleLogout = () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: () => {
+          router.replace("/(auth)/Loginscreen");
         },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: () => {
-            router.replace("/(auth)/Loginscreen");
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
   /* =====================================================
@@ -132,11 +127,11 @@ export default function SettingsScreen() {
           onPress: () => {
             Alert.alert(
               "Account Deletion",
-              "Account deletion request has been submitted."
+              "Account deletion request has been submitted.",
             );
           },
         },
-      ]
+      ],
     );
   };
 
@@ -144,19 +139,10 @@ export default function SettingsScreen() {
      MENU ROW
   ===================================================== */
 
-  const renderMenuRow = (
-    icon,
-    title,
-    subtitle,
-    onPress,
-    last = false
-  ) => (
+  const renderMenuRow = (icon, title, subtitle, onPress, last = false) => (
     <TouchableOpacity
       key={title}
-      style={[
-        styles.settingRow,
-        last && styles.lastRow,
-      ]}
+      style={[styles.settingRow, last && styles.lastRow]}
       onPress={onPress}
       activeOpacity={0.75}
       accessibilityRole="button"
@@ -170,11 +156,7 @@ export default function SettingsScreen() {
         <Text style={styles.settingSubtitle}>{subtitle}</Text>
       </View>
 
-      <Ionicons
-        name="chevron-forward"
-        size={20}
-        color={MUTED}
-      />
+      <Ionicons name="chevron-forward" size={20} color={MUTED} />
     </TouchableOpacity>
   );
 
@@ -188,15 +170,9 @@ export default function SettingsScreen() {
     subtitle,
     value,
     onValueChange,
-    last = false
+    last = false,
   ) => (
-    <View
-      key={title}
-      style={[
-        styles.settingRow,
-        last && styles.lastRow,
-      ]}
-    >
+    <View key={title} style={[styles.settingRow, last && styles.lastRow]}>
       <View style={styles.iconContainer}>
         <Ionicons name={icon} size={24} color={RED} />
       </View>
@@ -206,19 +182,13 @@ export default function SettingsScreen() {
         <Text style={styles.settingSubtitle}>{subtitle}</Text>
       </View>
 
-      <SettingSwitch
-        value={value}
-        onValueChange={onValueChange}
-      />
+      <SettingSwitch value={value} onValueChange={onValueChange} />
     </View>
   );
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="#080808"
-      />
+      <StatusBar barStyle="light-content" backgroundColor="#080808" />
 
       {/* HEADER */}
 
@@ -230,11 +200,7 @@ export default function SettingsScreen() {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <Ionicons
-            name="chevron-back"
-            size={26}
-            color={WHITE}
-          />
+          <Ionicons name="chevron-back" size={26} color={WHITE} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Settings</Text>
@@ -255,14 +221,14 @@ export default function SettingsScreen() {
             "person-outline",
             "Profile",
             "Manage your personal information",
-            () => router.push("/profile")
+            () => router.push("/profile"),
           )}
 
           {renderMenuRow(
             "location-outline",
             "Addresses",
             "Manage your delivery addresses",
-            () => router.push("/addresses")
+            () => router.push("/addresses"),
           )}
 
           {renderMenuRow(
@@ -270,7 +236,7 @@ export default function SettingsScreen() {
             "Payment Methods",
             "Manage your saved payment methods",
             () => router.push("/payments"),
-            true
+            true,
           )}
         </View>
 
@@ -284,7 +250,7 @@ export default function SettingsScreen() {
             "Notifications",
             "Receive app notifications",
             notifications,
-            setNotifications
+            setNotifications,
           )}
 
           {renderToggleRow(
@@ -292,7 +258,7 @@ export default function SettingsScreen() {
             "Order Updates",
             "Get updates about your orders",
             orderUpdates,
-            setOrderUpdates
+            setOrderUpdates,
           )}
 
           {renderToggleRow(
@@ -301,7 +267,7 @@ export default function SettingsScreen() {
             "Receive special offers and discounts",
             offers,
             setOffers,
-            true
+            true,
           )}
         </View>
 
@@ -311,13 +277,11 @@ export default function SettingsScreen() {
 
         <View style={styles.settingsCard}>
           {renderToggleRow(
-            sound
-              ? "volume-high-outline"
-              : "volume-mute-outline",
+            sound ? "volume-high-outline" : "volume-mute-outline",
             "Sound",
             "Play sounds for app actions",
             sound,
-            setSound
+            setSound,
           )}
 
           {renderToggleRow(
@@ -326,7 +290,7 @@ export default function SettingsScreen() {
             "Use the dark BAKASURAN theme",
             darkMode,
             setDarkMode,
-            true
+            true,
           )}
         </View>
 
@@ -339,22 +303,21 @@ export default function SettingsScreen() {
             "help-circle-outline",
             "Help & Support",
             "Get help with your account and orders",
-            () => router.push("/help&support")
+            () => router.push("/help&support"),
           )}
 
           {renderMenuRow(
             "shield-checkmark-outline",
             "Privacy Policy",
             "Learn how we protect your information",
-                () => router.push("/privacypolicy")
-              
+            () => router.push("/privacypolicy"),
           )}
 
           {renderMenuRow(
             "document-text-outline",
             "Terms & Conditions",
             "View our terms of service",
-              () => router.push("/terms&conditions")
+            () => router.push("/terms&conditions"),
           )}
 
           {renderMenuRow(
@@ -362,7 +325,7 @@ export default function SettingsScreen() {
             "Clear Cache",
             "Free up temporary app storage",
             handleClearCache,
-            true
+            true,
           )}
         </View>
 
@@ -374,11 +337,7 @@ export default function SettingsScreen() {
           activeOpacity={0.8}
           accessibilityRole="button"
         >
-          <Ionicons
-            name="log-out-outline"
-            size={24}
-            color={RED}
-          />
+          <Ionicons name="log-out-outline" size={24} color={RED} />
 
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
@@ -390,9 +349,7 @@ export default function SettingsScreen() {
           onPress={handleDeleteAccount}
           activeOpacity={0.75}
         >
-          <Text style={styles.deleteAccountText}>
-            Delete Account
-          </Text>
+          <Text style={styles.deleteAccountText}>Delete Account</Text>
         </TouchableOpacity>
 
         {/* APP VERSION */}
@@ -400,9 +357,7 @@ export default function SettingsScreen() {
         <View style={styles.versionContainer}>
           <Text style={styles.brandText}>BAKASURAN</Text>
           <Text style={styles.versionText}>Version 1.0.0</Text>
-          <Text style={styles.copyrightText}>
-            Made with ❤️ for food lovers
-          </Text>
+          <Text style={styles.copyrightText}>Made with ❤️ for food lovers</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
