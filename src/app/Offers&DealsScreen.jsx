@@ -325,46 +325,6 @@ const OffersDealsScreen = () => {
 
             <View style={styles.heroOverlay} />
 
-            <View style={styles.heroContent}>
-              <View style={styles.heroBadge}>
-                <Ionicons name="flash" size={13} color={Colors.white} />
-
-                <Text style={styles.heroBadgeText}>LIMITED TIME</Text>
-              </View>
-
-              <Text style={styles.heroTitle}>FLAT 50% OFF</Text>
-
-              <Text style={styles.heroSubtitle}>On your first food order</Text>
-
-              <View style={styles.heroCodeRow}>
-                <Text style={styles.heroCodeLabel}>Use Code</Text>
-
-                <Text style={styles.heroCode}>BAKASURAN50</Text>
-
-                <TouchableOpacity
-                  style={styles.copyIconButton}
-                  activeOpacity={0.8}
-                  onPress={() => copyCoupon("BAKASURAN50")}
-                >
-                  <Ionicons
-                    name="copy-outline"
-                    size={15}
-                    color={Colors.white}
-                  />
-                </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity
-                style={styles.orderButton}
-                activeOpacity={0.85}
-                onPress={() => router.push("/explore")}
-              >
-                <Text style={styles.orderButtonText}>Order Now</Text>
-
-                <Ionicons name="arrow-forward" size={17} color={Colors.white} />
-              </TouchableOpacity>
-            </View>
-
             <View style={styles.discountBadge}>
               <Text style={styles.discountBadgeText}>50%</Text>
 
@@ -694,8 +654,8 @@ const styles = StyleSheet.create({
 
     color: Colors.white,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xxl,
   },
 
   /* SEARCH */
@@ -729,7 +689,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
   },
 
   /* CATEGORY */
@@ -769,8 +729,8 @@ const styles = StyleSheet.create({
 
     color: Colors.textSecondary,
 
-    fontFamily: Fonts.medium,
-    fontSize: Fonts.size.md,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xl,
   },
 
   categoryTextActive: {
@@ -1020,8 +980,8 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: Colors.white,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xxl,
   },
 
   seeAll: {
@@ -1306,8 +1266,8 @@ const styles = StyleSheet.create({
   savingTitle: {
     color: Colors.white,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xxl,
   },
 
   savingSubtitle: {
@@ -1315,8 +1275,8 @@ const styles = StyleSheet.create({
 
     color: Colors.primary,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: 14,
+    fontFamily: Fonts.regular,
+    fontSize: 16,
   },
 
   savingDescription: {
@@ -1325,7 +1285,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: 14,
+    fontSize: 17,
   },
 
   /* PROMISE */
@@ -1368,8 +1328,8 @@ const styles = StyleSheet.create({
   promiseTitle: {
     color: Colors.white,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.md,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.base,
   },
 
   promiseText: {
@@ -1378,7 +1338,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: 13,
+    fontSize: 16,
 
     lineHeight: 15,
   },
