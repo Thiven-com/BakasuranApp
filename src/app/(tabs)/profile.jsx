@@ -1,24 +1,30 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useMemo } from "react";
 import {
   Alert,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import Colors from "../../constants/colors";
-import Fonts from "../../constants/fonts";
+import Fonts from "../../constants/Fonts";
+import { useTheme } from "../../hooks/use-theme";
 
 /* =========================================================
    PROFILE SCREEN
 ========================================================= */
 
 export default function ProfileScreen() {
+  const { isDark, toggleTheme, colors } = useTheme();
+
+  const styles = useMemo(() => makeStyles(colors, isDark), [colors, isDark]);
+
   /* =======================================================
      MENU ITEMS
   ======================================================= */
@@ -28,17 +34,17 @@ export default function ProfileScreen() {
       title: "My Orders",
       subtitle: "View your order history",
       icon: "bag-handle",
-      color: Colors.order,
-      background: "#35151B",
-      route: "/orders",
+      color: colors.order,
+      background: isDark ? "#35151B" : "#FFE9EC",
+      route: "/MyOrdersScreen",
     },
 
     {
       title: "Addresses",
       subtitle: "Manage your delivery addresses",
       icon: "location",
-      color: Colors.warning,
-      background: "#352A14",
+      color: colors.warning,
+      background: isDark ? "#352A14" : "#FFF3DC",
       route: "/addresses",
     },
 
@@ -46,8 +52,8 @@ export default function ProfileScreen() {
       title: "Payment Methods",
       subtitle: "Manage cards, UPI & wallets",
       icon: "card",
-      color: Colors.info,
-      background: "#102F42",
+      color: colors.info,
+      background: isDark ? "#102F42" : "#E3F2FB",
       route: "/payments",
     },
 
@@ -55,8 +61,8 @@ export default function ProfileScreen() {
       title: "Favourite Restaurants",
       subtitle: "Your saved restaurants",
       icon: "heart",
-      color: Colors.favourite || Colors.offer,
-      background: "#35141F",
+      color: colors.favourite || colors.offer,
+      background: isDark ? "#35141F" : "#FFE6EE",
       route: "/favourites",
     },
 
@@ -64,17 +70,17 @@ export default function ProfileScreen() {
       title: "Offers & Rewards",
       subtitle: "Exclusive offers and rewards",
       icon: "gift",
-      color: Colors.offer,
-      background: "#2C1740",
-      route: "/notifications",
+      color: colors.offer,
+      background: isDark ? "#2C1740" : "#F1E6FB",
+      route: "/Offers&DealsScreen",
     },
 
     {
       title: "Help & Support",
       subtitle: "Get help, FAQs and support",
       icon: "headset",
-      color: Colors.success,
-      background: "#10372B",
+      color: colors.success,
+      background: isDark ? "#10372B" : "#E2F7EC",
       route: "/help&support",
     },
 
@@ -82,8 +88,8 @@ export default function ProfileScreen() {
       title: "Settings",
       subtitle: "App preferences and notifications",
       icon: "settings",
-      color: "#B8C0CC",
-      background: "#29303A",
+      color: isDark ? "#B8C0CC" : "#4B5563",
+      background: isDark ? "#29303A" : "#EBEDF0",
       route: "/settings",
     },
   ];
@@ -93,23 +99,19 @@ export default function ProfileScreen() {
   ======================================================= */
 
   const handleLogout = () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: () => {
+          router.replace("/(auth)/Loginscreen");
         },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: () => {
-            router.replace("/(auth)/Loginscreen");
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
   /* =======================================================
@@ -127,8 +129,8 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor={Colors.background}
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
       />
 
       <ScrollView
@@ -142,7 +144,6 @@ export default function ProfileScreen() {
         ================================================= */}
 
         <View style={styles.header}>
-
           {/* BACK */}
 
           <TouchableOpacity
@@ -153,15 +154,13 @@ export default function ProfileScreen() {
             <Ionicons
               name="chevron-back"
               size={24}
-              color={Colors.white}
+              color={colors.textPrimary}
             />
           </TouchableOpacity>
 
           {/* TITLE */}
 
-          <Text style={styles.headerTitle}>
-            My Profile
-          </Text>
+          <Text style={styles.headerTitle}>My Profile</Text>
 
           {/* SETTINGS */}
 
@@ -173,7 +172,7 @@ export default function ProfileScreen() {
             <Ionicons
               name="settings-outline"
               size={23}
-              color={Colors.white}
+              color={colors.textPrimary}
             />
           </TouchableOpacity>
         </View>
@@ -183,30 +182,21 @@ export default function ProfileScreen() {
         ================================================= */}
 
         <View style={styles.profileCard}>
-
           {/* PROFILE TOP */}
 
           <View style={styles.profileTop}>
-
             {/* AVATAR */}
 
             <View style={styles.avatarOuter}>
               <View style={styles.avatar}>
-                <Ionicons
-                  name="person"
-                  size={48}
-                  color={Colors.white}
-                />
+                <Ionicons name="person" size={48} color={colors.textPrimary} />
               </View>
             </View>
 
             {/* INFORMATION */}
 
             <View style={styles.profileInformation}>
-
-              <Text style={styles.profileName}>
-                Raju Kumar
-              </Text>
+              <Text style={styles.profileName}>Raju Kumar</Text>
 
               {/* PHONE */}
 
@@ -214,12 +204,10 @@ export default function ProfileScreen() {
                 <Ionicons
                   name="call-outline"
                   size={16}
-                  color={Colors.textSecondary}
+                  color={colors.textSecondary}
                 />
 
-                <Text style={styles.infoText}>
-                  +91 98765 43210
-                </Text>
+                <Text style={styles.infoText}>+91 98765 43210</Text>
               </View>
 
               {/* EMAIL */}
@@ -228,12 +216,10 @@ export default function ProfileScreen() {
                 <Ionicons
                   name="mail-outline"
                   size={16}
-                  color={Colors.textSecondary}
+                  color={colors.textSecondary}
                 />
 
-                <Text style={styles.infoText}>
-                  raju.kumar@email.com
-                </Text>
+                <Text style={styles.infoText}>raju.kumar@email.com</Text>
               </View>
             </View>
 
@@ -247,7 +233,7 @@ export default function ProfileScreen() {
               <Ionicons
                 name="chevron-forward"
                 size={27}
-                color={Colors.textSecondary}
+                color={colors.textSecondary}
               />
             </TouchableOpacity>
           </View>
@@ -257,45 +243,30 @@ export default function ProfileScreen() {
           ================================================= */}
 
           <View style={styles.memberRow}>
-
             {/* BAKASURAN */}
 
             <View style={styles.bakasuranBadge}>
-              <Ionicons
-                name="trophy"
-                size={16}
-                color={Colors.white}
-              />
+              <Ionicons name="trophy" size={16} color="#FFFFFF" />
 
-              <Text style={styles.bakasuranText}>
-                BAKASURAN
-              </Text>
+              <Text style={styles.bakasuranText}>BAKASURAN</Text>
             </View>
 
             {/* GOLD MEMBER */}
 
             <View style={styles.goldBadge}>
-              <Ionicons
-                name="star"
-                size={16}
-                color={Colors.warning}
-              />
+              <Ionicons name="star" size={16} color={colors.warning} />
 
-              <Text style={styles.goldText}>
-                Gold Member
-              </Text>
+              <Text style={styles.goldText}>Gold Member</Text>
             </View>
 
             {/* POINTS */}
 
-            <Text style={styles.pointsText}>
-              500 Points
-            </Text>
+            <Text style={styles.pointsText}>500 Points</Text>
 
             <Ionicons
               name="chevron-forward"
               size={20}
-              color={Colors.textMuted}
+              color={colors.textMuted}
             />
           </View>
         </View>
@@ -305,19 +276,16 @@ export default function ProfileScreen() {
         ================================================= */}
 
         <View style={styles.menuContainer}>
-
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={item.title}
               style={[
                 styles.menuItem,
-                index === menuItems.length - 1 &&
-                  styles.lastMenuItem,
+                index === menuItems.length - 1 && styles.lastMenuItem,
               ]}
               activeOpacity={0.75}
               onPress={() => handleMenuPress(item.route)}
             >
-
               {/* ICON */}
 
               <View
@@ -328,25 +296,15 @@ export default function ProfileScreen() {
                   },
                 ]}
               >
-                <Ionicons
-                  name={item.icon}
-                  size={24}
-                  color={item.color}
-                />
+                <Ionicons name={item.icon} size={24} color={item.color} />
               </View>
 
               {/* TEXT */}
 
               <View style={styles.menuTextContainer}>
+                <Text style={styles.menuTitle}>{item.title}</Text>
 
-                <Text style={styles.menuTitle}>
-                  {item.title}
-                </Text>
-
-                <Text style={styles.menuSubtitle}>
-                  {item.subtitle}
-                </Text>
-
+                <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
               </View>
 
               {/* ARROW */}
@@ -354,11 +312,47 @@ export default function ProfileScreen() {
               <Ionicons
                 name="chevron-forward"
                 size={24}
-                color={Colors.textSecondary}
+                color={colors.textSecondary}
               />
             </TouchableOpacity>
           ))}
         </View>
+
+        {/* =================================================
+            THEME SETTINGS
+        ================================================= */}
+
+        <TouchableOpacity
+          style={styles.themeItem}
+          activeOpacity={0.8}
+          onPress={toggleTheme}
+        >
+          <View style={styles.themeIconContainer}>
+            <Ionicons
+              name={isDark ? "moon" : "sunny"}
+              size={24}
+              color={colors.primary}
+            />
+          </View>
+
+          <View style={styles.themeTextContainer}>
+            <Text style={styles.themeTitle}>Appearance</Text>
+
+            <Text style={styles.themeSubtitle}>
+              {isDark ? "Dark mode enabled" : "Light mode enabled"}
+            </Text>
+          </View>
+
+          <Switch
+            value={isDark}
+            onValueChange={toggleTheme}
+            trackColor={{
+              false: "#D1D5DB",
+              true: colors.primary,
+            }}
+            thumbColor="#FFFFFF"
+          />
+        </TouchableOpacity>
 
         {/* =================================================
             LOGOUT
@@ -369,15 +363,9 @@ export default function ProfileScreen() {
           activeOpacity={0.8}
           onPress={handleLogout}
         >
-          <Ionicons
-            name="log-out-outline"
-            size={26}
-            color={Colors.primary}
-          />
+          <Ionicons name="log-out-outline" size={26} color={colors.primary} />
 
-          <Text style={styles.logoutText}>
-            Logout
-          </Text>
+          <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
 
         <View style={styles.bottomSpace} />
@@ -387,406 +375,317 @@ export default function ProfileScreen() {
 }
 
 /* =========================================================
-   STYLES
+   STYLES  (built from the active theme)
 ========================================================= */
 
-const styles = StyleSheet.create({
-
-  /* =======================================================
-     SCREEN
-  ======================================================= */
-
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-
-  scrollContent: {
-    paddingHorizontal: 14,
-    paddingBottom: 24,
-  },
-
-  /* =======================================================
-     HEADER
-  ======================================================= */
-
-  header: {
-    height: 82,
-
-    flexDirection: "row",
-
-    alignItems: "center",
-
-    justifyContent: "space-between",
-
-    paddingHorizontal: 4,
-  },
-
-  headerButton: {
-    width: 48,
-    height: 48,
-
-    borderRadius: 24,
-
-    backgroundColor: Colors.surface,
-
-    borderWidth: 1,
-
-    borderColor: Colors.border,
-
-    alignItems: "center",
-
-    justifyContent: "center",
-  },
-
-  headerTitle: {
-    flex: 1,
-
-    textAlign: "center",
-
-    color: Colors.textPrimary,
-
-    fontFamily: Fonts.bold,
-
-    fontSize: Fonts.size.xxl,
-
-    letterSpacing: -0.3,
-  },
-
-  /* =======================================================
-     PROFILE CARD
-  ======================================================= */
-
-  profileCard: {
-    backgroundColor: Colors.card,
-
-    borderRadius: 20,
-
-    borderWidth: 1,
-
-    borderColor: Colors.border,
-
-    paddingHorizontal: 14,
-
-    paddingTop: 16,
-
-    paddingBottom: 14,
-
-    marginBottom: 16,
-  },
-
-  profileTop: {
-    flexDirection: "row",
-
-    alignItems: "center",
-
-    minHeight: 105,
-  },
-
-  /* =======================================================
-     AVATAR
-  ======================================================= */
-
-  avatarOuter: {
-    width: 88,
-    height: 88,
-
-    borderRadius: 44,
-
-    backgroundColor: Colors.primary,
-
-    padding: 2,
-  },
-
-  avatar: {
-    flex: 1,
-
-    borderRadius: 42,
-
-    backgroundColor: Colors.surface,
-
-    justifyContent: "center",
-
-    alignItems: "center",
-
-    overflow: "hidden",
-  },
-
-  /* =======================================================
-     PROFILE INFORMATION
-  ======================================================= */
-
-  profileInformation: {
-    flex: 1,
-
-    marginLeft: 15,
-  },
-
-  profileName: {
-    color: Colors.textPrimary,
-
-    fontFamily: Fonts.extraBold,
-
-    fontSize: Fonts.size.xxl,
-
-    letterSpacing: -0.4,
-
-    marginBottom: 8,
-  },
-
-  infoRow: {
-    flexDirection: "row",
-
-    alignItems: "center",
-
-    marginBottom: 5,
-  },
-
-  infoText: {
-    color: Colors.textSecondary,
-
-    fontFamily: Fonts.medium,
-
-    fontSize: Fonts.size.sm,
-
-    marginLeft: 8,
-  },
-
-  profileArrow: {
-    width: 32,
-
-    alignSelf: "center",
-
-    alignItems: "flex-end",
-
-    justifyContent: "center",
-  },
-
-  /* =======================================================
-     MEMBER ROW
-  ======================================================= */
-
-  memberRow: {
-    flexDirection: "row",
-
-    alignItems: "center",
-
-    marginTop: 12,
-  },
-
-  /* =======================================================
-     BAKASURAN BADGE
-  ======================================================= */
-
-  bakasuranBadge: {
-    height: 37,
-
-    paddingHorizontal: 12,
-
-    borderRadius: 20,
-
-    backgroundColor: Colors.primary,
-
-    flexDirection: "row",
-
-    alignItems: "center",
-
-    justifyContent: "center",
-  },
-
-  bakasuranText: {
-    color: Colors.white,
-
-    fontFamily: Fonts.bold,
-
-    fontSize: Fonts.size.xs,
-
-    marginLeft: 6,
-
-    letterSpacing: 0.1,
-  },
-
-  /* =======================================================
-     GOLD BADGE
-  ======================================================= */
-
-  goldBadge: {
-    height: 37,
-
-    paddingHorizontal: 11,
-
-    borderRadius: 20,
-
-    backgroundColor: "#241A11",
-
-    borderWidth: 1,
-
-    borderColor: "#4A351D",
-
-    flexDirection: "row",
-
-    alignItems: "center",
-
-    marginLeft: 8,
-  },
-
-  goldText: {
-    color: Colors.warning,
-
-    fontFamily: Fonts.medium,
-
-    fontSize: Fonts.size.xs,
-
-    marginLeft: 5,
-  },
-
-  /* =======================================================
-     POINTS
-  ======================================================= */
-
-  pointsText: {
-    flex: 1,
-
-    textAlign: "right",
-
-    color: Colors.primary,
-
-    fontFamily: Fonts.bold,
-
-    fontSize: Fonts.size.xs,
-
-    marginRight: 7,
-  },
-
-  /* =======================================================
-     MENU CONTAINER
-  ======================================================= */
-
-  menuContainer: {
-    backgroundColor: Colors.backgroundSecondary,
-
-    borderRadius: 19,
-
-    borderWidth: 1,
-
-    borderColor: Colors.border,
-
-    overflow: "hidden",
-
-    marginBottom: 16,
-  },
-
-  /* =======================================================
-     MENU ITEM
-  ======================================================= */
-
-  menuItem: {
-    minHeight: 83,
-
-    flexDirection: "row",
-
-    alignItems: "center",
-
-    paddingHorizontal: 14,
-
-    borderBottomWidth: 1,
-
-    borderBottomColor: Colors.divider,
-  },
-
-  lastMenuItem: {
-    borderBottomWidth: 0,
-  },
-
-  /* =======================================================
-     ICON
-  ======================================================= */
-
-  iconContainer: {
-    width: 54,
-    height: 54,
-
-    borderRadius: 15,
-
-    alignItems: "center",
-
-    justifyContent: "center",
-
-    marginRight: 14,
-  },
-
-  /* =======================================================
-     MENU TEXT
-  ======================================================= */
-
-  menuTextContainer: {
-    flex: 1,
-
-    justifyContent: "center",
-  },
-
-  menuTitle: {
-    color: Colors.textPrimary,
-
-    fontFamily: Fonts.bold,
-
-    fontSize: Fonts.size.base,
-
-    letterSpacing: -0.2,
-
-    marginBottom: 4,
-  },
-
-  menuSubtitle: {
-    color: Colors.textSecondary,
-
-    fontFamily: Fonts.medium,
-
-    fontSize: Fonts.size.sm,
-  },
-
-  /* =======================================================
-     LOGOUT
-  ======================================================= */
-
-  logoutButton: {
-    height: 64,
-
-    borderRadius: 33,
-
-    borderWidth: 2,
-
-    borderColor: Colors.primary,
-
-    backgroundColor: "#210B0E",
-
-    flexDirection: "row",
-
-    alignItems: "center",
-
-    justifyContent: "center",
-  },
-
-  logoutText: {
-    color: Colors.primary,
-
-    fontFamily: Fonts.bold,
-
-    fontSize: Fonts.size.lg,
-
-    marginLeft: 10,
-  },
-
-  /* =======================================================
-     BOTTOM SPACE
-  ======================================================= */
-
-  bottomSpace: {
-    height: 20,
-  },
-});
+const makeStyles = (colors, isDark) =>
+  StyleSheet.create({
+    /* =====================================================
+       SCREEN
+    ===================================================== */
+
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    scrollContent: {
+      paddingHorizontal: 14,
+      paddingBottom: 24,
+    },
+
+    /* =====================================================
+       HEADER
+    ===================================================== */
+
+    header: {
+      height: 82,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 4,
+    },
+
+    headerButton: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    headerTitle: {
+      flex: 1,
+      textAlign: "center",
+      color: colors.textPrimary,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xxl,
+      letterSpacing: -0.3,
+    },
+
+    /* =====================================================
+       PROFILE CARD
+    ===================================================== */
+
+    profileCard: {
+      backgroundColor: colors.card,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 14,
+      paddingTop: 16,
+      paddingBottom: 14,
+      marginBottom: 16,
+    },
+
+    profileTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      minHeight: 105,
+    },
+
+    /* =====================================================
+       AVATAR
+    ===================================================== */
+
+    avatarOuter: {
+      width: 88,
+      height: 88,
+      borderRadius: 44,
+      backgroundColor: colors.primary,
+      padding: 2,
+    },
+
+    avatar: {
+      flex: 1,
+      borderRadius: 42,
+      backgroundColor: colors.surface,
+      justifyContent: "center",
+      alignItems: "center",
+      overflow: "hidden",
+    },
+
+    /* =====================================================
+       PROFILE INFORMATION
+    ===================================================== */
+
+    profileInformation: {
+      flex: 1,
+      marginLeft: 15,
+    },
+
+    profileName: {
+      color: colors.textPrimary,
+      fontFamily: Fonts.extraBold,
+      fontSize: Fonts.size.xxl,
+      letterSpacing: -0.4,
+      marginBottom: 8,
+    },
+
+    infoRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 5,
+    },
+
+    infoText: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.medium,
+      fontSize: Fonts.size.sm,
+      marginLeft: 8,
+    },
+
+    profileArrow: {
+      width: 32,
+      alignSelf: "center",
+      alignItems: "flex-end",
+      justifyContent: "center",
+    },
+
+    /* =====================================================
+       MEMBER ROW
+    ===================================================== */
+
+    memberRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 12,
+    },
+
+    bakasuranBadge: {
+      height: 37,
+      paddingHorizontal: 12,
+      borderRadius: 20,
+      backgroundColor: colors.primary,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    bakasuranText: {
+      color: "#FFFFFF",
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xs,
+      marginLeft: 6,
+      letterSpacing: 0.1,
+    },
+
+    goldBadge: {
+      height: 37,
+      paddingHorizontal: 11,
+      borderRadius: 20,
+      backgroundColor: isDark ? "#241A11" : "#FFF4E0",
+      borderWidth: 1,
+      borderColor: isDark ? "#4A351D" : "#F5D9A8",
+      flexDirection: "row",
+      alignItems: "center",
+      marginLeft: 8,
+    },
+
+    goldText: {
+      color: colors.warning,
+      fontFamily: Fonts.medium,
+      fontSize: Fonts.size.xs,
+      marginLeft: 5,
+    },
+
+    pointsText: {
+      flex: 1,
+      textAlign: "right",
+      color: colors.primary,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xs,
+      marginRight: 7,
+    },
+
+    /* =====================================================
+       MENU
+    ===================================================== */
+
+    menuContainer: {
+      backgroundColor: colors.backgroundSecondary,
+      borderRadius: 19,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: "hidden",
+      marginBottom: 16,
+    },
+
+    menuItem: {
+      minHeight: 83,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.divider,
+    },
+
+    lastMenuItem: {
+      borderBottomWidth: 0,
+    },
+
+    iconContainer: {
+      width: 54,
+      height: 54,
+      borderRadius: 15,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 14,
+    },
+
+    menuTextContainer: {
+      flex: 1,
+      justifyContent: "center",
+    },
+
+    menuTitle: {
+      color: colors.textPrimary,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.base,
+      letterSpacing: -0.2,
+      marginBottom: 4,
+    },
+
+    menuSubtitle: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.medium,
+      fontSize: Fonts.size.sm,
+    },
+
+    /* =====================================================
+       THEME
+    ===================================================== */
+
+    themeItem: {
+      minHeight: 82,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 14,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 18,
+      marginBottom: 16,
+    },
+
+    themeIconContainer: {
+      width: 54,
+      height: 54,
+      borderRadius: 15,
+      backgroundColor: isDark ? "#35151B" : "#FFE9EC",
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 14,
+    },
+
+    themeTextContainer: {
+      flex: 1,
+    },
+
+    themeTitle: {
+      color: colors.textPrimary,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.base,
+      marginBottom: 4,
+    },
+
+    themeSubtitle: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.medium,
+      fontSize: Fonts.size.sm,
+    },
+
+    /* =====================================================
+       LOGOUT
+    ===================================================== */
+
+    logoutButton: {
+      height: 64,
+      borderRadius: 33,
+      borderWidth: 2,
+      borderColor: colors.primary,
+      backgroundColor: isDark ? "#210B0E" : "#FFECEE",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    logoutText: {
+      color: colors.primary,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.lg,
+      marginLeft: 10,
+    },
+
+    bottomSpace: {
+      height: 20,
+    },
+  });

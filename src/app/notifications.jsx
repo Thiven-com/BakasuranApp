@@ -1,26 +1,27 @@
 import { useMemo, useState } from "react";
 
 import {
-    Dimensions,
-    Image,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
-import Colors from "../constants/colors";
-import Fonts from "../constants/fonts";
+import Colors from "../constants/Colors";
+import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 const { width } = Dimensions.get("window");
 
 /* =========================================================
-   RESPONSIVE SIZE
+   RESPONSIVE SIZE 
 ========================================================= */
 
 const scale = (value) => {
@@ -48,8 +49,7 @@ const notifications = [
     id: "2",
     category: "Orders",
     title: "Order Confirmed",
-    description:
-      "Your order #BAKA10245 from\nSpice House has been confirmed.",
+    description: "Your order #BAKA10245 from\nSpice House has been confirmed.",
     time: "15 min ago",
     unread: true,
     type: "icon",
@@ -63,8 +63,7 @@ const notifications = [
     id: "3",
     category: "Offers",
     title: "Special Offer Just for You! 🎉",
-    description:
-      "Get 40% OFF on all burgers\nthis weekend. Use code:",
+    description: "Get 40% OFF on all burgers\nthis weekend. Use code:",
     coupon: " BURGER40",
     time: "2 hours ago",
     unread: false,
@@ -76,8 +75,7 @@ const notifications = [
     id: "4",
     category: "Orders",
     title: "Your order is being prepared",
-    description:
-      "Spice House is preparing your\nMargherita Pizza.",
+    description: "Spice House is preparing your\nMargherita Pizza.",
     time: "3 hours ago",
     unread: false,
     image: require("../../assets/images/onboardingimage1.png"),
@@ -90,8 +88,7 @@ const notifications = [
     id: "5",
     category: "Offers",
     title: "Flat ₹100 OFF",
-    description:
-      "On orders above ₹399.\nValid till 31st Oct 2024.",
+    description: "On orders above ₹399.\nValid till 31st Oct 2024.",
     time: "1 day ago",
     unread: false,
     type: "icon",
@@ -118,8 +115,7 @@ const notifications = [
     id: "7",
     category: "Orders",
     title: "Order Delivered",
-    description:
-      "Your Hakka Noodles from\nThe Grand Bowl has been delivered.",
+    description: "Your Hakka Noodles from\nThe Grand Bowl has been delivered.",
     time: "3 days ago",
     unread: false,
     image: require("../../assets/images/onboardingimage1.png"),
@@ -132,8 +128,7 @@ const notifications = [
     id: "8",
     category: "Offers",
     title: "Welcome to BAKASURAN! ❤️",
-    description:
-      "Get amazing offers, track orders\nand enjoy delicious food.",
+    description: "Get amazing offers, track orders\nand enjoy delicious food.",
     time: "5 days ago",
     unread: false,
     type: "icon",
@@ -146,19 +141,15 @@ const notifications = [
    TABS
 ========================================================= */
 
-const tabs = [
-  "All",
-  "Orders",
-  "Offers",
-  "Updates",
-  "System",
-];
+const tabs = ["All", "Orders", "Offers", "Updates", "System"];
 
 /* =========================================================
    SCREEN
 ========================================================= */
 
 export default function Notifications() {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [activeTab, setActiveTab] = useState("All");
   const [items, setItems] = useState(notifications);
 
@@ -173,15 +164,11 @@ export default function Notifications() {
 
     if (activeTab === "Updates") {
       return items.filter(
-        (item) =>
-          item.category === "System" ||
-          item.category === "Orders"
+        (item) => item.category === "System" || item.category === "Orders",
       );
     }
 
-    return items.filter(
-      (item) => item.category === activeTab
-    );
+    return items.filter((item) => item.category === activeTab);
   }, [activeTab, items]);
 
   /* =======================================================
@@ -204,8 +191,8 @@ export default function Notifications() {
               ...notification,
               unread: false,
             }
-          : notification
-      )
+          : notification,
+      ),
     );
 
     if (item.category === "Orders") {
@@ -231,17 +218,20 @@ export default function Notifications() {
             style={[
               styles.iconBackground,
               {
-                backgroundColor:
-                  item.iconColor === Colors.warning
+                backgroundColor: isDark
+                  ? item.iconColor === Colors.warning
                     ? "#39270B"
-                    : "#321010",
+                    : "#321010"
+                  : colors.backgroundElement,
               },
             ]}
           >
             <Ionicons
               name={item.icon}
               size={scale(48)}
-              color={item.iconColor}
+              color={
+                item.iconColor === Colors.warning ? colors.warning : colors.primary
+              }
             />
           </View>
         )}
@@ -254,18 +244,18 @@ export default function Notifications() {
               styles.statusBadge,
               {
                 backgroundColor:
-                  item.badgeColor || Colors.primary,
+                  item.badgeColor === Colors.success
+                    ? colors.success
+                    : colors.primary,
               },
             ]}
           >
             <Ionicons
               name={
-                item.badgeIcon === "ellipse"
-                  ? "notifications"
-                  : item.badgeIcon
+                item.badgeIcon === "ellipse" ? "notifications" : item.badgeIcon
               }
               size={scale(19)}
-              color={Colors.white}
+              color={colors.white}
             />
           </View>
         )}
@@ -284,17 +274,13 @@ export default function Notifications() {
           <Ionicons
             name="notifications-off-outline"
             size={scale(48)}
-            color={Colors.textMuted}
+            color={colors.textMuted}
           />
         </View>
 
-        <Text style={styles.emptyTitle}>
-          No Notifications
-        </Text>
+        <Text style={styles.emptyTitle}>No Notifications</Text>
 
-        <Text style={styles.emptyDescription}>
-          You're all caught up!
-        </Text>
+        <Text style={styles.emptyDescription}>You're all caught up!</Text>
       </View>
     );
   };
@@ -306,8 +292,8 @@ export default function Notifications() {
   return (
     <View style={styles.container}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor={Colors.background}
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
       />
 
       {/* =================================================
@@ -330,15 +316,13 @@ export default function Notifications() {
             <Ionicons
               name="chevron-back"
               size={scale(39)}
-              color={Colors.white}
+              color={colors.textPrimary}
             />
           </TouchableOpacity>
 
           {/* TITLE */}
 
-          <Text style={styles.headerTitle}>
-            Notifications
-          </Text>
+          <Text style={styles.headerTitle}>Notifications</Text>
 
           {/* DELETE */}
 
@@ -350,7 +334,7 @@ export default function Notifications() {
             <Ionicons
               name="trash-outline"
               size={scale(31)}
-              color={Colors.white}
+              color={colors.textPrimary}
             />
           </TouchableOpacity>
         </View>
@@ -368,17 +352,9 @@ export default function Notifications() {
                 key={tab}
                 activeOpacity={0.8}
                 onPress={() => setActiveTab(tab)}
-                style={[
-                  styles.tab,
-                  active && styles.activeTab,
-                ]}
+                style={[styles.tab, active && styles.activeTab]}
               >
-                <Text
-                  style={[
-                    styles.tabText,
-                    active && styles.activeTabText,
-                  ]}
-                >
+                <Text style={[styles.tabText, active && styles.activeTabText]}>
                   {tab}
                 </Text>
               </TouchableOpacity>
@@ -394,8 +370,7 @@ export default function Notifications() {
           style={styles.scrollView}
           contentContainerStyle={[
             styles.scrollContent,
-            filteredNotifications.length === 0 &&
-              styles.emptyScrollContent,
+            filteredNotifications.length === 0 && styles.emptyScrollContent,
           ]}
           showsVerticalScrollIndicator={false}
           bounces={false}
@@ -406,13 +381,10 @@ export default function Notifications() {
                 <TouchableOpacity
                   key={item.id}
                   activeOpacity={0.85}
-                  onPress={() =>
-                    handleNotificationPress(item)
-                  }
+                  onPress={() => handleNotificationPress(item)}
                   style={[
                     styles.notificationCard,
-                    item.unread &&
-                      styles.unreadNotificationCard,
+                    item.unread && styles.unreadNotificationCard,
                   ]}
                 >
                   {/* IMAGE / ICON */}
@@ -425,38 +397,22 @@ export default function Notifications() {
                     {/* TOP ROW */}
 
                     <View style={styles.titleRow}>
-                      <Text
-                        style={styles.notificationTitle}
-                        numberOfLines={1}
-                      >
+                      <Text style={styles.notificationTitle} numberOfLines={1}>
                         {item.title}
                       </Text>
 
-                      <Text style={styles.timeText}>
-                        {item.time}
-                      </Text>
+                      <Text style={styles.timeText}>{item.time}</Text>
                     </View>
 
                     {/* DESCRIPTION */}
 
                     <View style={styles.descriptionRow}>
-                      <View
-                        style={
-                          styles.descriptionContainer
-                        }
-                      >
-                        <Text
-                          style={styles.descriptionText}
-                          numberOfLines={2}
-                        >
+                      <View style={styles.descriptionContainer}>
+                        <Text style={styles.descriptionText} numberOfLines={2}>
                           {item.description}
 
                           {item.coupon && (
-                            <Text
-                              style={styles.couponText}
-                            >
-                              {item.coupon}
-                            </Text>
+                            <Text style={styles.couponText}>{item.coupon}</Text>
                           )}
                         </Text>
                       </View>
@@ -466,7 +422,7 @@ export default function Notifications() {
                       <Ionicons
                         name="chevron-forward"
                         size={scale(29)}
-                        color={Colors.textSecondary}
+                        color={colors.textSecondary}
                         style={styles.arrow}
                       />
                     </View>
@@ -474,9 +430,7 @@ export default function Notifications() {
 
                   {/* UNREAD DOT */}
 
-                  {item.unread && (
-                    <View style={styles.unreadDot} />
-                  )}
+                  {item.unread && <View style={styles.unreadDot} />}
                 </TouchableOpacity>
               ))}
 
@@ -491,14 +445,14 @@ export default function Notifications() {
    STYLES
 ========================================================= */
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   /* =======================================================
      SCREEN
   ======================================================= */
 
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   screenBorder: {
@@ -508,13 +462,13 @@ const styles = StyleSheet.create({
     marginVertical: scale(1),
 
     borderWidth: 1.5,
-    borderColor: "#202933",
+    borderColor: colors.border,
 
     borderRadius: scale(38),
 
     overflow: "hidden",
 
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   /* =======================================================
@@ -537,17 +491,17 @@ const styles = StyleSheet.create({
 
     borderRadius: scale(20),
 
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
 
     borderWidth: 1,
-    borderColor: "#242C36",
+    borderColor: colors.border,
 
     justifyContent: "center",
     alignItems: "center",
   },
 
   headerTitle: {
-    color: Colors.white,
+    color: colors.textPrimary,
 
     fontFamily: Fonts.bold,
 
@@ -583,10 +537,10 @@ const styles = StyleSheet.create({
 
     borderRadius: scale(30),
 
-    backgroundColor: "#0F141D",
+    backgroundColor: colors.backgroundElement,
 
     borderWidth: 1,
-    borderColor: "#222A35",
+    borderColor: colors.border,
 
     justifyContent: "center",
     alignItems: "center",
@@ -595,11 +549,11 @@ const styles = StyleSheet.create({
   },
 
   activeTab: {
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
 
-    borderColor: Colors.primary,
+    borderColor: colors.primary,
 
-    shadowColor: Colors.primary,
+    shadowColor: colors.primary,
 
     shadowOffset: {
       width: 0,
@@ -614,7 +568,7 @@ const styles = StyleSheet.create({
   },
 
   tabText: {
-    color: "#A4A9BA",
+    color: colors.textSecondary,
 
     fontFamily: Fonts.medium,
 
@@ -622,7 +576,7 @@ const styles = StyleSheet.create({
   },
 
   activeTabText: {
-    color: Colors.white,
+    color: colors.white,
 
     fontFamily: Fonts.semiBold,
   },
@@ -656,10 +610,10 @@ const styles = StyleSheet.create({
 
     borderRadius: scale(25),
 
-    backgroundColor: "#10151D",
+    backgroundColor: colors.card,
 
     borderWidth: 1.3,
-    borderColor: "#252E39",
+    borderColor: colors.border,
 
     marginBottom: scale(12),
 
@@ -673,11 +627,11 @@ const styles = StyleSheet.create({
   },
 
   unreadNotificationCard: {
-    backgroundColor: "#260D12",
+    backgroundColor: `${colors.primary}18`,
 
-    borderColor: "#7E1A22",
+    borderColor: `${colors.primary}66`,
 
-    shadowColor: Colors.primary,
+    shadowColor: colors.primary,
 
     shadowOffset: {
       width: 0,
@@ -703,7 +657,7 @@ const styles = StyleSheet.create({
 
     overflow: "hidden",
 
-    backgroundColor: "#191D22",
+    backgroundColor: colors.backgroundElement,
 
     marginRight: scale(15),
 
@@ -747,7 +701,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
 
     borderWidth: 2,
-    borderColor: "#10151D",
+    borderColor: colors.card,
   },
 
   /* =======================================================
@@ -773,7 +727,7 @@ const styles = StyleSheet.create({
   notificationTitle: {
     flex: 1,
 
-    color: Colors.white,
+    color: colors.textPrimary,
 
     fontFamily: Fonts.bold,
 
@@ -785,7 +739,7 @@ const styles = StyleSheet.create({
   },
 
   timeText: {
-    color: "#A5A9B6",
+    color: colors.textSecondary,
 
     fontFamily: Fonts.medium,
 
@@ -821,7 +775,7 @@ const styles = StyleSheet.create({
   },
 
   descriptionText: {
-    color: "#AEB2BF",
+    color: colors.textSecondary,
 
     fontFamily: Fonts.regular,
 
@@ -831,7 +785,7 @@ const styles = StyleSheet.create({
   },
 
   couponText: {
-    color: Colors.primary,
+    color: colors.primary,
 
     fontFamily: Fonts.bold,
 
@@ -865,9 +819,9 @@ const styles = StyleSheet.create({
 
     borderRadius: scale(6),
 
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
 
-    shadowColor: Colors.primary,
+    shadowColor: colors.primary,
 
     shadowOffset: {
       width: 0,
@@ -899,10 +853,10 @@ const styles = StyleSheet.create({
 
     borderRadius: scale(45),
 
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
 
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
 
     justifyContent: "center",
     alignItems: "center",
@@ -911,7 +865,7 @@ const styles = StyleSheet.create({
   },
 
   emptyTitle: {
-    color: Colors.white,
+    color: colors.textPrimary,
 
     fontFamily: Fonts.bold,
 
@@ -921,7 +875,7 @@ const styles = StyleSheet.create({
   },
 
   emptyDescription: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
 
     fontFamily: Fonts.regular,
 

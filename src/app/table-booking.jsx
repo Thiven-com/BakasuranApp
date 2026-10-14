@@ -2,16 +2,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
-import Colors from "../constants/Colors";
+import { useTheme } from "../hooks/use-theme";
 import Fonts from "../constants/Fonts";
 
 const restaurants = [
@@ -144,6 +145,8 @@ const getDates = () => {
 };
 
 const TableBookingScreen = () => {
+  const { colors: Colors } = useTheme();
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
   const dates = useMemo(() => getDates(), []);
 
   const [selectedRestaurant, setSelectedRestaurant] = useState(restaurants[0]);
@@ -199,7 +202,7 @@ const TableBookingScreen = () => {
     const bookingId = `BAKA${Date.now().toString().slice(-6)}`;
 
     router.push({
-      pathname: "/Booking-SuccessScreen",
+      pathname: "/BookingSuccessScreen",
       params: {
         bookingId,
         restaurant: selectedRestaurant.name,
@@ -221,13 +224,13 @@ const TableBookingScreen = () => {
           onPress={() => router.back()}
           activeOpacity={0.8}
         >
-          <Ionicons name="arrow-back" size={23} color={Colors.white} />
+          <Ionicons name="arrow-back" size={23} color={Colors.textPrimary} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Book a Table</Text>
 
         <TouchableOpacity style={styles.headerButton} activeOpacity={0.8}>
-          <Ionicons name="help-circle-outline" size={23} color={Colors.white} />
+          <Ionicons name="help-circle-outline" size={23} color={Colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -235,23 +238,18 @@ const TableBookingScreen = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* HERO */}
-        <View style={styles.heroCard}>
-          <View style={styles.heroIcon}>
-            <Ionicons
-              name="restaurant-outline"
-              size={30}
-              color={Colors.primary}
-            />
-          </View>
+        <View style={styles.bookingCard}>
+          <Image
+            source={require("../../assets/images/book_table.jpg")}
+            style={styles.bookingImage}
+            resizeMode="cover"
+          />
 
-          <View style={styles.heroContent}>
-            <Text style={styles.heroTitle}>Dine like a BAKASURAN</Text>
-
-            <Text style={styles.heroSubtitle}>
-              Reserve your table and enjoy an unforgettable meal.
-            </Text>
-          </View>
+          <TouchableOpacity
+            style={styles.findTableButton}
+            activeOpacity={0.8}
+            onPress={() => router.push("/table-booking")}
+          />
         </View>
 
         {/* RESTAURANT */}
@@ -837,7 +835,7 @@ const TableBookingScreen = () => {
 
 export default TableBookingScreen;
 
-const styles = StyleSheet.create({
+const createStyles = (Colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -866,7 +864,7 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.xl,
   },
@@ -930,29 +928,29 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+    fontSize: 24,
   },
 
   sectionSubtitle: {
-    color: Colors.textMuted,
+    color: Colors.info,
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: 15,
     marginTop: 3,
   },
 
   stepText: {
     color: Colors.primary,
     fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.xs,
+    fontSize: 16,
     marginTop: 2,
   },
 
   optionalText: {
     color: Colors.textMuted,
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: 24,
     marginTop: 3,
   },
 
@@ -996,9 +994,9 @@ const styles = StyleSheet.create({
   },
 
   restaurantName: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.md,
+    fontSize: 20,
     marginBottom: 3,
     paddingRight: 18,
   },
@@ -1008,9 +1006,9 @@ const styles = StyleSheet.create({
   },
 
   restaurantCuisine: {
-    color: Colors.textSecondary,
+    color: Colors.foodOrange,
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: 14,
     marginBottom: 8,
   },
 
@@ -1029,14 +1027,14 @@ const styles = StyleSheet.create({
   },
 
   ratingText: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.medium,
-    fontSize: Fonts.size.xs,
+    fontSize: 14,
     marginLeft: 3,
   },
 
   locationText: {
-    color: Colors.textMuted,
+    color: Colors.iconPrimary,
     fontFamily: Fonts.regular,
     fontSize: Fonts.size.xs,
     marginLeft: 8,
@@ -1088,7 +1086,7 @@ const styles = StyleSheet.create({
   },
 
   dateNumber: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.xxl,
     marginVertical: 2,
@@ -1304,7 +1302,7 @@ const styles = StyleSheet.create({
   },
 
   tableLabel: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.semiBold,
     fontSize: Fonts.size.md,
     marginTop: 12,
@@ -1405,7 +1403,7 @@ const styles = StyleSheet.create({
   },
 
   noTableTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.semiBold,
     fontSize: Fonts.size.md,
     marginTop: 9,
@@ -1438,7 +1436,7 @@ const styles = StyleSheet.create({
 
   input: {
     flex: 1,
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.regular,
     fontSize: Fonts.size.sm,
     lineHeight: 20,
@@ -1469,7 +1467,7 @@ const styles = StyleSheet.create({
   },
 
   summaryTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.semiBold,
     fontSize: Fonts.size.base,
     marginLeft: 9,
@@ -1496,7 +1494,7 @@ const styles = StyleSheet.create({
 
   summaryValue: {
     maxWidth: "58%",
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.medium,
     fontSize: Fonts.size.sm,
     textAlign: "right",
@@ -1544,7 +1542,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: Colors.background,
     borderTopWidth: 1,
     borderTopColor: Colors.divider,
   },
@@ -1560,7 +1558,7 @@ const styles = StyleSheet.create({
   },
 
   bottomGuests: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.semiBold,
     fontSize: Fonts.size.md,
     marginTop: 2,
@@ -1581,5 +1579,30 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.sm,
     marginRight: 9,
+  },
+
+  bookingCard: {
+    marginHorizontal: 16,
+    height: 180,
+
+    borderRadius: 22,
+    overflow: "hidden",
+    position: "relative",
+  },
+
+  bookingImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 22,
+  },
+
+  findTableButton: {
+    position: "absolute",
+    left: 20,
+    bottom: 18,
+    width: 145,
+    height: 42,
+    backgroundColor: "transparent",
+    borderRadius: 22,
   },
 });

@@ -1,18 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
+import { useMemo } from "react";
 import {
-    ScrollView,
-    Share,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
-import Colors from "../constants/Colors";
+import { useTheme } from "../hooks/use-theme";
 import Fonts from "../constants/Fonts";
 
 const BookingSuccessScreen = () => {
+  const { colors: Colors } = useTheme();
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
   const params = useLocalSearchParams();
 
   const bookingId = params.bookingId || "BAKA284921";
@@ -41,7 +44,7 @@ const BookingSuccessScreen = () => {
   };
 
   const handleViewBookings = () => {
-    router.replace("/bookings");
+    router.replace("/my-bookings");
   };
 
   const handleBackHome = () => {
@@ -61,7 +64,7 @@ const BookingSuccessScreen = () => {
             onPress={handleBackHome}
             activeOpacity={0.8}
           >
-            <Ionicons name="close" size={24} color={Colors.white} />
+            <Ionicons name="close" size={24} color={Colors.textPrimary} />
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>Booking Confirmed</Text>
@@ -71,7 +74,7 @@ const BookingSuccessScreen = () => {
             onPress={handleShare}
             activeOpacity={0.8}
           >
-            <Ionicons name="share-outline" size={21} color={Colors.white} />
+            <Ionicons name="share-outline" size={21} color={Colors.textPrimary} />
           </TouchableOpacity>
         </View>
 
@@ -287,7 +290,7 @@ const BookingSuccessScreen = () => {
 
 export default BookingSuccessScreen;
 
-const styles = StyleSheet.create({
+const createStyles = (Colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -330,7 +333,7 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.base,
   },
@@ -375,7 +378,7 @@ const styles = StyleSheet.create({
   },
 
   successTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.heading,
     marginTop: 20,
@@ -456,7 +459,7 @@ const styles = StyleSheet.create({
   },
 
   restaurantName: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.base,
   },
@@ -501,7 +504,7 @@ const styles = StyleSheet.create({
   },
 
   detailsTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.base,
   },
@@ -544,7 +547,7 @@ const styles = StyleSheet.create({
   },
 
   detailValue: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.semiBold,
     fontSize: Fonts.size.sm,
   },
@@ -593,7 +596,7 @@ const styles = StyleSheet.create({
   },
 
   arrivalTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.semiBold,
     fontSize: Fonts.size.sm,
     marginBottom: 4,
@@ -633,7 +636,7 @@ const styles = StyleSheet.create({
   },
 
   noteTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.semiBold,
     fontSize: Fonts.size.sm,
     marginBottom: 3,
@@ -662,7 +665,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: Colors.background,
     borderTopWidth: 1,
     borderTopColor: Colors.divider,
   },
@@ -681,7 +684,7 @@ const styles = StyleSheet.create({
   },
 
   secondaryButtonText: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.semiBold,
     fontSize: Fonts.size.xs,
     marginLeft: 5,

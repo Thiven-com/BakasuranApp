@@ -1,7 +1,8 @@
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Image,
+  Keyboard,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,11 +12,16 @@ import {
 
 import BannersScreen from "../../components/BannersScreen";
 import HomeHeader from "../../components/HomeHeader";
+import HomeSearchResults from "../../components/HomeSearchResults";
 import RestaurantCard from "../../components/RestaurantCard";
 import SearchBar from "../../components/SearchBar";
+import { useTheme } from "../../hooks/use-theme";
 
 const HomeScreen = () => {
   const [searchText, setSearchText] = useState("");
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const hasSearchQuery = searchText.trim().length > 0;
 
   // Food Categories
   const cuisines = [
@@ -87,51 +93,57 @@ const HomeScreen = () => {
       >
         {/* Search */}
         <View style={styles.searchWrap}>
-          <SearchBar value={searchText} onChangeText={setSearchText} />
+          <SearchBar
+            value={searchText}
+            onChangeText={setSearchText}
+            onSubmitEditing={Keyboard.dismiss}
+          />
         </View>
-        <BannersScreen />
+        {!hasSearchQuery && <BannersScreen />}
 
         {/* ============================= */}
         {/* FOOD CATEGORIES */}
         {/* ============================= */}
 
-        <View style={styles.cuisineTopSection}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.cuisineTopList}
-          >
-            {cuisines.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.cuisineTopItem}
-                activeOpacity={0.8}
-                onPress={() =>
-                  router.push({
-                    pathname: "/(tabs)/ExploreScreen",
-                    params: {
-                      search: item.name,
-                    },
-                  })
-                }
-              >
-                <Image
-                  source={item.image}
-                  style={styles.cuisineTopImage}
-                  resizeMode="contain"
-                />
-
-                <Text
-                  style={styles.cuisineTopText}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
+        {!hasSearchQuery && (
+          <View style={styles.cuisineTopSection}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.cuisineTopList}
+            >
+              {cuisines.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.cuisineTopItem}
+                  activeOpacity={0.8}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(tabs)/ExploreScreen",
+                      params: {
+                        search: item.name,
+                      },
+                    })
+                  }
                 >
-                  {item.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+                  <Image
+                    source={item.image}
+                    style={styles.cuisineTopImage}
+                    resizeMode="contain"
+                  />
+
+                  <Text
+                    style={styles.cuisineTopText}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {item.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {/* ============================= */}
         {/* OFFER BANNER */}
@@ -144,26 +156,32 @@ const HomeScreen = () => {
         {/* ============================= */}
 
         <View style={styles.restaurantSection}>
-          <RestaurantCard />
+          {hasSearchQuery ? (
+            <HomeSearchResults searchText={searchText} />
+          ) : (
+            <RestaurantCard />
+          )}
         </View>
 
         {/* ============================= */}
         {/* TABLE BOOKING */}
         {/* ============================= */}
 
-        <View style={styles.bookingCard}>
-          <Image
-            source={require("../../../assets/images/book_table.jpg")}
-            style={styles.bookingImage}
-            resizeMode="cover"
-          />
+        {!hasSearchQuery && (
+          <View style={styles.bookingCard}>
+            <Image
+              source={require("../../../assets/images/book_table.jpg")}
+              style={styles.bookingImage}
+              resizeMode="cover"
+            />
 
-          <TouchableOpacity
-            style={styles.findTableButton}
-            activeOpacity={0.8}
-            onPress={() => router.push("/table-booking")}
-          />
-        </View>
+            <TouchableOpacity
+              style={styles.findTableButton}
+              activeOpacity={0.8}
+              onPress={() => router.push("/table-booking")}
+            />
+          </View>
+        )}
 
         {/* Bottom spacing */}
         <View style={styles.bottomSpacing} />
@@ -174,104 +192,105 @@ const HomeScreen = () => {
 
 export default HomeScreen;
 
-const styles = StyleSheet.create({
-  // ==========================================
-  // MAIN CONTAINER
-  // ==========================================
+const makeStyles = (colors) =>
+  StyleSheet.create({
+    // ==========================================
+    // MAIN CONTAINER
+    // ==========================================
 
-  container: {
-    flex: 1,
-    backgroundColor: "#060808",
-  },
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  scrollContent: {
-    paddingBottom: 20,
-  },
+    scrollContent: {
+      paddingBottom: 20,
+    },
 
-  // ==========================================
-  // SEARCH
-  // ==========================================
+    // ==========================================
+    // SEARCH
+    // ==========================================
 
-  searchWrap: {
-    marginTop: 4,
-  },
+    searchWrap: {
+      marginTop: 4,
+    },
 
-  // ==========================================
-  // TOP FOOD CATEGORIES
-  // ==========================================
+    // ==========================================
+    // TOP FOOD CATEGORIES
+    // ==========================================
 
-  cuisineTopSection: {
-    backgroundColor: "#060808",
-    marginTop: 4,
-    paddingVertical: 5,
-  },
+    cuisineTopSection: {
+      backgroundColor: colors.background,
+      marginTop: 4,
+      paddingVertical: 5,
+    },
 
-  cuisineTopList: {
-    paddingHorizontal: 2,
-  },
+    cuisineTopList: {
+      paddingHorizontal: 2,
+    },
 
-  cuisineTopItem: {
-    width: 115,
-    alignItems: "center",
-    justifyContent: "flex-start",
-    marginRight: 5,
-  },
+    cuisineTopItem: {
+      width: 115,
+      alignItems: "center",
+      justifyContent: "flex-start",
+      marginRight: 5,
+    },
 
-  cuisineTopImage: {
-    width: 110,
-    height: 100,
-    marginBottom: 3,
-  },
+    cuisineTopImage: {
+      width: 110,
+      height: 100,
+      marginBottom: 3,
+    },
 
-  cuisineTopText: {
-    width: 115,
-    color: "#e0dddd",
-    fontSize: 18,
-    fontWeight: "500",
-    textAlign: "center",
-  },
+    cuisineTopText: {
+      width: 115,
+      color: colors.textPrimary,
+      fontSize: 18,
+      fontWeight: "500",
+      textAlign: "center",
+    },
 
-  // ==========================================
-  // RESTAURANTS
-  // ==========================================
+    // ==========================================
+    // RESTAURANTS
+    // ==========================================
 
-  restaurantSection: {
-    marginTop: 2,
-  },
+    restaurantSection: {
+      marginTop: 2,
+    },
 
-  // ==========================================
-  // TABLE BOOKING
-  // ==========================================
+    // ==========================================
+    // TABLE BOOKING
+    // ==========================================
 
-  bookingCard: {
-    marginHorizontal: 16,
-    height: 180,
-    borderRadius: 22,
-    overflow: "hidden",
-    position: "relative",
-  },
+    bookingCard: {
+      marginHorizontal: 16,
+      height: 180,
+      borderRadius: 22,
+      overflow: "hidden",
+      position: "relative",
+    },
 
-  bookingImage: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 22,
-  },
+    bookingImage: {
+      width: "100%",
+      height: "100%",
+      borderRadius: 22,
+    },
 
-  findTableButton: {
-    position: "absolute",
-    left: 20,
-    bottom: 18,
-    width: 145,
-    height: 42,
-    backgroundColor: "transparent",
-    borderRadius: 22,
-  },
+    findTableButton: {
+      position: "absolute",
+      left: 20,
+      bottom: 18,
+      width: 145,
+      height: 42,
+      backgroundColor: "transparent",
+      borderRadius: 22,
+    },
 
-  // ==========================================
-  // BOTTOM
-  // ==========================================
+    // ==========================================
+    // BOTTOM
+    // ==========================================
 
-  bottomSpacing: {
-    height: 40,
-  },
-});
+    bottomSpacing: {
+      height: 40,
+    },
+  });

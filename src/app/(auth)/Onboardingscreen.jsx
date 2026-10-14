@@ -1,22 +1,22 @@
 import { router } from "expo-router";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import {
-    Dimensions,
-    FlatList,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 // =========================================================
 // IMPORT YOUR COMMON FONTS AND COLORS
 // =========================================================
 
-import Colors from "../../constants/colors";
-import Fonts from "../../constants/fonts";
+import Fonts from "../../constants/Fonts";
+import { useTheme } from "../../hooks/use-theme";
 
 // =========================================================
 // SCREEN SIZE
@@ -38,8 +38,7 @@ const onboardingData = [
 
     redTitle: "Delivered to You",
 
-    description:
-      "Explore top restaurants and mouthwatering dishes near you.",
+    description: "Explore top restaurants and mouthwatering dishes near you.",
   },
 
   {
@@ -64,8 +63,7 @@ const onboardingData = [
 
     redTitle: "Delivery",
 
-    description:
-      "Hot food. Faster at your door.",
+    description: "Hot food. Faster at your door.",
   },
 
   {
@@ -77,8 +75,7 @@ const onboardingData = [
 
     redTitle: "With Ease",
 
-    description:
-      "Reserve your favourite tables at top restaurants.",
+    description: "Reserve your favourite tables at top restaurants.",
   },
 ];
 
@@ -87,6 +84,8 @@ const onboardingData = [
 // =========================================================
 
 export default function OnboardingScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const flatListRef = useRef(null);
@@ -99,20 +98,15 @@ export default function OnboardingScreen() {
     viewAreaCoveragePercentThreshold: 50,
   }).current;
 
-  const onViewableItemsChanged = useRef(
-    ({ viewableItems }) => {
-      if (viewableItems && viewableItems.length > 0) {
-        const index = viewableItems[0]?.index;
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    if (viewableItems && viewableItems.length > 0) {
+      const index = viewableItems[0]?.index;
 
-        if (
-          index !== null &&
-          index !== undefined
-        ) {
-          setCurrentIndex(index);
-        }
+      if (index !== null && index !== undefined) {
+        setCurrentIndex(index);
       }
     }
-  ).current;
+  }).current;
 
   // =======================================================
   // NEXT BUTTON
@@ -148,53 +142,40 @@ export default function OnboardingScreen() {
   const renderItem = ({ item }) => {
     return (
       <View style={styles.screen}>
-
         {/* =================================================
             IMAGE
         ================================================= */}
 
-        <Image
-          source={item.image}
-          style={styles.image}
-          resizeMode="cover"
-        />
+        <Image source={item.image} style={styles.image} resizeMode="cover" />
 
         {/* =================================================
             BOTTOM BLACK SECTION
         ================================================= */}
 
         <View style={styles.bottomSection}>
-
           {/* =================================================
               TITLE
           ================================================= */}
 
-          <Text style={styles.title}>
-            {item.title}
-          </Text>
+          <Text style={styles.title}>{item.title}</Text>
 
           {/* =================================================
               RED TITLE
           ================================================= */}
 
-          <Text style={styles.redTitle}>
-            {item.redTitle}
-          </Text>
+          <Text style={styles.redTitle}>{item.redTitle}</Text>
 
           {/* =================================================
               DESCRIPTION
           ================================================= */}
 
-          <Text style={styles.description}>
-            {item.description}
-          </Text>
+          <Text style={styles.description}>{item.description}</Text>
 
           {/* =================================================
               BOTTOM CONTROLS
           ================================================= */}
 
           <View style={styles.controls}>
-
             {/* =============================================
                 SKIP
             ============================================= */}
@@ -204,9 +185,7 @@ export default function OnboardingScreen() {
               activeOpacity={0.7}
               style={styles.skipButton}
             >
-              <Text style={styles.skipText}>
-                Skip
-              </Text>
+              <Text style={styles.skipText}>Skip</Text>
             </TouchableOpacity>
 
             {/* =============================================
@@ -237,11 +216,8 @@ export default function OnboardingScreen() {
               activeOpacity={0.8}
               style={styles.nextButton}
             >
-              <Text style={styles.arrow}>
-                →
-              </Text>
+              <Text style={styles.arrow}>→</Text>
             </TouchableOpacity>
-
           </View>
         </View>
       </View>
@@ -254,41 +230,24 @@ export default function OnboardingScreen() {
 
   return (
     <View style={styles.container}>
-
       <FlatList
         ref={flatListRef}
-
         data={onboardingData}
-
         renderItem={renderItem}
-
         keyExtractor={(item) => item.id}
-
         horizontal
-
         pagingEnabled
-
         showsHorizontalScrollIndicator={false}
-
         showsVerticalScrollIndicator={false}
-
         bounces={false}
-
-        onViewableItemsChanged={
-          onViewableItemsChanged
-        }
-
-        viewabilityConfig={
-          viewabilityConfig
-        }
-
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
         getItemLayout={(_, index) => ({
           length: width,
           offset: width * index,
           index,
         })}
       />
-
     </View>
   );
 }
@@ -297,8 +256,7 @@ export default function OnboardingScreen() {
 // STYLES
 // =========================================================
 
-const styles = StyleSheet.create({
-
+const createStyles = (colors) => StyleSheet.create({
   // =======================================================
   // MAIN CONTAINER
   // =======================================================
@@ -306,7 +264,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
 
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   // =======================================================
@@ -318,7 +276,7 @@ const styles = StyleSheet.create({
 
     height: height,
 
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   // =======================================================
@@ -338,7 +296,7 @@ const styles = StyleSheet.create({
   bottomSection: {
     flex: 1,
 
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
 
     alignItems: "center",
 
@@ -352,7 +310,7 @@ const styles = StyleSheet.create({
   // =======================================================
 
   title: {
-    color: Colors.white,
+    color: colors.textPrimary,
 
     fontFamily: Fonts.extraBold,
 
@@ -368,7 +326,7 @@ const styles = StyleSheet.create({
   // =======================================================
 
   redTitle: {
-    color: Colors.primary,
+    color: colors.primary,
 
     fontFamily: Fonts.extraBold,
 
@@ -384,7 +342,7 @@ const styles = StyleSheet.create({
   // =======================================================
 
   description: {
-    color: Colors.textPrimary,
+    color: colors.textSecondary,
 
     fontFamily: Fonts.regular,
 
@@ -436,7 +394,7 @@ const styles = StyleSheet.create({
   // =======================================================
 
   skipText: {
-    color: Colors.white,
+    color: colors.textPrimary,
 
     fontFamily: Fonts.medium,
 
@@ -472,10 +430,10 @@ const styles = StyleSheet.create({
   // =======================================================
 
   activeDot: {
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
 
     // Red glow
-    shadowColor: Colors.primary,
+    shadowColor: colors.primary,
 
     shadowOffset: {
       width: 0,
@@ -495,7 +453,7 @@ const styles = StyleSheet.create({
   // =======================================================
 
   inactiveDot: {
-    backgroundColor: Colors.tabInactive,
+    backgroundColor: colors.textMuted,
   },
 
   // =======================================================
@@ -509,14 +467,14 @@ const styles = StyleSheet.create({
 
     borderRadius: 32,
 
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
 
     alignItems: "center",
 
     justifyContent: "center",
 
     // Red glow
-    shadowColor: Colors.primary,
+    shadowColor: colors.primary,
 
     shadowOffset: {
       width: 0,
@@ -536,7 +494,7 @@ const styles = StyleSheet.create({
   // =======================================================
 
   arrow: {
-    color: Colors.white,
+    color: colors.white,
 
     fontFamily: Fonts.regular,
 

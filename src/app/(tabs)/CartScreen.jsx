@@ -12,8 +12,8 @@ import {
   View,
 } from "react-native";
 
-import Colors from "../../constants/Colors";
 import Fonts from "../../constants/Fonts";
+import { useTheme } from "../../hooks/use-theme";
 
 // ============================================================
 // INITIAL CART DATA
@@ -54,6 +54,8 @@ const initialCart = [
 // ============================================================
 
 const CartScreen = () => {
+  const { colors: Colors } = useTheme();
+  const styles = useMemo(() => makeStyles(Colors), [Colors]);
   const [cartItems, setCartItems] = useState(initialCart);
 
   const [coupon, setCoupon] = useState("");
@@ -194,7 +196,7 @@ const CartScreen = () => {
             style={styles.headerButton}
             onPress={() => router.back()}
           >
-            <Ionicons name="arrow-back" size={21} color={Colors.white} />
+            <Ionicons name="arrow-back" size={21} color={Colors.textPrimary} />
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>Your Cart</Text>
@@ -245,7 +247,7 @@ const CartScreen = () => {
           onPress={() => router.back()}
           activeOpacity={0.8}
         >
-          <Ionicons name="arrow-back" size={21} color={Colors.white} />
+          <Ionicons name="arrow-back" size={21} color={Colors.textPrimary} />
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
@@ -606,7 +608,7 @@ export default CartScreen;
 // STYLES
 // ============================================================
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -641,7 +643,7 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
     fontSize: 18,
   },
@@ -692,7 +694,7 @@ const styles = StyleSheet.create({
   },
 
   restaurantName: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
     fontSize: 20,
   },
@@ -717,7 +719,7 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.extraBold,
     fontSize: 18,
   },
@@ -790,23 +792,23 @@ const styles = StyleSheet.create({
   },
 
   itemName: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.semiBold,
-    fontSize: 20,
-    lineHeight: 16,
+    fontSize: 15,
+    lineHeight: 19,
   },
 
   itemRestaurant: {
-    color: Colors.textMuted,
+    color: Colors.textSecondary,
     fontFamily: Fonts.regular,
-    fontSize: 18,
+    fontSize: 13,
     marginTop: 3,
   },
 
   itemPrice: {
     color: Colors.gold,
     fontFamily: Fonts.medium,
-    fontSize: 16,
+    fontSize: 14,
     marginTop: 5,
   },
 
@@ -842,7 +844,7 @@ const styles = StyleSheet.create({
   },
 
   itemTotal: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
     fontSize: 15,
     marginTop: 7,
@@ -886,7 +888,7 @@ const styles = StyleSheet.create({
 
   addMoreText: {
     flex: 1,
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.medium,
     fontSize: 11,
     marginLeft: 9,
@@ -921,14 +923,14 @@ const styles = StyleSheet.create({
   },
 
   couponTitle: {
-    color: Colors.info,
+    color: Colors.primary,
     fontFamily: Fonts.bold,
     fontSize: 17,
     marginLeft: 9,
   },
 
   couponSubtitle: {
-    color: Colors.info,
+    color: Colors.textSecondary,
     fontFamily: Fonts.regular,
     fontSize: 14,
     marginLeft: 9,
@@ -950,7 +952,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: "100%",
     paddingHorizontal: 11,
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.medium,
     fontSize: 10,
   },
@@ -1017,13 +1019,13 @@ const styles = StyleSheet.create({
   },
 
   offerTipTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.semiBold,
     fontSize: 10,
   },
 
   offerTipText: {
-    color: Colors.textMuted,
+    color: Colors.textSecondary,
     fontFamily: Fonts.regular,
     fontSize: 8,
     marginTop: 2,
@@ -1044,7 +1046,7 @@ const styles = StyleSheet.create({
   },
 
   billTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
     fontSize: 18,
     marginBottom: 12,
@@ -1064,7 +1066,7 @@ const styles = StyleSheet.create({
   },
 
   billValue: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.medium,
     fontSize: 15,
   },
@@ -1100,7 +1102,7 @@ const styles = StyleSheet.create({
   },
 
   totalLabel: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.bold,
     fontSize: 15,
   },
@@ -1138,13 +1140,13 @@ const styles = StyleSheet.create({
   },
 
   deliveryInfoTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.medium,
     fontSize: 14,
   },
 
   deliveryInfoText: {
-    color: Colors.textMuted,
+    color: Colors.textSecondary,
     fontFamily: Fonts.regular,
     fontSize: 12,
     marginTop: 2,
@@ -1187,13 +1189,13 @@ const styles = StyleSheet.create({
   },
 
   checkoutLabel: {
-    color: Colors.textMuted,
+    color: Colors.textSecondary,
     fontFamily: Fonts.regular,
     fontSize: 15,
   },
 
   checkoutPrice: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.extraBold,
     fontSize: 19,
     marginTop: 2,
@@ -1238,14 +1240,14 @@ const styles = StyleSheet.create({
   },
 
   emptyTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontFamily: Fonts.extraBold,
     fontSize: 22,
     marginTop: 20,
   },
 
   emptyDescription: {
-    color: Colors.textMuted,
+    color: Colors.textSecondary,
     fontFamily: Fonts.regular,
     fontSize: 11,
     textAlign: "center",

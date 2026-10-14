@@ -1,24 +1,26 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
-import Colors from "../constants/colors";
-import Fonts from "../constants/fonts";
+import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 export default function EditProfileScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [fullName, setFullName] = useState("Raju Kumar");
   const [mobile, setMobile] = useState("+91 98765 43210");
   const [email, setEmail] = useState("raju.kumar@email.com");
@@ -58,7 +60,7 @@ export default function EditProfileScreen() {
             text: "OK",
             onPress: () => router.back(),
           },
-        ]
+        ],
       );
     }, 700);
   };
@@ -70,8 +72,8 @@ export default function EditProfileScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor={Colors.background}
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
       />
 
       <KeyboardAvoidingView
@@ -88,16 +90,10 @@ export default function EditProfileScreen() {
             onPress={() => router.back()}
             activeOpacity={0.8}
           >
-            <Ionicons
-              name="chevron-back"
-              size={25}
-              color={Colors.white}
-            />
+            <Ionicons name="chevron-back" size={25} color={colors.textPrimary} />
           </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>
-            Edit Profile
-          </Text>
+          <Text style={styles.headerTitle}>Edit Profile</Text>
 
           <View style={styles.headerPlaceholder} />
         </View>
@@ -117,11 +113,7 @@ export default function EditProfileScreen() {
 
           <View style={styles.photoSection}>
             <View style={styles.avatar}>
-              <Ionicons
-                name="person"
-                size={62}
-                color={Colors.white}
-              />
+              <Ionicons name="person" size={62} color={colors.white} />
             </View>
 
             <TouchableOpacity
@@ -130,59 +122,44 @@ export default function EditProfileScreen() {
               onPress={() =>
                 Alert.alert(
                   "Profile Photo",
-                  "Photo selection can be connected here."
+                  "Photo selection can be connected here.",
                 )
               }
             >
-              <Ionicons
-                name="camera"
-                size={18}
-                color={Colors.white}
-              />
+              <Ionicons name="camera" size={18} color={colors.white} />
             </TouchableOpacity>
 
-            <Text style={styles.changePhotoText}>
-              Change Profile Photo
-            </Text>
+            <Text style={styles.changePhotoText}>Change Profile Photo</Text>
           </View>
 
           {/* ===================================================
               PERSONAL INFORMATION
           =================================================== */}
 
-          <Text style={styles.sectionTitle}>
-            Personal Information
-          </Text>
+          <Text style={styles.sectionTitle}>Personal Information</Text>
 
           {/* FULL NAME */}
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Full Name
-            </Text>
+            <Text style={styles.label}>Full Name</Text>
 
             <View style={styles.inputContainer}>
               <View
                 style={[
                   styles.inputIcon,
                   {
-                    backgroundColor:
-                      `${Colors.info}20`,
+                    backgroundColor: `${colors.info}20`,
                   },
                 ]}
               >
-                <Ionicons
-                  name="person-outline"
-                  size={20}
-                  color={Colors.info}
-                />
+                <Ionicons name="person-outline" size={20} color={colors.info} />
               </View>
 
               <TextInput
                 value={fullName}
                 onChangeText={setFullName}
                 placeholder="Enter your full name"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 style={styles.input}
                 autoCapitalize="words"
               />
@@ -192,24 +169,21 @@ export default function EditProfileScreen() {
           {/* MOBILE */}
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Mobile Number
-            </Text>
+            <Text style={styles.label}>Mobile Number</Text>
 
             <View style={styles.inputContainer}>
               <View
                 style={[
                   styles.inputIcon,
                   {
-                    backgroundColor:
-                      `${Colors.success}20`,
+                    backgroundColor: `${colors.success}20`,
                   },
                 ]}
               >
                 <Ionicons
                   name="call-outline"
                   size={20}
-                  color={Colors.success}
+                  color={colors.success}
                 />
               </View>
 
@@ -217,7 +191,7 @@ export default function EditProfileScreen() {
                 value={mobile}
                 onChangeText={setMobile}
                 placeholder="+91 Mobile Number"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 style={styles.input}
                 keyboardType="phone-pad"
               />
@@ -227,32 +201,25 @@ export default function EditProfileScreen() {
           {/* EMAIL */}
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Email Address
-            </Text>
+            <Text style={styles.label}>Email Address</Text>
 
             <View style={styles.inputContainer}>
               <View
                 style={[
                   styles.inputIcon,
                   {
-                    backgroundColor:
-                      `${Colors.info}20`,
+                    backgroundColor: `${colors.info}20`,
                   },
                 ]}
               >
-                <Ionicons
-                  name="mail-outline"
-                  size={20}
-                  color={Colors.info}
-                />
+                <Ionicons name="mail-outline" size={20} color={colors.info} />
               </View>
 
               <TextInput
                 value={email}
                 onChangeText={setEmail}
                 placeholder="Enter your email"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 style={styles.input}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -263,24 +230,21 @@ export default function EditProfileScreen() {
           {/* LOCATION */}
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Location
-            </Text>
+            <Text style={styles.label}>Location</Text>
 
             <View style={styles.inputContainer}>
               <View
                 style={[
                   styles.inputIcon,
                   {
-                    backgroundColor:
-                      `${Colors.warning}20`,
+                    backgroundColor: `${colors.warning}20`,
                   },
                 ]}
               >
                 <Ionicons
                   name="location-outline"
                   size={20}
-                  color={Colors.warning}
+                  color={colors.warning}
                 />
               </View>
 
@@ -288,7 +252,7 @@ export default function EditProfileScreen() {
                 value={location}
                 onChangeText={setLocation}
                 placeholder="Enter your location"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 style={styles.input}
                 autoCapitalize="words"
               />
@@ -299,31 +263,26 @@ export default function EditProfileScreen() {
               ACCOUNT INFORMATION
           =================================================== */}
 
-          <Text style={styles.sectionTitle}>
-            Account Information
-          </Text>
+          <Text style={styles.sectionTitle}>Account Information</Text>
 
           <View style={styles.infoCard}>
             <View
               style={[
                 styles.infoIcon,
                 {
-                  backgroundColor:
-                    `${Colors.primary}20`,
+                  backgroundColor: `${colors.primary}20`,
                 },
               ]}
             >
               <Ionicons
                 name="shield-checkmark-outline"
                 size={22}
-                color={Colors.primary}
+                color={colors.primary}
               />
             </View>
 
             <View style={styles.infoContent}>
-              <Text style={styles.infoTitle}>
-                Account Verified
-              </Text>
+              <Text style={styles.infoTitle}>Account Verified</Text>
 
               <Text style={styles.infoText}>
                 Your mobile number is verified.
@@ -333,7 +292,7 @@ export default function EditProfileScreen() {
             <Ionicons
               name="checkmark-circle"
               size={22}
-              color={Colors.success}
+              color={colors.success}
             />
           </View>
 
@@ -342,29 +301,18 @@ export default function EditProfileScreen() {
           =================================================== */}
 
           <TouchableOpacity
-            style={[
-              styles.saveButton,
-              saving && styles.saveButtonDisabled,
-            ]}
+            style={[styles.saveButton, saving && styles.saveButtonDisabled]}
             onPress={handleSave}
             activeOpacity={0.85}
             disabled={saving}
           >
             {saving ? (
-              <Text style={styles.saveText}>
-                Saving...
-              </Text>
+              <Text style={styles.saveText}>Saving...</Text>
             ) : (
               <>
-                <Text style={styles.saveText}>
-                  Save Changes
-                </Text>
+                <Text style={styles.saveText}>Save Changes</Text>
 
-                <Ionicons
-                  name="arrow-forward"
-                  size={23}
-                  color={Colors.white}
-                />
+                <Ionicons name="arrow-forward" size={23} color={colors.white} />
               </>
             )}
           </TouchableOpacity>
@@ -378,9 +326,7 @@ export default function EditProfileScreen() {
             onPress={() => router.back()}
             activeOpacity={0.8}
           >
-            <Text style={styles.cancelText}>
-              Cancel
-            </Text>
+            <Text style={styles.cancelText}>Cancel</Text>
           </TouchableOpacity>
 
           <View style={styles.bottomSpace} />
@@ -394,19 +340,19 @@ export default function EditProfileScreen() {
    STYLES
 ========================================================= */
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   /* =======================================================
      SCREEN
   ======================================================= */
 
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   keyboardView: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   scrollContent: {
@@ -428,9 +374,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
 
     borderBottomWidth: 1,
-    borderBottomColor: Colors.divider,
+    borderBottomColor: colors.divider,
 
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   headerButton: {
@@ -439,10 +385,10 @@ const styles = StyleSheet.create({
 
     borderRadius: 21,
 
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
 
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
 
     justifyContent: "center",
     alignItems: "center",
@@ -454,7 +400,7 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    color: Colors.white,
+    color: colors.textPrimary,
 
     fontFamily: Fonts.semiBold,
     fontSize: Fonts.size.xl,
@@ -481,13 +427,13 @@ const styles = StyleSheet.create({
 
     borderRadius: 54,
 
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
 
     justifyContent: "center",
     alignItems: "center",
 
     borderWidth: 4,
-    borderColor: Colors.primaryDark,
+    borderColor: colors.primaryDark,
   },
 
   cameraButton: {
@@ -501,17 +447,17 @@ const styles = StyleSheet.create({
 
     borderRadius: 18,
 
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
 
     justifyContent: "center",
     alignItems: "center",
 
     borderWidth: 3,
-    borderColor: Colors.background,
+    borderColor: colors.background,
   },
 
   changePhotoText: {
-    color: Colors.primary,
+    color: colors.primary,
 
     fontFamily: Fonts.semiBold,
     fontSize: Fonts.size.sm,
@@ -524,7 +470,7 @@ const styles = StyleSheet.create({
   ======================================================= */
 
   sectionTitle: {
-    color: Colors.white,
+    color: colors.textPrimary,
 
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.lg,
@@ -542,7 +488,7 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
 
     fontFamily: Fonts.medium,
     fontSize: Fonts.size.sm,
@@ -561,12 +507,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
 
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
 
     borderRadius: 15,
 
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
 
     paddingHorizontal: 10,
   },
@@ -588,7 +534,7 @@ const styles = StyleSheet.create({
 
     height: 56,
 
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
 
     fontFamily: Fonts.medium,
     fontSize: Fonts.size.md,
@@ -603,12 +549,12 @@ const styles = StyleSheet.create({
   infoCard: {
     minHeight: 72,
 
-    backgroundColor: Colors.card,
+    backgroundColor: colors.card,
 
     borderRadius: 16,
 
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
 
     flexDirection: "row",
     alignItems: "center",
@@ -635,7 +581,7 @@ const styles = StyleSheet.create({
   },
 
   infoTitle: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
 
     fontFamily: Fonts.semiBold,
     fontSize: Fonts.size.md,
@@ -644,7 +590,7 @@ const styles = StyleSheet.create({
   },
 
   infoText: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
 
     fontFamily: Fonts.regular,
     fontSize: Fonts.size.xs,
@@ -659,7 +605,7 @@ const styles = StyleSheet.create({
 
     borderRadius: 28,
 
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
 
     flexDirection: "row",
     alignItems: "center",
@@ -673,7 +619,7 @@ const styles = StyleSheet.create({
   },
 
   saveText: {
-    color: Colors.white,
+    color: colors.white,
 
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.base,
@@ -691,9 +637,9 @@ const styles = StyleSheet.create({
     borderRadius: 26,
 
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
 
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: colors.backgroundElement,
 
     justifyContent: "center",
     alignItems: "center",
@@ -702,7 +648,7 @@ const styles = StyleSheet.create({
   },
 
   cancelText: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
 
     fontFamily: Fonts.semiBold,
     fontSize: Fonts.size.md,

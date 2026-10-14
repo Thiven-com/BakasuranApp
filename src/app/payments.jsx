@@ -13,8 +13,8 @@ import {
   View,
 } from "react-native";
 
-import Colors from "../constants/colors";
-import Fonts from "../constants/fonts";
+import Colors from "../constants/Colors";
+import Fonts from "../constants/Fonts";
 
 /* =========================================================
    PAYMENT SCREEN
@@ -28,8 +28,7 @@ export default function PaymentsScreen() {
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
 
-  const [selectedPayment, setSelectedPayment] =
-    useState("card");
+  const [selectedPayment, setSelectedPayment] = useState("card");
 
   const [paymentMethods, setPaymentMethods] = useState([
     {
@@ -39,7 +38,7 @@ export default function PaymentsScreen() {
       lastFour: "4242",
       name: "Raju Kumar",
       expiry: "12/28",
-      color: Colors.info,
+      color: "#f82408",
     },
     {
       id: 2,
@@ -48,7 +47,7 @@ export default function PaymentsScreen() {
       lastFour: "5678",
       name: "Raju Kumar",
       expiry: "09/27",
-      color: Colors.warning,
+      color: "#f82408",
     },
   ]);
 
@@ -57,13 +56,9 @@ export default function PaymentsScreen() {
   ===================================================== */
 
   const handleCardNumber = (value) => {
-    const numbers = value
-      .replace(/\D/g, "")
-      .slice(0, 16);
+    const numbers = value.replace(/\D/g, "").slice(0, 16);
 
-    const formatted = numbers
-      .replace(/(.{4})/g, "$1 ")
-      .trim();
+    const formatted = numbers.replace(/(.{4})/g, "$1 ").trim();
 
     setCardNumber(formatted);
   };
@@ -73,14 +68,10 @@ export default function PaymentsScreen() {
   ===================================================== */
 
   const handleExpiry = (value) => {
-    const numbers = value
-      .replace(/\D/g, "")
-      .slice(0, 4);
+    const numbers = value.replace(/\D/g, "").slice(0, 4);
 
     if (numbers.length >= 3) {
-      setExpiry(
-        `${numbers.slice(0, 2)}/${numbers.slice(2)}`
-      );
+      setExpiry(`${numbers.slice(0, 2)}/${numbers.slice(2)}`);
     } else {
       setExpiry(numbers);
     }
@@ -91,38 +82,25 @@ export default function PaymentsScreen() {
   ===================================================== */
 
   const handleSaveCard = () => {
-    const cleanCardNumber =
-      cardNumber.replace(/\s/g, "");
+    const cleanCardNumber = cardNumber.replace(/\s/g, "");
 
     if (cleanCardNumber.length !== 16) {
-      Alert.alert(
-        "Invalid Card",
-        "Please enter a valid 16-digit card number."
-      );
+      Alert.alert("Invalid Card", "Please enter a valid 16-digit card number.");
       return;
     }
 
     if (!cardName.trim()) {
-      Alert.alert(
-        "Required",
-        "Please enter the name on the card."
-      );
+      Alert.alert("Required", "Please enter the name on the card.");
       return;
     }
 
     if (expiry.length !== 5) {
-      Alert.alert(
-        "Invalid Expiry",
-        "Please enter expiry in MM/YY format."
-      );
+      Alert.alert("Invalid Expiry", "Please enter expiry in MM/YY format.");
       return;
     }
 
     if (cvv.length !== 3) {
-      Alert.alert(
-        "Invalid CVV",
-        "Please enter a valid 3-digit CVV."
-      );
+      Alert.alert("Invalid CVV", "Please enter a valid 3-digit CVV.");
       return;
     }
 
@@ -138,10 +116,7 @@ export default function PaymentsScreen() {
       color: Colors.info,
     };
 
-    setPaymentMethods((previous) => [
-      ...previous,
-      newCard,
-    ]);
+    setPaymentMethods((previous) => [...previous, newCard]);
 
     setCardNumber("");
     setCardName("");
@@ -151,7 +126,7 @@ export default function PaymentsScreen() {
 
     Alert.alert(
       "Card Added",
-      "Your payment method has been added successfully."
+      "Your payment method has been added successfully.",
     );
   };
 
@@ -173,13 +148,11 @@ export default function PaymentsScreen() {
           style: "destructive",
           onPress: () => {
             setPaymentMethods((previous) =>
-              previous.filter(
-                (item) => item.id !== id
-              )
+              previous.filter((item) => item.id !== id),
             );
           },
         },
-      ]
+      ],
     );
   };
 
@@ -197,10 +170,7 @@ export default function PaymentsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={Colors.background}
-      />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
 
       {/* =================================================
           HEADER
@@ -212,16 +182,10 @@ export default function PaymentsScreen() {
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
-          <Ionicons
-            name="chevron-back"
-            size={26}
-            color={Colors.white}
-          />
+          <Ionicons name="chevron-back" size={26} color={Colors.white} />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>
-          Payment Methods
-        </Text>
+        <Text style={styles.headerTitle}>Payment Methods</Text>
 
         <View style={styles.headerSpace} />
       </View>
@@ -236,9 +200,7 @@ export default function PaymentsScreen() {
         ================================================= */}
 
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>
-            Your Payment Methods
-          </Text>
+          <Text style={styles.title}>Your Payment Methods</Text>
 
           <Text style={styles.subtitle}>
             Manage your cards and payment options
@@ -254,18 +216,15 @@ export default function PaymentsScreen() {
             <Ionicons
               name="shield-checkmark-outline"
               size={23}
-              color={Colors.success}
+              color={Colors.primary}
             />
           </View>
 
           <View style={styles.secureContent}>
-            <Text style={styles.secureTitle}>
-              Secure Payments
-            </Text>
+            <Text style={styles.secureTitle}>Secure Payments</Text>
 
             <Text style={styles.secureText}>
-              Your payment information is protected
-              and encrypted.
+              Your payment information is protected and encrypted.
             </Text>
           </View>
         </View>
@@ -281,12 +240,9 @@ export default function PaymentsScreen() {
                 key={item.id}
                 style={[
                   styles.paymentCard,
-                  selectedPayment === String(item.id) &&
-                    styles.selectedCard,
+                  selectedPayment === String(item.id) && styles.selectedCard,
                 ]}
-                onPress={() =>
-                  setSelectedPayment(String(item.id))
-                }
+                onPress={() => setSelectedPayment(String(item.id))}
                 activeOpacity={0.8}
               >
                 {/* CARD ICON */}
@@ -299,20 +255,14 @@ export default function PaymentsScreen() {
                     },
                   ]}
                 >
-                  <Ionicons
-                    name="card-outline"
-                    size={25}
-                    color={item.color}
-                  />
+                  <Ionicons name="card-outline" size={25} color={item.color} />
                 </View>
 
                 {/* CARD DETAILS */}
 
                 <View style={styles.cardInfo}>
                   <View style={styles.cardTitleRow}>
-                    <Text style={styles.cardType}>
-                      {item.cardType}
-                    </Text>
+                    <Text style={styles.cardType}>{item.cardType}</Text>
 
                     <View
                       style={[
@@ -339,22 +289,16 @@ export default function PaymentsScreen() {
                     •••• •••• •••• {item.lastFour}
                   </Text>
 
-                  <Text style={styles.cardName}>
-                    {item.name}
-                  </Text>
+                  <Text style={styles.cardName}>{item.name}</Text>
 
-                  <Text style={styles.expiryText}>
-                    Expires {item.expiry}
-                  </Text>
+                  <Text style={styles.expiryText}>Expires {item.expiry}</Text>
                 </View>
 
                 {/* DELETE */}
 
                 <TouchableOpacity
                   style={styles.deleteButton}
-                  onPress={() =>
-                    handleDelete(item.id)
-                  }
+                  onPress={() => handleDelete(item.id)}
                   activeOpacity={0.7}
                 >
                   <Ionicons
@@ -384,9 +328,7 @@ export default function PaymentsScreen() {
               color={Colors.white}
             />
 
-            <Text style={styles.addButtonText}>
-              Add New Card
-            </Text>
+            <Text style={styles.addButtonText}>Add New Card</Text>
           </TouchableOpacity>
         )}
 
@@ -397,27 +339,16 @@ export default function PaymentsScreen() {
         {showForm && (
           <View style={styles.formCard}>
             <View style={styles.formHeader}>
-              <Text style={styles.formTitle}>
-                Add New Card
-              </Text>
+              <Text style={styles.formTitle}>Add New Card</Text>
 
-              <TouchableOpacity
-                onPress={handleCancel}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name="close"
-                  size={25}
-                  color={Colors.textSecondary}
-                />
+              <TouchableOpacity onPress={handleCancel} activeOpacity={0.7}>
+                <Ionicons name="close" size={25} color={Colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
             {/* CARD NUMBER */}
 
-            <Text style={styles.inputLabel}>
-              Card Number
-            </Text>
+            <Text style={styles.inputLabel}>Card Number</Text>
 
             <View style={styles.inputContainer}>
               <Ionicons
@@ -439,9 +370,7 @@ export default function PaymentsScreen() {
 
             {/* CARD NAME */}
 
-            <Text style={styles.inputLabel}>
-              Name on Card
-            </Text>
+            <Text style={styles.inputLabel}>Name on Card</Text>
 
             <View style={styles.inputContainer}>
               <Ionicons
@@ -464,9 +393,7 @@ export default function PaymentsScreen() {
 
             <View style={styles.row}>
               <View style={styles.halfInput}>
-                <Text style={styles.inputLabel}>
-                  Expiry
-                </Text>
+                <Text style={styles.inputLabel}>Expiry</Text>
 
                 <View style={styles.inputContainer}>
                   <Ionicons
@@ -488,9 +415,7 @@ export default function PaymentsScreen() {
               </View>
 
               <View style={styles.halfInput}>
-                <Text style={styles.inputLabel}>
-                  CVV
-                </Text>
+                <Text style={styles.inputLabel}>CVV</Text>
 
                 <View style={styles.inputContainer}>
                   <Ionicons
@@ -502,11 +427,7 @@ export default function PaymentsScreen() {
                   <TextInput
                     value={cvv}
                     onChangeText={(value) =>
-                      setCvv(
-                        value
-                          .replace(/\D/g, "")
-                          .slice(0, 3)
-                      )
+                      setCvv(value.replace(/\D/g, "").slice(0, 3))
                     }
                     placeholder="CVV"
                     placeholderTextColor={Colors.textMuted}
@@ -532,9 +453,7 @@ export default function PaymentsScreen() {
                 color={Colors.white}
               />
 
-              <Text style={styles.saveButtonText}>
-                Save Card
-              </Text>
+              <Text style={styles.saveButtonText}>Save Card</Text>
             </TouchableOpacity>
 
             {/* CANCEL */}
@@ -544,9 +463,7 @@ export default function PaymentsScreen() {
               onPress={handleCancel}
               activeOpacity={0.7}
             >
-              <Text style={styles.cancelText}>
-                Cancel
-              </Text>
+              <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -555,9 +472,7 @@ export default function PaymentsScreen() {
             OTHER PAYMENT OPTIONS
         ================================================= */}
 
-        <Text style={styles.sectionTitle}>
-          Other Payment Options
-        </Text>
+        <Text style={styles.sectionTitle}>Other Payment Options</Text>
 
         <View style={styles.otherCard}>
           {/* UPI */}
@@ -568,7 +483,7 @@ export default function PaymentsScreen() {
             onPress={() =>
               Alert.alert(
                 "UPI",
-                "UPI payment will be available during checkout."
+                "UPI payment will be available during checkout.",
               )
             }
           >
@@ -588,13 +503,9 @@ export default function PaymentsScreen() {
             </View>
 
             <View style={styles.otherInfo}>
-              <Text style={styles.otherTitle}>
-                UPI
-              </Text>
+              <Text style={styles.otherTitle}>UPI</Text>
 
-              <Text style={styles.otherSubtitle}>
-                Pay using any UPI app
-              </Text>
+              <Text style={styles.otherSubtitle}>Pay using any UPI app</Text>
             </View>
 
             <Ionicons
@@ -607,15 +518,12 @@ export default function PaymentsScreen() {
           {/* CASH */}
 
           <TouchableOpacity
-            style={[
-              styles.otherRow,
-              styles.lastOtherRow,
-            ]}
+            style={[styles.otherRow, styles.lastOtherRow]}
             activeOpacity={0.7}
             onPress={() =>
               Alert.alert(
                 "Cash on Delivery",
-                "Cash on Delivery will be available during checkout."
+                "Cash on Delivery will be available during checkout.",
               )
             }
           >
@@ -623,21 +531,15 @@ export default function PaymentsScreen() {
               style={[
                 styles.otherIcon,
                 {
-                  backgroundColor: `${Colors.success}18`,
+                  backgroundColor: `${Colors.primary}18`,
                 },
               ]}
             >
-              <Ionicons
-                name="cash-outline"
-                size={22}
-                color={Colors.success}
-              />
+              <Ionicons name="cash-outline" size={22} color={Colors.primary} />
             </View>
 
             <View style={styles.otherInfo}>
-              <Text style={styles.otherTitle}>
-                Cash on Delivery
-              </Text>
+              <Text style={styles.otherTitle}>Cash on Delivery</Text>
 
               <Text style={styles.otherSubtitle}>
                 Pay when your order arrives
@@ -657,11 +559,7 @@ export default function PaymentsScreen() {
         ================================================= */}
 
         <View style={styles.bottomSecurity}>
-          <Ionicons
-            name="shield-checkmark"
-            size={18}
-            color={Colors.success}
-          />
+          <Ionicons name="shield-checkmark" size={18} color={Colors.primary} />
 
           <Text style={styles.bottomSecurityText}>
             Your payment details are safe and secure
@@ -720,7 +618,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
+    fontSize: Fonts.size.xxl,
   },
 
   headerSpace: {
@@ -737,7 +635,7 @@ const styles = StyleSheet.create({
   title: {
     color: Colors.textPrimary,
 
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
     fontSize: Fonts.size.xxl,
   },
 
@@ -745,7 +643,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.base,
 
     marginTop: 6,
   },
@@ -789,15 +687,15 @@ const styles = StyleSheet.create({
   secureTitle: {
     color: Colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.md,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xl,
   },
 
   secureText: {
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.base,
 
     marginTop: 3,
   },
@@ -851,8 +749,8 @@ const styles = StyleSheet.create({
   cardType: {
     color: Colors.textPrimary,
 
-    fontFamily: Fonts.extraBold,
-    fontSize: Fonts.size.md,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xl,
 
     letterSpacing: 1,
   },
@@ -867,8 +765,8 @@ const styles = StyleSheet.create({
   },
 
   defaultText: {
-    fontFamily: Fonts.extraBold,
-    fontSize: Fonts.xs,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xl,
 
     letterSpacing: 0.5,
   },
@@ -888,7 +786,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.base,
 
     textTransform: "uppercase",
 
@@ -899,7 +797,7 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.base,
 
     marginTop: 3,
   },
@@ -936,7 +834,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+    fontSize: Fonts.size.xxl,
 
     marginLeft: 8,
   },
@@ -968,14 +866,14 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
+    fontSize: Fonts.size.xxl,
   },
 
   inputLabel: {
     color: Colors.textSecondary,
 
     fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.sm,
+    fontSize: Fonts.size.xl,
 
     marginTop: 14,
     marginBottom: 8,
@@ -1003,7 +901,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.base,
 
     marginLeft: 10,
 
@@ -1038,7 +936,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
 
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+    fontSize: Fonts.size.xxl,
 
     marginLeft: 8,
   },
@@ -1054,7 +952,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontFamily: Fonts.medium,
-    fontSize: Fonts.size.md,
+    fontSize: Fonts.size.xl,
   },
 
   /* ================= OTHER ================= */
@@ -1062,8 +960,8 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: Colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xxl,
 
     marginTop: 27,
     marginBottom: 13,
@@ -1115,15 +1013,15 @@ const styles = StyleSheet.create({
   otherTitle: {
     color: Colors.textPrimary,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.md,
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.xl,
   },
 
   otherSubtitle: {
     color: Colors.textSecondary,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.base,
 
     marginTop: 4,
   },
@@ -1143,7 +1041,7 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
 
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
+    fontSize: Fonts.size.base,
 
     marginLeft: 7,
   },

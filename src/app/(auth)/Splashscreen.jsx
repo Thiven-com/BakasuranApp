@@ -1,16 +1,19 @@
 import { router } from "expo-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
-    Animated,
-    Easing,
-    Image,
-    StatusBar,
-    StyleSheet,
-    Text,
-    View,
+  Animated,
+  Easing,
+  Image,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
+import { useTheme } from "../../hooks/use-theme";
 
 export default function SplashScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -21,7 +24,7 @@ export default function SplashScreen() {
         duration: 1200,
         easing: Easing.linear,
         useNativeDriver: true,
-      })
+      }),
     );
 
     animation.start();
@@ -45,8 +48,8 @@ export default function SplashScreen() {
   return (
     <View style={styles.container}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor="#000000"
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
         translucent={false}
       />
 
@@ -77,18 +80,16 @@ export default function SplashScreen() {
           <View style={styles.loaderInner} />
         </View>
 
-        <Text style={styles.loadingText}>
-          Loading Deliciousness...
-        </Text>
+        <Text style={styles.loadingText}>Loading Deliciousness...</Text>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000000",
+    backgroundColor: colors.background,
   },
 
   splashImage: {
@@ -129,7 +130,7 @@ const styles = StyleSheet.create({
 
     borderRadius: 22,
 
-    backgroundColor: "#171717",
+    backgroundColor: colors.surface,
   },
 
   loaderArc: {
@@ -154,13 +155,13 @@ const styles = StyleSheet.create({
 
     borderRadius: 17,
 
-    backgroundColor: "#111111",
+    backgroundColor: colors.background,
 
     position: "absolute",
   },
 
   loadingText: {
-    color: "#FFFFFF",
+    color: colors.white,
 
     fontSize: 12,
     fontWeight: "500",

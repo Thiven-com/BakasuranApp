@@ -1,24 +1,26 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
-import Colors from "../../constants/colors";
-import Fonts from "../../constants/fonts";
+import Fonts from "../../constants/Fonts";
+import { useTheme } from "../../hooks/use-theme";
 
 export default function LoginScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [mobile, setMobile] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -40,7 +42,7 @@ export default function LoginScreen() {
     if (mobile.length !== 10) {
       Alert.alert(
         "Invalid Mobile Number",
-        "Please enter a valid 10-digit mobile number."
+        "Please enter a valid 10-digit mobile number.",
       );
       return;
     }
@@ -79,10 +81,7 @@ export default function LoginScreen() {
     } catch (error) {
       setLoading(false);
 
-      Alert.alert(
-        "Login Failed",
-        "Something went wrong. Please try again."
-      );
+      Alert.alert("Login Failed", "Something went wrong. Please try again.");
     }
   };
 
@@ -90,7 +89,7 @@ export default function LoginScreen() {
     <View style={styles.container}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={Colors.background}
+        backgroundColor={colors.background}
         translucent={false}
       />
 
@@ -133,10 +132,7 @@ export default function LoginScreen() {
             ================================================= */}
 
             <Text style={styles.loginTitle}>
-              Login to{" "}
-              <Text style={styles.redText}>
-                Your Account
-              </Text>
+              Login to <Text style={styles.redText}>Your Account</Text>
             </Text>
 
             {/* =================================================
@@ -155,18 +151,14 @@ export default function LoginScreen() {
               {/* India Flag */}
 
               <View style={styles.countrySection}>
-                <Text style={styles.indiaFlag}>
-                  🇮🇳
-                </Text>
+                <Text style={styles.indiaFlag}>🇮🇳</Text>
 
-                <Text style={styles.countryCode}>
-                  +91
-                </Text>
+                <Text style={styles.countryCode}>+91</Text>
 
                 <Ionicons
                   name="chevron-down"
                   size={Fonts.size.md}
-                  color={Colors.white}
+                  color={colors.textPrimary}
                 />
               </View>
 
@@ -180,7 +172,7 @@ export default function LoginScreen() {
                 value={mobile}
                 onChangeText={handleMobileChange}
                 placeholder="Enter your mobile number"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 keyboardType="phone-pad"
                 maxLength={10}
                 style={styles.mobileInput}
@@ -206,11 +198,7 @@ export default function LoginScreen() {
                 {loading ? "Sending..." : "Send OTP"}
               </Text>
 
-              {!loading && (
-                <Text style={styles.arrow}>
-                  →
-                </Text>
-              )}
+              {!loading && <Text style={styles.arrow}>→</Text>}
             </Pressable>
 
             {/* =================================================
@@ -221,7 +209,7 @@ export default function LoginScreen() {
               <Ionicons
                 name="lock-closed-outline"
                 size={Fonts.size.lg}
-                color={Colors.textSecondary}
+                color={colors.textSecondary}
               />
 
               <Text style={styles.securityText}>
@@ -239,14 +227,14 @@ export default function LoginScreen() {
 // STYLES
 // =============================================================
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   // ===========================================================
   // MAIN
   // ===========================================================
 
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   keyboardContainer: {
@@ -255,7 +243,7 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     flexGrow: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   // ===========================================================
@@ -288,7 +276,7 @@ const styles = StyleSheet.create({
 
     height: 80,
 
-    backgroundColor: Colors.darkOverlay,
+    backgroundColor: colors.overlayDark,
   },
 
   // ===========================================================
@@ -300,7 +288,7 @@ const styles = StyleSheet.create({
 
     minHeight: 430,
 
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: colors.surface,
 
     borderTopLeftRadius: 38,
     borderTopRightRadius: 38,
@@ -353,7 +341,7 @@ const styles = StyleSheet.create({
   // ===========================================================
 
   loginTitle: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
 
     fontSize: Fonts.size.xxl,
 
@@ -365,7 +353,7 @@ const styles = StyleSheet.create({
   },
 
   redText: {
-    color: Colors.primary,
+    color: colors.primary,
     fontFamily: Fonts.bold,
   },
 
@@ -374,7 +362,7 @@ const styles = StyleSheet.create({
   // ===========================================================
 
   subtitle: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
 
     fontSize: Fonts.size.base,
 
@@ -394,11 +382,11 @@ const styles = StyleSheet.create({
 
     borderWidth: 1.5,
 
-    borderColor: Colors.borderLight,
+    borderColor: colors.borderLight,
 
     borderRadius: 40,
 
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
 
     flexDirection: "row",
 
@@ -422,7 +410,7 @@ const styles = StyleSheet.create({
   },
 
   countryCode: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
 
     fontSize: Fonts.size.md,
 
@@ -436,7 +424,7 @@ const styles = StyleSheet.create({
 
     height: 38,
 
-    backgroundColor: Colors.borderLight,
+    backgroundColor: colors.borderLight,
 
     marginRight: 18,
   },
@@ -446,7 +434,7 @@ const styles = StyleSheet.create({
 
     height: 40,
 
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
 
     fontSize: Fonts.size.md,
 
@@ -466,7 +454,7 @@ const styles = StyleSheet.create({
 
     borderRadius: 38,
 
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
 
     flexDirection: "row",
 
@@ -474,7 +462,7 @@ const styles = StyleSheet.create({
 
     justifyContent: "center",
 
-    shadowColor: Colors.primary,
+    shadowColor: colors.primary,
 
     shadowOffset: {
       width: 0,
@@ -503,7 +491,7 @@ const styles = StyleSheet.create({
   },
 
   otpButtonText: {
-    color: Colors.white,
+    color: colors.white,
 
     fontSize: Fonts.size.lg,
 
@@ -511,7 +499,7 @@ const styles = StyleSheet.create({
   },
 
   arrow: {
-    color: Colors.white,
+    color: colors.white,
 
     fontSize: Fonts.size.display,
 
@@ -539,7 +527,7 @@ const styles = StyleSheet.create({
   },
 
   securityText: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
 
     fontSize: Fonts.size.sm,
 

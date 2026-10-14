@@ -6,16 +6,16 @@ const Fonts = {
   extraBold: "Poppins-ExtraBold",
 
   size: {
-    xs: 10,
-    sm: 12,
-    md: 14,
-    base: 16,
-    lg: 30,
-    xl: 20,
-    xxl: 24,
-    title: 60,
-    heading: 32,
-    display: 38,
+    xs: 14,
+    sm: 14,
+    md: 16,
+    base: 18,
+    lg: 32,
+    xl: 22,
+    xxl: 26,
+    title: 62,
+    heading: 34,
+    display: 40,
   },
 };
 

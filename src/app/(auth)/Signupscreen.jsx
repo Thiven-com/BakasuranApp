@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
   Alert,
@@ -17,14 +17,16 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
-import Colors from "../../constants/colors";
-import Fonts from "../../constants/fonts";
+import Fonts from "../../constants/Fonts";
+import { useTheme } from "../../hooks/use-theme";
 
 /* =========================================================
    SIGNUP SCREEN
 ========================================================= */
 
 export default function Signupscreen() {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
@@ -32,8 +34,7 @@ export default function Signupscreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] =
-    useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [acceptedTerms, setAcceptedTerms] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -61,7 +62,7 @@ export default function Signupscreen() {
     if (mobile.replace(/\D/g, "").length !== 10) {
       Alert.alert(
         "Invalid Mobile",
-        "Please enter a valid 10-digit mobile number."
+        "Please enter a valid 10-digit mobile number.",
       );
       return;
     }
@@ -74,7 +75,7 @@ export default function Signupscreen() {
     if (password.length < 6) {
       Alert.alert(
         "Weak Password",
-        "Password must contain at least 6 characters."
+        "Password must contain at least 6 characters.",
       );
       return;
     }
@@ -82,7 +83,7 @@ export default function Signupscreen() {
     if (password !== confirmPassword) {
       Alert.alert(
         "Password Mismatch",
-        "Password and confirm password do not match."
+        "Password and confirm password do not match.",
       );
       return;
     }
@@ -90,7 +91,7 @@ export default function Signupscreen() {
     if (!acceptedTerms) {
       Alert.alert(
         "Terms Required",
-        "Please accept Terms & Conditions and Privacy Policy."
+        "Please accept Terms & Conditions and Privacy Policy.",
       );
       return;
     }
@@ -116,7 +117,7 @@ export default function Signupscreen() {
   const handleGoogle = () => {
     Alert.alert(
       "Google Sign In",
-      "Google authentication will be connected here."
+      "Google authentication will be connected here.",
     );
   };
 
@@ -127,7 +128,7 @@ export default function Signupscreen() {
   const handleApple = () => {
     Alert.alert(
       "Apple Sign In",
-      "Apple authentication will be connected here."
+      "Apple authentication will be connected here.",
     );
   };
 
@@ -138,7 +139,7 @@ export default function Signupscreen() {
   const handleFacebook = () => {
     Alert.alert(
       "Facebook Sign In",
-      "Facebook authentication will be connected here."
+      "Facebook authentication will be connected here.",
     );
   };
 
@@ -149,15 +150,13 @@ export default function Signupscreen() {
   return (
     <View style={styles.container}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor={Colors.black}
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
       />
 
       <KeyboardAvoidingView
         style={styles.keyboard}
-        behavior={
-          Platform.OS === "ios" ? "padding" : undefined
-        }
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
           style={styles.scrollView}
@@ -192,7 +191,7 @@ export default function Signupscreen() {
                 <Ionicons
                   name="arrow-back"
                   size={29}
-                  color={Colors.white}
+                  color={colors.textPrimary}
                 />
               </TouchableOpacity>
             </View>
@@ -205,13 +204,9 @@ export default function Signupscreen() {
               {/* TITLE */}
 
               <View style={styles.titleContainer}>
-                <Text style={styles.titleWhite}>
-                  Create{" "}
-                </Text>
+                <Text style={styles.titleWhite}>Create </Text>
 
-                <Text style={styles.titleRed}>
-                  Account
-                </Text>
+                <Text style={styles.titleRed}>Account</Text>
               </View>
 
               <Text style={styles.subtitle}>
@@ -228,7 +223,7 @@ export default function Signupscreen() {
                 <Ionicons
                   name="person-outline"
                   size={29}
-                  color={Colors.textSecondary}
+                  color={colors.textSecondary}
                   style={styles.inputIcon}
                 />
 
@@ -236,7 +231,7 @@ export default function Signupscreen() {
                   value={fullName}
                   onChangeText={setFullName}
                   placeholder="Full Name"
-                  placeholderTextColor={Colors.textMuted}
+                  placeholderTextColor={colors.textMuted}
                   style={styles.input}
                   autoCapitalize="words"
                   returnKeyType="next"
@@ -251,7 +246,7 @@ export default function Signupscreen() {
                 <Ionicons
                   name="mail-outline"
                   size={29}
-                  color={Colors.textSecondary}
+                  color={colors.textSecondary}
                   style={styles.inputIcon}
                 />
 
@@ -259,7 +254,7 @@ export default function Signupscreen() {
                   value={email}
                   onChangeText={setEmail}
                   placeholder="Email Address"
-                  placeholderTextColor={Colors.textMuted}
+                  placeholderTextColor={colors.textMuted}
                   style={styles.input}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -275,19 +270,17 @@ export default function Signupscreen() {
                 <Ionicons
                   name="call-outline"
                   size={30}
-                  color={Colors.textSecondary}
+                  color={colors.textSecondary}
                   style={styles.inputIcon}
                 />
 
                 <View style={styles.countryContainer}>
-                  <Text style={styles.countryCode}>
-                    +91
-                  </Text>
+                  <Text style={styles.countryCode}>+91</Text>
 
                   <Ionicons
                     name="chevron-down"
                     size={17}
-                    color={Colors.textSecondary}
+                    color={colors.textSecondary}
                   />
                 </View>
 
@@ -296,14 +289,12 @@ export default function Signupscreen() {
                 <TextInput
                   value={mobile}
                   onChangeText={(value) => {
-                    const cleaned = value
-                      .replace(/\D/g, "")
-                      .slice(0, 10);
+                    const cleaned = value.replace(/\D/g, "").slice(0, 10);
 
                     setMobile(cleaned);
                   }}
                   placeholder="Mobile Number"
-                  placeholderTextColor={Colors.textMuted}
+                  placeholderTextColor={colors.textMuted}
                   style={styles.mobileInput}
                   keyboardType="phone-pad"
                   maxLength={10}
@@ -319,7 +310,7 @@ export default function Signupscreen() {
                 <Ionicons
                   name="lock-closed-outline"
                   size={29}
-                  color={Colors.textSecondary}
+                  color={colors.textSecondary}
                   style={styles.inputIcon}
                 />
 
@@ -327,7 +318,7 @@ export default function Signupscreen() {
                   value={password}
                   onChangeText={setPassword}
                   placeholder="Password"
-                  placeholderTextColor={Colors.textMuted}
+                  placeholderTextColor={colors.textMuted}
                   style={styles.input}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
@@ -336,19 +327,13 @@ export default function Signupscreen() {
 
                 <TouchableOpacity
                   style={styles.eyeButton}
-                  onPress={() =>
-                    setShowPassword(!showPassword)
-                  }
+                  onPress={() => setShowPassword(!showPassword)}
                   activeOpacity={0.7}
                 >
                   <Ionicons
-                    name={
-                      showPassword
-                        ? "eye-outline"
-                        : "eye-off-outline"
-                    }
+                    name={showPassword ? "eye-outline" : "eye-off-outline"}
                     size={27}
-                    color={Colors.textSecondary}
+                    color={colors.textSecondary}
                   />
                 </TouchableOpacity>
               </View>
@@ -361,7 +346,7 @@ export default function Signupscreen() {
                 <Ionicons
                   name="lock-closed-outline"
                   size={29}
-                  color={Colors.textSecondary}
+                  color={colors.textSecondary}
                   style={styles.inputIcon}
                 />
 
@@ -369,7 +354,7 @@ export default function Signupscreen() {
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   placeholder="Confirm Password"
-                  placeholderTextColor={Colors.textMuted}
+                  placeholderTextColor={colors.textMuted}
                   style={styles.input}
                   secureTextEntry={!showConfirmPassword}
                   autoCapitalize="none"
@@ -378,21 +363,15 @@ export default function Signupscreen() {
 
                 <TouchableOpacity
                   style={styles.eyeButton}
-                  onPress={() =>
-                    setShowConfirmPassword(
-                      !showConfirmPassword
-                    )
-                  }
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                   activeOpacity={0.7}
                 >
                   <Ionicons
                     name={
-                      showConfirmPassword
-                        ? "eye-outline"
-                        : "eye-off-outline"
+                      showConfirmPassword ? "eye-outline" : "eye-off-outline"
                     }
                     size={27}
-                    color={Colors.textSecondary}
+                    color={colors.textSecondary}
                   />
                 </TouchableOpacity>
               </View>
@@ -404,35 +383,24 @@ export default function Signupscreen() {
               <TouchableOpacity
                 style={styles.termsRow}
                 activeOpacity={0.8}
-                onPress={() =>
-                  setAcceptedTerms(!acceptedTerms)
-                }
+                onPress={() => setAcceptedTerms(!acceptedTerms)}
               >
                 <View
                   style={[
                     styles.checkbox,
-                    acceptedTerms &&
-                      styles.checkboxActive,
+                    acceptedTerms && styles.checkboxActive,
                   ]}
                 >
                   {acceptedTerms && (
-                    <Ionicons
-                      name="checkmark"
-                      size={22}
-                      color={Colors.white}
-                    />
+                    <Ionicons name="checkmark" size={22} color={colors.white} />
                   )}
                 </View>
 
                 <Text style={styles.termsText}>
                   I agree to the{" "}
-                  <Text style={styles.termsRed}>
-                    Terms & Conditions
-                  </Text>{" "}
-                  and{"\n"}
-                  <Text style={styles.termsRed}>
-                    Privacy Policy
-                  </Text>
+                  <Text style={styles.termsRed}>Terms & Conditions</Text> and
+                  {"\n"}
+                  <Text style={styles.termsRed}>Privacy Policy</Text>
                 </Text>
               </TouchableOpacity>
 
@@ -443,24 +411,17 @@ export default function Signupscreen() {
               <TouchableOpacity
                 style={[
                   styles.createButton,
-                  loading &&
-                    styles.createButtonDisabled,
+                  loading && styles.createButtonDisabled,
                 ]}
                 activeOpacity={0.85}
                 onPress={handleCreateAccount}
                 disabled={loading}
               >
                 <Text style={styles.createButtonText}>
-                  {loading
-                    ? "Creating..."
-                    : "Create Account"}
+                  {loading ? "Creating..." : "Create Account"}
                 </Text>
 
-                {!loading && (
-                  <Text style={styles.buttonArrow}>
-                    →
-                  </Text>
-                )}
+                {!loading && <Text style={styles.buttonArrow}>→</Text>}
               </TouchableOpacity>
 
               {/* =================================================
@@ -470,9 +431,7 @@ export default function Signupscreen() {
               <View style={styles.orContainer}>
                 <View style={styles.orLine} />
 
-                <Text style={styles.orText}>
-                  OR
-                </Text>
+                <Text style={styles.orText}>OR</Text>
 
                 <View style={styles.orLine} />
               </View>
@@ -489,13 +448,9 @@ export default function Signupscreen() {
                   activeOpacity={0.8}
                   onPress={handleGoogle}
                 >
-                  <Text style={styles.googleG}>
-                    G
-                  </Text>
+                  <Text style={styles.googleG}>G</Text>
 
-                  <Text style={styles.socialText}>
-                    Google
-                  </Text>
+                  <Text style={styles.socialText}>Google</Text>
                 </TouchableOpacity>
 
                 {/* Apple */}
@@ -508,12 +463,10 @@ export default function Signupscreen() {
                   <Ionicons
                     name="logo-apple"
                     size={27}
-                    color={Colors.white}
+                    color={colors.textPrimary}
                   />
 
-                  <Text style={styles.socialText}>
-                    Apple
-                  </Text>
+                  <Text style={styles.socialText}>Apple</Text>
                 </TouchableOpacity>
 
                 {/* Facebook */}
@@ -524,14 +477,10 @@ export default function Signupscreen() {
                   onPress={handleFacebook}
                 >
                   <View style={styles.facebookIcon}>
-                    <Text style={styles.facebookF}>
-                      f
-                    </Text>
+                    <Text style={styles.facebookF}>f</Text>
                   </View>
 
-                  <Text style={styles.socialText}>
-                    Facebook
-                  </Text>
+                  <Text style={styles.socialText}>Facebook</Text>
                 </TouchableOpacity>
               </View>
 
@@ -540,21 +489,13 @@ export default function Signupscreen() {
               ================================================= */}
 
               <View style={styles.signInContainer}>
-                <Text style={styles.signInText}>
-                  Already have an account?
-                </Text>
+                <Text style={styles.signInText}>Already have an account?</Text>
 
                 <TouchableOpacity
                   activeOpacity={0.7}
-                  onPress={() =>
-                    router.push(
-                      "/(auth)/Loginscreen"
-                    )
-                  }
+                  onPress={() => router.push("/(auth)/Loginscreen")}
                 >
-                  <Text style={styles.signInRed}>
-                    Sign In
-                  </Text>
+                  <Text style={styles.signInRed}>Sign In</Text>
                 </TouchableOpacity>
               </View>
 
@@ -573,10 +514,10 @@ export default function Signupscreen() {
    STYLES
 ========================================================= */
 
-const styles = StyleSheet.create({
+const createStyles = (colors, isDark) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.black,
+    backgroundColor: colors.background,
   },
 
   keyboard: {
@@ -585,7 +526,7 @@ const styles = StyleSheet.create({
 
   scrollView: {
     flex: 1,
-    backgroundColor: Colors.black,
+    backgroundColor: colors.background,
   },
 
   scrollContent: {
@@ -599,12 +540,13 @@ const styles = StyleSheet.create({
   backgroundImage: {
     width: "100%",
     minHeight: 1100,
-    backgroundColor: Colors.black,
+    backgroundColor: colors.background,
   },
 
   darkOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: Colors.darkOverlay,
+    backgroundColor: isDark ? colors.overlayDark : colors.background,
+    opacity: isDark ? 1 : 0.94,
   },
 
   /* =======================================================
@@ -629,10 +571,10 @@ const styles = StyleSheet.create({
 
     borderRadius: 29,
 
-    backgroundColor: Colors.overlay,
+    backgroundColor: colors.surface,
 
     borderWidth: 1,
-    borderColor: Colors.lightOverlay,
+    borderColor: colors.border,
 
     justifyContent: "center",
     alignItems: "center",
@@ -655,7 +597,7 @@ const styles = StyleSheet.create({
   },
 
   titleWhite: {
-    color: Colors.white,
+    color: colors.textPrimary,
 
     fontFamily: Fonts.extraBold,
     fontSize: 25,
@@ -665,7 +607,7 @@ const styles = StyleSheet.create({
   },
 
   titleRed: {
-    color: Colors.primary,
+    color: colors.primary,
 
     fontFamily: Fonts.extraBold,
     fontSize: 25,
@@ -675,7 +617,7 @@ const styles = StyleSheet.create({
   },
 
   subtitle: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
 
     fontFamily: Fonts.regular,
     fontSize: 15,
@@ -695,10 +637,10 @@ const styles = StyleSheet.create({
 
     borderRadius: 20,
 
-    backgroundColor: Colors.backgroundSecondary,
+    backgroundColor: colors.surface,
 
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
 
     flexDirection: "row",
     alignItems: "center",
@@ -716,7 +658,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: "100%",
 
-    color: Colors.white,
+    color: colors.textPrimary,
 
     fontFamily: Fonts.regular,
     fontSize: 20,
@@ -726,7 +668,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: "100%",
 
-    color: Colors.white,
+    color: colors.textPrimary,
 
     fontFamily: Fonts.regular,
     fontSize: 20,
@@ -741,7 +683,7 @@ const styles = StyleSheet.create({
   },
 
   countryCode: {
-    color: Colors.white,
+    color: colors.textPrimary,
 
     fontFamily: Fonts.medium,
     fontSize: 19,
@@ -751,7 +693,7 @@ const styles = StyleSheet.create({
     width: 1,
     height: 34,
 
-    backgroundColor: Colors.borderLight,
+    backgroundColor: colors.borderLight,
 
     marginRight: 18,
   },
@@ -783,7 +725,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
 
     borderWidth: 1.5,
-    borderColor: Colors.textMuted,
+    borderColor: colors.textMuted,
 
     justifyContent: "center",
     alignItems: "center",
@@ -792,14 +734,14 @@ const styles = StyleSheet.create({
   },
 
   checkboxActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
 
   termsText: {
     flex: 1,
 
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
 
     fontFamily: Fonts.regular,
     fontSize: 17,
@@ -809,7 +751,7 @@ const styles = StyleSheet.create({
   },
 
   termsRed: {
-    color: Colors.primary,
+    color: colors.primary,
     fontFamily: Fonts.medium,
   },
 
@@ -823,14 +765,14 @@ const styles = StyleSheet.create({
 
     borderRadius: 20,
 
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
 
     flexDirection: "row",
 
     justifyContent: "center",
     alignItems: "center",
 
-    shadowColor: Colors.primary,
+    shadowColor: colors.primary,
 
     shadowOffset: {
       width: 0,
@@ -848,14 +790,14 @@ const styles = StyleSheet.create({
   },
 
   createButtonText: {
-    color: Colors.white,
+    color: colors.white,
 
     fontFamily: Fonts.extraBold,
     fontSize: 27,
   },
 
   buttonArrow: {
-    color: Colors.white,
+    color: colors.white,
 
     fontFamily: Fonts.regular,
     fontSize: 39,
@@ -881,11 +823,11 @@ const styles = StyleSheet.create({
 
     height: 1,
 
-    backgroundColor: Colors.textMuted,
+    backgroundColor: colors.textMuted,
   },
 
   orText: {
-    color: Colors.textMuted,
+    color: colors.textMuted,
 
     fontFamily: Fonts.medium,
     fontSize: 18,
@@ -913,9 +855,9 @@ const styles = StyleSheet.create({
     borderRadius: 17,
 
     borderWidth: 1.4,
-    borderColor: Colors.textMuted,
+    borderColor: colors.textMuted,
 
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
 
     flexDirection: "row",
 
@@ -926,7 +868,7 @@ const styles = StyleSheet.create({
   },
 
   socialText: {
-    color: Colors.white,
+    color: colors.textPrimary,
 
     fontFamily: Fonts.medium,
     fontSize: 16,
@@ -955,7 +897,7 @@ const styles = StyleSheet.create({
   },
 
   facebookF: {
-    color: Colors.white,
+    color: colors.white,
 
     fontFamily: Fonts.extraBold,
     fontSize: 25,
@@ -976,14 +918,14 @@ const styles = StyleSheet.create({
   },
 
   signInText: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
 
     fontFamily: Fonts.regular,
     fontSize: 17,
   },
 
   signInRed: {
-    color: Colors.primary,
+    color: colors.primary,
 
     fontFamily: Fonts.bold,
     fontSize: 18,

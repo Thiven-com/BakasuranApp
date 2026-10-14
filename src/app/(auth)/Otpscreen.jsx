@@ -1,52 +1,45 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
-    Alert,
-    Dimensions,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Alert,
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
 // =========================================================
 // GLOBAL COLORS & FONTS
 // =========================================================
-import Colors from "../../constants/colors";
-import Fonts from "../../constants/fonts";
+import Fonts from "../../constants/Fonts";
+import { useTheme } from "../../hooks/use-theme";
 
 const { width } = Dimensions.get("window");
-
 
 // =========================================================
 // OTP SCREEN
 // =========================================================
 export default function OTPScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { mobile } = useLocalSearchParams();
 
-  const [otp, setOtp] = useState([
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-  ]);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
   const [seconds, setSeconds] = useState(30);
   const [loading, setLoading] = useState(false);
 
   const inputRefs = useRef([]);
-
 
   // =======================================================
   // TIMER
@@ -63,20 +56,16 @@ export default function OTPScreen() {
     return () => clearInterval(timer);
   }, [seconds]);
 
-
   // =======================================================
   // MOBILE NUMBER
   // =======================================================
   const mobileNumber =
-    mobile && String(mobile).length > 0
-      ? String(mobile)
-      : "8886742779";
+    mobile && String(mobile).length > 0 ? String(mobile) : "8886742779";
 
   const formattedMobile =
     mobileNumber.length === 10
       ? `+91 ${mobileNumber.slice(0, 5)} ${mobileNumber.slice(5)}`
       : `+91 ${mobileNumber}`;
-
 
   // =======================================================
   // OTP CHANGE
@@ -95,7 +84,6 @@ export default function OTPScreen() {
       return;
     }
 
-
     // =====================================================
     // PASTE MULTIPLE DIGITS
     // =====================================================
@@ -113,10 +101,7 @@ export default function OTPScreen() {
 
       setOtp(updatedOTP);
 
-      const nextIndex = Math.min(
-        index + cleaned.length,
-        5
-      );
+      const nextIndex = Math.min(index + cleaned.length, 5);
 
       setTimeout(() => {
         inputRefs.current[nextIndex]?.focus();
@@ -124,7 +109,6 @@ export default function OTPScreen() {
 
       return;
     }
-
 
     // =====================================================
     // SINGLE DIGIT
@@ -142,7 +126,6 @@ export default function OTPScreen() {
     }
   };
 
-
   // =======================================================
   // BACKSPACE
   // =======================================================
@@ -156,7 +139,6 @@ export default function OTPScreen() {
     }
   };
 
-
   // =======================================================
   // VERIFY OTP
   // =======================================================
@@ -164,10 +146,7 @@ export default function OTPScreen() {
     const enteredOTP = otp.join("");
 
     if (enteredOTP.length !== 6) {
-      Alert.alert(
-        "Invalid OTP",
-        "Please enter the complete 6-digit OTP."
-      );
+      Alert.alert("Invalid OTP", "Please enter the complete 6-digit OTP.");
 
       return;
     }
@@ -182,10 +161,9 @@ export default function OTPScreen() {
       setLoading(false);
 
       // Current route
-      router.replace("/profile");
+      router.replace("/HomeScreen");
     }, 500);
   };
-
 
   // =======================================================
   // RESEND OTP
@@ -195,14 +173,7 @@ export default function OTPScreen() {
       return;
     }
 
-    setOtp([
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-    ]);
+    setOtp(["", "", "", "", "", ""]);
 
     setSeconds(30);
 
@@ -210,12 +181,8 @@ export default function OTPScreen() {
       inputRefs.current[0]?.focus();
     }, 100);
 
-    Alert.alert(
-      "OTP Sent",
-      "A new OTP has been sent to your mobile number."
-    );
+    Alert.alert("OTP Sent", "A new OTP has been sent to your mobile number.");
   };
-
 
   // =======================================================
   // EDIT MOBILE
@@ -224,28 +191,21 @@ export default function OTPScreen() {
     router.back();
   };
 
-
   // =======================================================
   // UI
   // =======================================================
   return (
     <SafeAreaView style={styles.safeArea}>
-
       <StatusBar
         translucent
-        backgroundColor={Colors.transparent}
+        backgroundColor="transparent"
         barStyle="light-content"
       />
 
       <KeyboardAvoidingView
         style={styles.keyboardContainer}
-        behavior={
-          Platform.OS === "ios"
-            ? "padding"
-            : undefined
-        }
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
@@ -253,13 +213,11 @@ export default function OTPScreen() {
           bounces={true}
           keyboardShouldPersistTaps="handled"
         >
-
           {/* =================================================
               HERO IMAGE
           ================================================= */}
 
           <View style={styles.heroContainer}>
-
             <Image
               source={require("../../../assets/images/otpimage.png")}
               style={styles.heroImage}
@@ -275,169 +233,91 @@ export default function OTPScreen() {
               ]}
               onPress={() => router.back()}
             >
-
-              <Ionicons
-                name="arrow-back"
-                size={24}
-                color={Colors.white}
-              />
-
+              <Ionicons name="arrow-back" size={24} color={colors.white} />
             </Pressable>
-
           </View>
-
 
           {/* =================================================
               OTP SECTION
           ================================================= */}
 
           <View style={styles.otpSection}>
-
             {/* =================================================
                 TITLE
             ================================================= */}
 
             <View style={styles.titleRow}>
+              <Text style={styles.titleWhite}>Verify </Text>
 
-              <Text style={styles.titleWhite}>
-                Verify{" "}
-              </Text>
-
-              <Text style={styles.titleRed}>
-                OTP
-              </Text>
-
+              <Text style={styles.titleRed}>OTP</Text>
             </View>
-
 
             {/* =================================================
                 DESCRIPTION
             ================================================= */}
 
-            <Text style={styles.description}>
-              We've sent a 6-digit OTP to
-            </Text>
-
+            <Text style={styles.description}>We've sent a 6-digit OTP to</Text>
 
             {/* =================================================
                 MOBILE NUMBER
             ================================================= */}
 
             <View style={styles.mobileRow}>
+              <Text style={styles.mobileNumber}>{formattedMobile}</Text>
 
-              <Text style={styles.mobileNumber}>
-                {formattedMobile}
-              </Text>
-
-              <Pressable
-                onPress={handleEditMobile}
-                hitSlop={10}
-              >
-                <Text style={styles.editText}>
-                  Edit
-                </Text>
+              <Pressable onPress={handleEditMobile} hitSlop={10}>
+                <Text style={styles.editText}>Edit</Text>
               </Pressable>
-
             </View>
-
 
             {/* =================================================
                 OTP BOXES
             ================================================= */}
 
             <View style={styles.otpContainer}>
-
               {otp.map((digit, index) => (
-
                 <TextInput
                   key={index}
-
                   ref={(ref) => {
                     inputRefs.current[index] = ref;
                   }}
-
                   value={digit}
-
-                  onChangeText={(value) =>
-                    handleOTPChange(
-                      value,
-                      index
-                    )
-                  }
-
-                  onKeyPress={(event) =>
-                    handleKeyPress(
-                      event,
-                      index
-                    )
-                  }
-
+                  onChangeText={(value) => handleOTPChange(value, index)}
+                  onKeyPress={(event) => handleKeyPress(event, index)}
                   keyboardType="number-pad"
-
                   maxLength={1}
-
                   textContentType="oneTimeCode"
-
                   autoComplete="sms-otp"
-
-                  selectionColor={Colors.primary}
-
-                  placeholderTextColor={
-                    Colors.textMuted
-                  }
-
+                  selectionColor={colors.primary}
+                  placeholderTextColor={colors.textMuted}
                   style={[
                     styles.otpInput,
 
-                    digit !== "" &&
-                      styles.otpInputActive,
+                    digit !== "" && styles.otpInputActive,
                   ]}
                 />
-
               ))}
-
             </View>
-
 
             {/* =================================================
                 RESEND OTP
             ================================================= */}
 
             <View style={styles.resendRow}>
-
-              <Text style={styles.resendText}>
-                Didn't receive the OTP?
-              </Text>
+              <Text style={styles.resendText}>Didn't receive the OTP?</Text>
 
               {seconds > 0 ? (
-
                 <Text style={styles.resendRed}>
                   {" "}
                   Resend in 00:
-                  {String(seconds).padStart(
-                    2,
-                    "0"
-                  )}
+                  {String(seconds).padStart(2, "0")}
                 </Text>
-
               ) : (
-
-                <Pressable
-                  onPress={handleResendOTP}
-                  hitSlop={10}
-                >
-
-                  <Text style={styles.resendRed}>
-                    {" "}
-                    Resend OTP
-                  </Text>
-
+                <Pressable onPress={handleResendOTP} hitSlop={10}>
+                  <Text style={styles.resendRed}> Resend OTP</Text>
                 </Pressable>
-
               )}
-
             </View>
-
 
             {/* =================================================
                 VERIFY BUTTON
@@ -447,104 +327,84 @@ export default function OTPScreen() {
               style={({ pressed }) => [
                 styles.verifyButton,
 
-                loading &&
-                  styles.verifyButtonDisabled,
+                loading && styles.verifyButtonDisabled,
 
-                pressed &&
-                  !loading &&
-                  styles.verifyButtonPressed,
+                pressed && !loading && styles.verifyButtonPressed,
               ]}
               onPress={handleVerifyOTP}
               disabled={loading}
             >
-
               <Text style={styles.verifyText}>
-                {loading
-                  ? "Verifying..."
-                  : "Verify OTP"}
+                {loading ? "Verifying..." : "Verify OTP"}
               </Text>
 
               {!loading && (
-
                 <Ionicons
                   name="arrow-forward"
                   size={27}
-                  color={Colors.white}
+                  color={colors.white}
                   style={styles.verifyIcon}
                 />
-
               )}
-
             </Pressable>
-
 
             {/* =================================================
                 SECURITY
             ================================================= */}
 
             <View style={styles.securityRow}>
-
               <Ionicons
                 name="shield-checkmark-outline"
                 size={12}
-                color={Colors.textMuted}
+                color={colors.textMuted}
               />
 
               <Text style={styles.securityText}>
                 Your OTP is secure and private
               </Text>
-
             </View>
-
 
             {/* =================================================
                 BOTTOM SPACE
             ================================================= */}
 
             <View style={styles.bottomSpace} />
-
           </View>
-
         </ScrollView>
-
       </KeyboardAvoidingView>
-
     </SafeAreaView>
   );
 }
-
 
 // =========================================================
 // STYLES
 // =========================================================
 
-const styles = StyleSheet.create({
-
+const createStyles = (colors) => StyleSheet.create({
   // =======================================================
   // MAIN
   // =======================================================
 
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   keyboardContainer: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   scrollView: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
 
   scrollContent: {
     flexGrow: 1,
     paddingBottom: 20,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
-
 
   // =======================================================
   // HERO IMAGE
@@ -556,7 +416,7 @@ const styles = StyleSheet.create({
 
     position: "relative",
 
-    backgroundColor: Colors.black,
+    backgroundColor: colors.backgroundDark,
 
     overflow: "hidden",
   },
@@ -565,7 +425,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-
 
   // =======================================================
   // BACK BUTTON
@@ -582,15 +441,14 @@ const styles = StyleSheet.create({
 
     borderRadius: 21,
 
-    backgroundColor: Colors.overlay,
+    backgroundColor: colors.overlay,
 
     alignItems: "center",
     justifyContent: "center",
 
     borderWidth: 1,
 
-    borderColor:
-      Colors.lightOverlay,
+    borderColor: colors.borderLight,
   },
 
   backButtonPressed: {
@@ -603,7 +461,6 @@ const styles = StyleSheet.create({
     ],
   },
 
-
   // =======================================================
   // OTP SECTION
   // =======================================================
@@ -611,8 +468,7 @@ const styles = StyleSheet.create({
   otpSection: {
     width: "100%",
 
-    backgroundColor:
-      Colors.backgroundSecondary,
+    backgroundColor: colors.surface,
 
     paddingHorizontal: 12,
 
@@ -622,7 +478,6 @@ const styles = StyleSheet.create({
 
     minHeight: 470,
   },
-
 
   // =======================================================
   // TITLE
@@ -637,7 +492,7 @@ const styles = StyleSheet.create({
   },
 
   titleWhite: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
 
     fontSize: Fonts.size.xxl,
 
@@ -649,7 +504,7 @@ const styles = StyleSheet.create({
   },
 
   titleRed: {
-    color: Colors.primary,
+    color: colors.primary,
 
     fontSize: Fonts.size.xxl,
 
@@ -660,13 +515,12 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
 
-
   // =======================================================
   // DESCRIPTION
   // =======================================================
 
   description: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
 
     fontSize: Fonts.size.md,
 
@@ -676,7 +530,6 @@ const styles = StyleSheet.create({
 
     marginBottom: 7,
   },
-
 
   // =======================================================
   // MOBILE NUMBER
@@ -691,7 +544,7 @@ const styles = StyleSheet.create({
   },
 
   mobileNumber: {
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
 
     fontSize: Fonts.size.xl,
 
@@ -703,7 +556,7 @@ const styles = StyleSheet.create({
   },
 
   editText: {
-    color: Colors.primary,
+    color: colors.primary,
 
     fontSize: Fonts.size.sm,
 
@@ -715,7 +568,6 @@ const styles = StyleSheet.create({
 
     textDecorationLine: "underline",
   },
-
 
   // =======================================================
   // OTP BOXES
@@ -744,15 +596,13 @@ const styles = StyleSheet.create({
 
     borderRadius: 9,
 
-    backgroundColor:
-      Colors.surface,
+    backgroundColor: colors.surface,
 
     borderWidth: 1,
 
-    borderColor:
-      Colors.border,
+    borderColor: colors.border,
 
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
 
     textAlign: "center",
 
@@ -766,13 +616,10 @@ const styles = StyleSheet.create({
   },
 
   otpInputActive: {
-    borderColor:
-      Colors.borderLight,
+    borderColor: colors.borderLight,
 
-    backgroundColor:
-      Colors.card,
+    backgroundColor: colors.card,
   },
-
 
   // =======================================================
   // RESEND
@@ -791,7 +638,7 @@ const styles = StyleSheet.create({
   },
 
   resendText: {
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
 
     fontSize: Fonts.size.md,
 
@@ -799,7 +646,7 @@ const styles = StyleSheet.create({
   },
 
   resendRed: {
-    color: Colors.primary,
+    color: colors.primary,
 
     fontSize: Fonts.size.md,
 
@@ -807,7 +654,6 @@ const styles = StyleSheet.create({
 
     fontWeight: "700",
   },
-
 
   // =======================================================
   // VERIFY BUTTON
@@ -820,8 +666,7 @@ const styles = StyleSheet.create({
 
     borderRadius: 25,
 
-    backgroundColor:
-      Colors.primary,
+    backgroundColor: colors.primary,
 
     flexDirection: "row",
 
@@ -829,8 +674,7 @@ const styles = StyleSheet.create({
 
     justifyContent: "center",
 
-    shadowColor:
-      Colors.primary,
+    shadowColor: colors.primary,
 
     shadowOffset: {
       width: 0,
@@ -859,7 +703,7 @@ const styles = StyleSheet.create({
   },
 
   verifyText: {
-    color: Colors.white,
+    color: colors.white,
 
     fontSize: Fonts.size.xxl,
 
@@ -871,7 +715,6 @@ const styles = StyleSheet.create({
   verifyIcon: {
     marginLeft: 9,
   },
-
 
   // =======================================================
   // SECURITY
@@ -888,7 +731,7 @@ const styles = StyleSheet.create({
   },
 
   securityText: {
-    color: Colors.textMuted,
+    color: colors.textMuted,
 
     fontSize: Fonts.size.xs,
 
@@ -897,7 +740,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 
-
   // =======================================================
   // BOTTOM SPACE
   // =======================================================
@@ -905,5 +747,4 @@ const styles = StyleSheet.create({
   bottomSpace: {
     height: 35,
   },
-
 });

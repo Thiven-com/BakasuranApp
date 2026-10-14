@@ -43,7 +43,7 @@ const Colors = {
   // STATUS COLORS
   // ================================
 
-  success: "#22C55E",
+  success: "#1CF808",
   successDark: "#15803D",
 
   warning: "#F59E0B",
