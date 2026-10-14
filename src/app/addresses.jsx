@@ -52,7 +52,7 @@ export default function Addresses() {
       landmark: "Near Metro Station",
       city: "Hyderabad",
       pincode: "500081",
-      color: "#A855F7",
+      color: "#f82408",
       icon: "briefcase-outline",
     },
   ]);
@@ -89,10 +89,10 @@ export default function Addresses() {
 
     const typeColor =
       addressType === "Home"
-        ? colors.info
+        ? "#f82408"
         : addressType === "Work"
-          ? "#A855F7"
-          : colors.warning;
+          ? "#f82408"
+          : Colors.warning;
 
     const typeIcon =
       addressType === "Home"
@@ -582,421 +582,422 @@ export default function Addresses() {
    STYLES
 ========================================================= */
 
-const createStyles = (colors) => StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+const createStyles = (colors) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 40,
-  },
+    scrollContent: {
+      paddingHorizontal: 16,
+      paddingBottom: 40,
+    },
 
-  /* ================= HEADER ================= */
+    /* ================= HEADER ================= */
 
-  header: {
-    height: 62,
-    paddingHorizontal: 16,
+    header: {
+      height: 62,
+      paddingHorizontal: 16,
 
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
 
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
 
-  backButton: {
-    width: 42,
-    height: 42,
+    backButton: {
+      width: 42,
+      height: 42,
 
-    borderRadius: 21,
+      borderRadius: 21,
 
-    backgroundColor: colors.card,
+      backgroundColor: colors.card,
 
-    alignItems: "center",
-    justifyContent: "center",
+      alignItems: "center",
+      justifyContent: "center",
 
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
-  headerTitle: {
-    color: colors.textPrimary,
+    headerTitle: {
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xxl,
+    },
 
-  headerSpace: {
-    width: 42,
-  },
+    headerSpace: {
+      width: 42,
+    },
 
-  /* ================= TITLE ================= */
+    /* ================= TITLE ================= */
 
-  titleContainer: {
-    marginTop: 22,
-    marginBottom: 18,
-  },
+    titleContainer: {
+      marginTop: 22,
+      marginBottom: 18,
+    },
 
-  title: {
-    color: colors.textPrimary,
+    title: {
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xxl,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xxl,
+    },
 
-  subtitle: {
-    color: colors.textSecondary,
+    subtitle: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.sm,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.base,
 
-    marginTop: 6,
-  },
+      marginTop: 6,
+    },
 
-  /* ================= ADDRESS ================= */
+    /* ================= ADDRESS ================= */
 
-  addressList: {
-    gap: 14,
-  },
+    addressList: {
+      gap: 14,
+    },
 
-  addressCard: {
-    backgroundColor: colors.card,
+    addressCard: {
+      backgroundColor: colors.card,
 
-    borderRadius: 18,
+      borderRadius: 18,
 
-    borderWidth: 1,
-    borderColor: colors.border,
+      borderWidth: 1,
+      borderColor: colors.border,
 
-    padding: 15,
-  },
+      padding: 15,
+    },
 
-  addressTop: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+    addressTop: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
 
-  addressIcon: {
-    width: 45,
-    height: 45,
+    addressIcon: {
+      width: 45,
+      height: 45,
 
-    borderRadius: 14,
+      borderRadius: 14,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  addressTitleContainer: {
-    flex: 1,
-    marginLeft: 12,
-  },
+    addressTitleContainer: {
+      flex: 1,
+      marginLeft: 12,
+    },
 
-  addressType: {
-    color: colors.textPrimary,
+    addressType: {
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xxl,
+    },
 
-  addressName: {
-    color: colors.textSecondary,
+    addressName: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.sm,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xl,
 
-    marginTop: 3,
-  },
+      marginTop: 3,
+    },
 
-  editButton: {
-    width: 38,
-    height: 38,
+    editButton: {
+      width: 38,
+      height: 38,
 
-    borderRadius: 12,
+      borderRadius: 12,
 
-    backgroundColor: colors.backgroundElement,
+      backgroundColor: colors.backgroundElement,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  addressDetails: {
-    marginTop: 16,
+    addressDetails: {
+      marginTop: 16,
 
-    paddingTop: 13,
+      paddingTop: 13,
 
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
 
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    detailRow: {
+      flexDirection: "row",
+      alignItems: "center",
 
-    marginBottom: 10,
-  },
+      marginBottom: 10,
+    },
 
-  detailText: {
-    flex: 1,
+    detailText: {
+      flex: 1,
 
-    color: colors.textSecondary,
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.base,
 
-    marginLeft: 10,
+      marginLeft: 10,
 
-    lineHeight: 19,
-  },
+      lineHeight: 19,
+    },
 
-  deleteButton: {
-    flexDirection: "row",
-    alignItems: "center",
+    deleteButton: {
+      flexDirection: "row",
+      alignItems: "center",
 
-    marginTop: 5,
-    paddingTop: 12,
+      marginTop: 5,
+      paddingTop: 12,
 
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
 
-  deleteText: {
-    color: colors.error,
+    deleteText: {
+      color: colors.error,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.md,
+      fontFamily: Fonts.semiBold,
+      fontSize: Fonts.size.xl,
 
-    marginLeft: 7,
-  },
+      marginLeft: 7,
+    },
 
-  /* ================= ADD ================= */
+    /* ================= ADD ================= */
 
-  addButton: {
-    height: 56,
+    addButton: {
+      height: 56,
 
-    borderRadius: 28,
+      borderRadius: 28,
 
-    backgroundColor: colors.primary,
+      backgroundColor: colors.primary,
 
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
 
-    marginTop: 18,
-  },
+      marginTop: 18,
+    },
 
-  addButtonText: {
-    color: colors.white,
+    addButtonText: {
+      color: colors.white,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xl,
 
-    marginLeft: 8,
-  },
+      marginLeft: 8,
+    },
 
-  /* ================= FORM ================= */
+    /* ================= FORM ================= */
 
-  formCard: {
-    backgroundColor: colors.card,
+    formCard: {
+      backgroundColor: colors.card,
 
-    borderRadius: 18,
+      borderRadius: 18,
 
-    borderWidth: 1,
-    borderColor: colors.border,
+      borderWidth: 1,
+      borderColor: colors.border,
 
-    padding: 16,
+      padding: 16,
 
-    marginTop: 18,
-  },
+      marginTop: 18,
+    },
 
-  formHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    formHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
 
-    marginBottom: 20,
-  },
+      marginBottom: 20,
+    },
 
-  formTitle: {
-    color: colors.textPrimary,
+    formTitle: {
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xl,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xl,
+    },
 
-  inputLabel: {
-    color: colors.textSecondary,
+    inputLabel: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.sm,
+      fontFamily: Fonts.semiBold,
+      fontSize: Fonts.size.sm,
 
-    marginBottom: 8,
-    marginTop: 13,
-  },
+      marginBottom: 8,
+      marginTop: 13,
+    },
 
-  typeContainer: {
-    flexDirection: "row",
-    gap: 8,
-  },
+    typeContainer: {
+      flexDirection: "row",
+      gap: 8,
+    },
 
-  typeButton: {
-    flex: 1,
+    typeButton: {
+      flex: 1,
 
-    height: 44,
+      height: 44,
 
-    borderRadius: 12,
+      borderRadius: 12,
 
-    backgroundColor: colors.backgroundElement,
+      backgroundColor: colors.backgroundElement,
 
-    borderWidth: 1,
-    borderColor: colors.border,
+      borderWidth: 1,
+      borderColor: colors.border,
 
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  typeButtonActive: {
-    backgroundColor: colors.primary,
+    typeButtonActive: {
+      backgroundColor: colors.primary,
 
-    borderColor: colors.primary,
-  },
+      borderColor: colors.primary,
+    },
 
-  typeText: {
-    color: colors.textSecondary,
+    typeText: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.sm,
+      fontFamily: Fonts.semiBold,
+      fontSize: Fonts.size.sm,
 
-    marginLeft: 6,
-  },
+      marginLeft: 6,
+    },
 
-  typeTextActive: {
-    color: colors.white,
-  },
+    typeTextActive: {
+      color: colors.white,
+    },
 
-  inputContainer: {
-    minHeight: 52,
+    inputContainer: {
+      minHeight: 52,
 
-    borderRadius: 13,
+      borderRadius: 13,
 
-    backgroundColor: colors.backgroundElement,
+      backgroundColor: colors.backgroundElement,
 
-    borderWidth: 1,
-    borderColor: colors.border,
+      borderWidth: 1,
+      borderColor: colors.border,
 
-    flexDirection: "row",
-    alignItems: "center",
+      flexDirection: "row",
+      alignItems: "center",
 
-    paddingHorizontal: 14,
-  },
+      paddingHorizontal: 14,
+    },
 
-  input: {
-    flex: 1,
+    input: {
+      flex: 1,
 
-    color: colors.textPrimary,
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.md,
 
-    marginLeft: 10,
+      marginLeft: 10,
 
-    paddingVertical: 10,
-  },
+      paddingVertical: 10,
+    },
 
-  textAreaContainer: {
-    alignItems: "flex-start",
+    textAreaContainer: {
+      alignItems: "flex-start",
 
-    paddingTop: 13,
-  },
+      paddingTop: 13,
+    },
 
-  textArea: {
-    minHeight: 75,
+    textArea: {
+      minHeight: 75,
 
-    textAlignVertical: "top",
-  },
+      textAlignVertical: "top",
+    },
 
-  saveButton: {
-    height: 56,
+    saveButton: {
+      height: 56,
 
-    borderRadius: 28,
+      borderRadius: 28,
 
-    backgroundColor: colors.primary,
+      backgroundColor: colors.primary,
 
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
 
-    marginTop: 25,
-  },
+      marginTop: 25,
+    },
 
-  saveButtonText: {
-    color: colors.white,
+    saveButtonText: {
+      color: colors.white,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.base,
 
-    marginLeft: 8,
-  },
+      marginLeft: 8,
+    },
 
-  cancelButton: {
-    height: 48,
+    cancelButton: {
+      height: 48,
 
-    justifyContent: "center",
-    alignItems: "center",
+      justifyContent: "center",
+      alignItems: "center",
 
-    marginTop: 4,
-  },
+      marginTop: 4,
+    },
 
-  cancelText: {
-    color: colors.textSecondary,
+    cancelText: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.medium,
-    fontSize: Fonts.size.md,
-  },
+      fontFamily: Fonts.medium,
+      fontSize: Fonts.size.md,
+    },
 
-  /* ================= EMPTY ================= */
+    /* ================= EMPTY ================= */
 
-  emptyContainer: {
-    alignItems: "center",
+    emptyContainer: {
+      alignItems: "center",
 
-    paddingVertical: 70,
-  },
+      paddingVertical: 70,
+    },
 
-  emptyIcon: {
-    width: 90,
-    height: 90,
+    emptyIcon: {
+      width: 90,
+      height: 90,
 
-    borderRadius: 45,
+      borderRadius: 45,
 
-    backgroundColor: colors.surface,
+      backgroundColor: colors.surface,
 
-    justifyContent: "center",
-    alignItems: "center",
+      justifyContent: "center",
+      alignItems: "center",
 
-    marginBottom: 18,
-  },
+      marginBottom: 18,
+    },
 
-  emptyTitle: {
-    color: colors.textPrimary,
+    emptyTitle: {
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.lg,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.lg,
+    },
 
-  emptyText: {
-    color: colors.textSecondary,
+    emptyText: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.sm,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.sm,
 
-    textAlign: "center",
+      textAlign: "center",
 
-    lineHeight: 20,
+      lineHeight: 20,
 
-    marginTop: 8,
+      marginTop: 8,
 
-    paddingHorizontal: 40,
-  },
-});
+      paddingHorizontal: 40,
+    },
+  });

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   SafeAreaView,
@@ -13,14 +13,16 @@ import {
   View,
 } from "react-native";
 
-import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 /* =========================================================
    PAYMENT SCREEN
 ========================================================= */
 
 export default function PaymentsScreen() {
+  const { colors: Colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
   const [showForm, setShowForm] = useState(false);
 
   const [cardNumber, setCardNumber] = useState("");
@@ -38,7 +40,7 @@ export default function PaymentsScreen() {
       lastFour: "4242",
       name: "Raju Kumar",
       expiry: "12/28",
-      color: "#f82408",
+      color: Colors.info,
     },
     {
       id: 2,
@@ -47,7 +49,7 @@ export default function PaymentsScreen() {
       lastFour: "5678",
       name: "Raju Kumar",
       expiry: "09/27",
-      color: "#f82408",
+      color: Colors.warning,
     },
   ]);
 
@@ -170,7 +172,10 @@ export default function PaymentsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={Colors.background}
+      />
 
       {/* =================================================
           HEADER
@@ -182,7 +187,7 @@ export default function PaymentsScreen() {
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
-          <Ionicons name="chevron-back" size={26} color={Colors.white} />
+          <Ionicons name="chevron-back" size={26} color={Colors.textPrimary} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Payment Methods</Text>
@@ -216,7 +221,7 @@ export default function PaymentsScreen() {
             <Ionicons
               name="shield-checkmark-outline"
               size={23}
-              color={Colors.primary}
+              color={Colors.success}
             />
           </View>
 
@@ -531,11 +536,11 @@ export default function PaymentsScreen() {
               style={[
                 styles.otherIcon,
                 {
-                  backgroundColor: `${Colors.primary}18`,
+                  backgroundColor: `${Colors.success}18`,
                 },
               ]}
             >
-              <Ionicons name="cash-outline" size={22} color={Colors.primary} />
+              <Ionicons name="cash-outline" size={22} color={Colors.success} />
             </View>
 
             <View style={styles.otherInfo}>
@@ -559,7 +564,7 @@ export default function PaymentsScreen() {
         ================================================= */}
 
         <View style={styles.bottomSecurity}>
-          <Ionicons name="shield-checkmark" size={18} color={Colors.primary} />
+          <Ionicons name="shield-checkmark" size={18} color={Colors.success} />
 
           <Text style={styles.bottomSecurityText}>
             Your payment details are safe and secure
@@ -574,475 +579,476 @@ export default function PaymentsScreen() {
    STYLES
 ========================================================= */
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+const createStyles = (Colors) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
 
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 40,
-  },
+    scrollContent: {
+      paddingHorizontal: 16,
+      paddingBottom: 40,
+    },
 
-  /* ================= HEADER ================= */
+    /* ================= HEADER ================= */
 
-  header: {
-    height: 62,
-    paddingHorizontal: 16,
+    header: {
+      height: 62,
+      paddingHorizontal: 16,
 
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
 
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.border,
+    },
 
-  backButton: {
-    width: 42,
-    height: 42,
+    backButton: {
+      width: 42,
+      height: 42,
 
-    borderRadius: 21,
+      borderRadius: 21,
 
-    backgroundColor: Colors.card,
+      backgroundColor: Colors.card,
 
-    justifyContent: "center",
-    alignItems: "center",
+      justifyContent: "center",
+      alignItems: "center",
 
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
 
-  headerTitle: {
-    color: Colors.textPrimary,
+    headerTitle: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xxl,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xl,
+    },
 
-  headerSpace: {
-    width: 42,
-  },
+    headerSpace: {
+      width: 42,
+    },
 
-  /* ================= TITLE ================= */
+    /* ================= TITLE ================= */
 
-  titleContainer: {
-    marginTop: 22,
-    marginBottom: 18,
-  },
+    titleContainer: {
+      marginTop: 22,
+      marginBottom: 18,
+    },
 
-  title: {
-    color: Colors.textPrimary,
+    title: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xxl,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xxl,
+    },
 
-  subtitle: {
-    color: Colors.textSecondary,
+    subtitle: {
+      color: Colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.sm,
 
-    marginTop: 6,
-  },
+      marginTop: 6,
+    },
 
-  /* ================= SECURE ================= */
+    /* ================= SECURE ================= */
 
-  secureCard: {
-    backgroundColor: Colors.surface,
+    secureCard: {
+      backgroundColor: Colors.surface,
 
-    borderRadius: 15,
+      borderRadius: 15,
 
-    borderWidth: 1,
-    borderColor: Colors.border,
+      borderWidth: 1,
+      borderColor: Colors.border,
 
-    padding: 13,
+      padding: 13,
 
-    flexDirection: "row",
-    alignItems: "center",
+      flexDirection: "row",
+      alignItems: "center",
 
-    marginBottom: 18,
-  },
+      marginBottom: 18,
+    },
 
-  secureIcon: {
-    width: 42,
-    height: 42,
+    secureIcon: {
+      width: 42,
+      height: 42,
 
-    borderRadius: 12,
+      borderRadius: 12,
 
-    backgroundColor: Colors.backgroundSecondary,
+      backgroundColor: Colors.backgroundSecondary,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  secureContent: {
-    flex: 1,
+    secureContent: {
+      flex: 1,
 
-    marginLeft: 11,
-  },
+      marginLeft: 11,
+    },
 
-  secureTitle: {
-    color: Colors.textPrimary,
+    secureTitle: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xl,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.md,
+    },
 
-  secureText: {
-    color: Colors.textSecondary,
+    secureText: {
+      color: Colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xs,
 
-    marginTop: 3,
-  },
+      marginTop: 3,
+    },
 
-  /* ================= PAYMENT CARDS ================= */
+    /* ================= PAYMENT CARDS ================= */
 
-  methodsContainer: {
-    gap: 13,
-  },
+    methodsContainer: {
+      gap: 13,
+    },
 
-  paymentCard: {
-    minHeight: 145,
+    paymentCard: {
+      minHeight: 145,
 
-    backgroundColor: Colors.card,
+      backgroundColor: Colors.card,
 
-    borderRadius: 18,
+      borderRadius: 18,
 
-    borderWidth: 1,
-    borderColor: Colors.border,
+      borderWidth: 1,
+      borderColor: Colors.border,
 
-    padding: 15,
+      padding: 15,
 
-    flexDirection: "row",
-  },
+      flexDirection: "row",
+    },
 
-  selectedCard: {
-    borderColor: Colors.primary,
-  },
+    selectedCard: {
+      borderColor: Colors.primary,
+    },
 
-  cardIcon: {
-    width: 46,
-    height: 46,
+    cardIcon: {
+      width: 46,
+      height: 46,
 
-    borderRadius: 13,
+      borderRadius: 13,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  cardInfo: {
-    flex: 1,
+    cardInfo: {
+      flex: 1,
 
-    marginLeft: 13,
-  },
+      marginLeft: 13,
+    },
 
-  cardTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+    cardTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
 
-  cardType: {
-    color: Colors.textPrimary,
+    cardType: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xl,
+      fontFamily: Fonts.extraBold,
+      fontSize: Fonts.size.md,
 
-    letterSpacing: 1,
-  },
+      letterSpacing: 1,
+    },
 
-  defaultBadge: {
-    paddingHorizontal: 7,
-    paddingVertical: 4,
+    defaultBadge: {
+      paddingHorizontal: 7,
+      paddingVertical: 4,
 
-    borderRadius: 6,
+      borderRadius: 6,
 
-    marginLeft: 8,
-  },
+      marginLeft: 8,
+    },
 
-  defaultText: {
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xl,
+    defaultText: {
+      fontFamily: Fonts.extraBold,
+      fontSize: Fonts.xs,
 
-    letterSpacing: 0.5,
-  },
+      letterSpacing: 0.5,
+    },
 
-  cardNumber: {
-    color: Colors.textPrimary,
+    cardNumber: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.base,
 
-    letterSpacing: 1.5,
+      letterSpacing: 1.5,
 
-    marginTop: 11,
-  },
+      marginTop: 11,
+    },
 
-  cardName: {
-    color: Colors.textSecondary,
+    cardName: {
+      color: Colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xs,
 
-    textTransform: "uppercase",
+      textTransform: "uppercase",
 
-    marginTop: 9,
-  },
+      marginTop: 9,
+    },
 
-  expiryText: {
-    color: Colors.textMuted,
+    expiryText: {
+      color: Colors.textMuted,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xs,
 
-    marginTop: 3,
-  },
+      marginTop: 3,
+    },
 
-  deleteButton: {
-    width: 38,
-    height: 38,
+    deleteButton: {
+      width: 38,
+      height: 38,
 
-    borderRadius: 12,
+      borderRadius: 12,
 
-    backgroundColor: Colors.surface,
+      backgroundColor: Colors.surface,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  /* ================= ADD ================= */
+    /* ================= ADD ================= */
 
-  addButton: {
-    height: 56,
+    addButton: {
+      height: 56,
 
-    borderRadius: 28,
+      borderRadius: 28,
 
-    backgroundColor: Colors.primary,
+      backgroundColor: Colors.primary,
 
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
 
-    marginTop: 18,
-  },
+      marginTop: 18,
+    },
 
-  addButtonText: {
-    color: Colors.white,
+    addButtonText: {
+      color: Colors.white,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xxl,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.base,
 
-    marginLeft: 8,
-  },
+      marginLeft: 8,
+    },
 
-  /* ================= FORM ================= */
+    /* ================= FORM ================= */
 
-  formCard: {
-    backgroundColor: Colors.card,
+    formCard: {
+      backgroundColor: Colors.card,
 
-    borderRadius: 18,
+      borderRadius: 18,
 
-    borderWidth: 1,
-    borderColor: Colors.border,
+      borderWidth: 1,
+      borderColor: Colors.border,
 
-    padding: 16,
+      padding: 16,
 
-    marginTop: 18,
-  },
+      marginTop: 18,
+    },
 
-  formHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    formHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
 
-    marginBottom: 10,
-  },
+      marginBottom: 10,
+    },
 
-  formTitle: {
-    color: Colors.textPrimary,
+    formTitle: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xxl,
-  },
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xl,
+    },
 
-  inputLabel: {
-    color: Colors.textSecondary,
+    inputLabel: {
+      color: Colors.textSecondary,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.xl,
+      fontFamily: Fonts.semiBold,
+      fontSize: Fonts.size.sm,
 
-    marginTop: 14,
-    marginBottom: 8,
-  },
+      marginTop: 14,
+      marginBottom: 8,
+    },
 
-  inputContainer: {
-    minHeight: 52,
+    inputContainer: {
+      minHeight: 52,
 
-    borderRadius: 13,
+      borderRadius: 13,
 
-    backgroundColor: Colors.backgroundSecondary,
+      backgroundColor: Colors.backgroundSecondary,
 
-    borderWidth: 1,
-    borderColor: Colors.border,
+      borderWidth: 1,
+      borderColor: Colors.border,
 
-    flexDirection: "row",
-    alignItems: "center",
+      flexDirection: "row",
+      alignItems: "center",
 
-    paddingHorizontal: 14,
-  },
+      paddingHorizontal: 14,
+    },
 
-  input: {
-    flex: 1,
+    input: {
+      flex: 1,
 
-    color: Colors.textPrimary,
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.md,
 
-    marginLeft: 10,
+      marginLeft: 10,
 
-    paddingVertical: 10,
-  },
+      paddingVertical: 10,
+    },
 
-  row: {
-    flexDirection: "row",
+    row: {
+      flexDirection: "row",
 
-    gap: 10,
-  },
+      gap: 10,
+    },
 
-  halfInput: {
-    flex: 1,
-  },
+    halfInput: {
+      flex: 1,
+    },
 
-  saveButton: {
-    height: 56,
+    saveButton: {
+      height: 56,
 
-    borderRadius: 28,
+      borderRadius: 28,
 
-    backgroundColor: Colors.primary,
+      backgroundColor: Colors.primary,
 
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
 
-    marginTop: 25,
-  },
+      marginTop: 25,
+    },
 
-  saveButtonText: {
-    color: Colors.white,
+    saveButtonText: {
+      color: Colors.white,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.xxl,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.base,
 
-    marginLeft: 8,
-  },
+      marginLeft: 8,
+    },
 
-  cancelButton: {
-    height: 48,
+    cancelButton: {
+      height: 48,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  cancelText: {
-    color: Colors.textSecondary,
+    cancelText: {
+      color: Colors.textSecondary,
 
-    fontFamily: Fonts.medium,
-    fontSize: Fonts.size.xl,
-  },
+      fontFamily: Fonts.medium,
+      fontSize: Fonts.size.md,
+    },
 
-  /* ================= OTHER ================= */
+    /* ================= OTHER ================= */
 
-  sectionTitle: {
-    color: Colors.textPrimary,
+    sectionTitle: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xxl,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.xl,
 
-    marginTop: 27,
-    marginBottom: 13,
-  },
+      marginTop: 27,
+      marginBottom: 13,
+    },
 
-  otherCard: {
-    backgroundColor: Colors.card,
+    otherCard: {
+      backgroundColor: Colors.card,
 
-    borderRadius: 18,
+      borderRadius: 18,
 
-    borderWidth: 1,
-    borderColor: Colors.border,
+      borderWidth: 1,
+      borderColor: Colors.border,
 
-    overflow: "hidden",
-  },
+      overflow: "hidden",
+    },
 
-  otherRow: {
-    minHeight: 72,
+    otherRow: {
+      minHeight: 72,
 
-    flexDirection: "row",
-    alignItems: "center",
+      flexDirection: "row",
+      alignItems: "center",
 
-    paddingHorizontal: 14,
+      paddingHorizontal: 14,
 
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.border,
+    },
 
-  lastOtherRow: {
-    borderBottomWidth: 0,
-  },
+    lastOtherRow: {
+      borderBottomWidth: 0,
+    },
 
-  otherIcon: {
-    width: 43,
-    height: 43,
+    otherIcon: {
+      width: 43,
+      height: 43,
 
-    borderRadius: 13,
+      borderRadius: 13,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  otherInfo: {
-    flex: 1,
+    otherInfo: {
+      flex: 1,
 
-    marginLeft: 12,
-  },
+      marginLeft: 12,
+    },
 
-  otherTitle: {
-    color: Colors.textPrimary,
+    otherTitle: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xl,
-  },
+      fontFamily: Fonts.semiBold,
+      fontSize: Fonts.size.md,
+    },
 
-  otherSubtitle: {
-    color: Colors.textSecondary,
+    otherSubtitle: {
+      color: Colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xs,
 
-    marginTop: 4,
-  },
+      marginTop: 4,
+    },
 
-  /* ================= SECURITY ================= */
+    /* ================= SECURITY ================= */
 
-  bottomSecurity: {
-    flexDirection: "row",
+    bottomSecurity: {
+      flexDirection: "row",
 
-    alignItems: "center",
-    justifyContent: "center",
+      alignItems: "center",
+      justifyContent: "center",
 
-    marginTop: 25,
-  },
+      marginTop: 25,
+    },
 
-  bottomSecurityText: {
-    color: Colors.textMuted,
+    bottomSecurityText: {
+      color: Colors.textMuted,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xs,
 
-    marginLeft: 7,
-  },
-});
+      marginLeft: 7,
+    },
+  });

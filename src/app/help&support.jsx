@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Linking,
@@ -14,10 +14,12 @@ import {
   View,
 } from "react-native";
 
-import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 export default function HelpSupportScreen() {
+  const { colors: Colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(Colors), [Colors]);
   const [expandedFaq, setExpandedFaq] = useState(null);
   const [message, setMessage] = useState("");
 
@@ -93,7 +95,10 @@ export default function HelpSupportScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={Colors.background}
+      />
 
       {/* ================= HEADER ================= */}
 
@@ -103,7 +108,11 @@ export default function HelpSupportScreen() {
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
-          <Ionicons name="chevron-back" size={26} color={Colors.white} />
+          <Ionicons
+            name="chevron-back"
+            size={26}
+            color={Colors.textPrimary}
+          />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Help & Support</Text>
@@ -159,9 +168,13 @@ export default function HelpSupportScreen() {
               onPress={handleEmail}
               activeOpacity={0.8}
             >
-              <Ionicons name="mail-outline" size={25} color={Colors.white} />
+              <Ionicons name="mail-outline" size={25} color={Colors.primary} />
 
-              <Text style={styles.contactButtonText}>Email Us</Text>
+              <Text
+                style={[styles.contactButtonText, styles.emailButtonText]}
+              >
+                Email Us
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -397,7 +410,7 @@ export default function HelpSupportScreen() {
    STYLES
 ========================================================= */
 
-const styles = StyleSheet.create({
+const createStyles = (Colors) => StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -437,7 +450,7 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.bold,
     fontSize: Fonts.size.xxl,
@@ -455,7 +468,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.extraBold,
     fontSize: Fonts.size.xxl,
@@ -499,7 +512,7 @@ const styles = StyleSheet.create({
   },
 
   contactTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.extraBold,
     fontSize: Fonts.size.xl,
@@ -549,6 +562,10 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
 
+  emailButtonText: {
+    color: Colors.primary,
+  },
+
   contactButtonText: {
     color: Colors.white,
 
@@ -561,7 +578,7 @@ const styles = StyleSheet.create({
   /* ================= SECTION ================= */
 
   sectionTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.regular,
     fontSize: Fonts.size.xxl,
@@ -616,7 +633,7 @@ const styles = StyleSheet.create({
   },
 
   quickTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.regular,
     fontSize: Fonts.size.xl,
@@ -677,7 +694,7 @@ const styles = StyleSheet.create({
   questionText: {
     flex: 1,
 
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.medium,
     fontSize: Fonts.size.base,
@@ -715,7 +732,7 @@ const styles = StyleSheet.create({
   },
 
   messageTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.regular,
     fontSize: Fonts.size.xl,
@@ -752,7 +769,7 @@ const styles = StyleSheet.create({
 
     minHeight: 85,
 
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.regular,
     fontSize: Fonts.size.xl,
@@ -821,7 +838,7 @@ const styles = StyleSheet.create({
   },
 
   supportInfoTitle: {
-    color: Colors.white,
+    color: Colors.textPrimary,
 
     fontFamily: Fonts.regular,
     fontSize: Fonts.size.base,

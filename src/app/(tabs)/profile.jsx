@@ -38,7 +38,6 @@ export default function ProfileScreen() {
       background: isDark ? "#35151B" : "#FFE9EC",
       route: "/MyOrdersScreen",
     },
-
     {
       title: "Addresses",
       subtitle: "Manage your delivery addresses",
@@ -47,7 +46,6 @@ export default function ProfileScreen() {
       background: isDark ? "#352A14" : "#FFF3DC",
       route: "/addresses",
     },
-
     {
       title: "Payment Methods",
       subtitle: "Manage cards, UPI & wallets",
@@ -56,7 +54,6 @@ export default function ProfileScreen() {
       background: isDark ? "#102F42" : "#E3F2FB",
       route: "/payments",
     },
-
     {
       title: "Favourite Restaurants",
       subtitle: "Your saved restaurants",
@@ -65,7 +62,6 @@ export default function ProfileScreen() {
       background: isDark ? "#35141F" : "#FFE6EE",
       route: "/favourites",
     },
-
     {
       title: "Offers & Rewards",
       subtitle: "Exclusive offers and rewards",
@@ -74,16 +70,14 @@ export default function ProfileScreen() {
       background: isDark ? "#2C1740" : "#F1E6FB",
       route: "/Offers&DealsScreen",
     },
-
     {
       title: "Help & Support",
       subtitle: "Get help, FAQs and support",
       icon: "headset",
-      color: colors.success,
-      background: isDark ? "#10372B" : "#E2F7EC",
+      color: "#f82408",
+      background: "#0c0909",
       route: "/help&support",
     },
-
     {
       title: "Settings",
       subtitle: "App preferences and notifications",
@@ -91,6 +85,23 @@ export default function ProfileScreen() {
       color: isDark ? "#B8C0CC" : "#4B5563",
       background: isDark ? "#29303A" : "#EBEDF0",
       route: "/settings",
+    },
+
+    {
+      title: "Blogs",
+      subtitle: " Discover food stories, tips and trends",
+      icon: "newspaper-outline",
+      color: "#f82408",
+      background: "#0c0909",
+      route: "/Blogs",
+    },
+
+    {
+      title: "Cancellation-refund",
+      icon: "receipt-outline",
+      color: "#f82408",
+      background: "#0c0909",
+      route: "/cancellation-refund",
     },
   ];
 
@@ -361,7 +372,7 @@ export default function ProfileScreen() {
         <TouchableOpacity
           style={styles.logoutButton}
           activeOpacity={0.8}
-          onPress={handleLogout}
+          onPressIn={() => router.push("/(auth)/Loginscreen")}
         >
           <Ionicons name="log-out-outline" size={26} color={colors.primary} />
 

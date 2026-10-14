@@ -90,7 +90,11 @@ export default function EditProfileScreen() {
             onPress={() => router.back()}
             activeOpacity={0.8}
           >
-            <Ionicons name="chevron-back" size={25} color={colors.textPrimary} />
+            <Ionicons
+              name="chevron-back"
+              size={25}
+              color={colors.textPrimary}
+            />
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>Edit Profile</Text>
@@ -148,11 +152,15 @@ export default function EditProfileScreen() {
                 style={[
                   styles.inputIcon,
                   {
-                    backgroundColor: `${colors.info}20`,
+                    backgroundColor: `${Colors.primary}20`,
                   },
                 ]}
               >
-                <Ionicons name="person-outline" size={20} color={colors.info} />
+                <Ionicons
+                  name="person-outline"
+                  size={25}
+                  color={Colors.primary}
+                />
               </View>
 
               <TextInput
@@ -176,14 +184,14 @@ export default function EditProfileScreen() {
                 style={[
                   styles.inputIcon,
                   {
-                    backgroundColor: `${colors.success}20`,
+                    backgroundColor: `${Colors.primary}20`,
                   },
                 ]}
               >
                 <Ionicons
                   name="call-outline"
-                  size={20}
-                  color={colors.success}
+                  size={25}
+                  color={Colors.primary}
                 />
               </View>
 
@@ -208,11 +216,15 @@ export default function EditProfileScreen() {
                 style={[
                   styles.inputIcon,
                   {
-                    backgroundColor: `${colors.info}20`,
+                    backgroundColor: `${Colors.primary}20`,
                   },
                 ]}
               >
-                <Ionicons name="mail-outline" size={20} color={colors.info} />
+                <Ionicons
+                  name="mail-outline"
+                  size={25}
+                  color={Colors.primary}
+                />
               </View>
 
               <TextInput
@@ -237,14 +249,14 @@ export default function EditProfileScreen() {
                 style={[
                   styles.inputIcon,
                   {
-                    backgroundColor: `${colors.warning}20`,
+                    backgroundColor: `${Colors.primary}20`,
                   },
                 ]}
               >
                 <Ionicons
                   name="location-outline"
-                  size={20}
-                  color={colors.warning}
+                  size={25}
+                  color={Colors.primary}
                 />
               </View>
 
@@ -340,325 +352,326 @@ export default function EditProfileScreen() {
    STYLES
 ========================================================= */
 
-const createStyles = (colors) => StyleSheet.create({
-  /* =======================================================
+const createStyles = (colors) =>
+  StyleSheet.create({
+    /* =======================================================
      SCREEN
   ======================================================= */
 
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  keyboardView: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+    keyboardView: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  scrollContent: {
-    paddingHorizontal: 18,
-    paddingBottom: 30,
-  },
+    scrollContent: {
+      paddingHorizontal: 18,
+      paddingBottom: 30,
+    },
 
-  /* =======================================================
+    /* =======================================================
      HEADER
   ======================================================= */
 
-  header: {
-    height: 64,
+    header: {
+      height: 64,
 
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
 
-    paddingHorizontal: 18,
+      paddingHorizontal: 18,
 
-    borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.divider,
 
-    backgroundColor: colors.background,
-  },
+      backgroundColor: colors.background,
+    },
 
-  headerButton: {
-    width: 42,
-    height: 42,
+    headerButton: {
+      width: 42,
+      height: 42,
 
-    borderRadius: 21,
+      borderRadius: 21,
 
-    backgroundColor: colors.surface,
+      backgroundColor: colors.surface,
 
-    borderWidth: 1,
-    borderColor: colors.border,
+      borderWidth: 1,
+      borderColor: colors.border,
 
-    justifyContent: "center",
-    alignItems: "center",
-  },
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  headerPlaceholder: {
-    width: 42,
-    height: 42,
-  },
+    headerPlaceholder: {
+      width: 42,
+      height: 42,
+    },
 
-  headerTitle: {
-    color: colors.textPrimary,
+    headerTitle: {
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.xl,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xxl,
 
-    letterSpacing: 0.2,
+      letterSpacing: 0.2,
 
-    textAlign: "center",
-  },
+      textAlign: "center",
+    },
 
-  /* =======================================================
+    /* =======================================================
      PROFILE PHOTO
   ======================================================= */
 
-  photoSection: {
-    alignItems: "center",
+    photoSection: {
+      alignItems: "center",
 
-    marginTop: 24,
-    marginBottom: 28,
-  },
+      marginTop: 24,
+      marginBottom: 28,
+    },
 
-  avatar: {
-    width: 108,
-    height: 108,
+    avatar: {
+      width: 108,
+      height: 108,
 
-    borderRadius: 54,
+      borderRadius: 54,
 
-    backgroundColor: colors.primary,
+      backgroundColor: colors.primary,
 
-    justifyContent: "center",
-    alignItems: "center",
+      justifyContent: "center",
+      alignItems: "center",
 
-    borderWidth: 4,
-    borderColor: colors.primaryDark,
-  },
+      borderWidth: 4,
+      borderColor: colors.primaryDark,
+    },
 
-  cameraButton: {
-    position: "absolute",
+    cameraButton: {
+      position: "absolute",
 
-    right: "34%",
-    bottom: 29,
+      right: "34%",
+      bottom: 29,
 
-    width: 36,
-    height: 36,
+      width: 36,
+      height: 36,
 
-    borderRadius: 18,
+      borderRadius: 18,
 
-    backgroundColor: colors.primary,
+      backgroundColor: colors.primary,
 
-    justifyContent: "center",
-    alignItems: "center",
+      justifyContent: "center",
+      alignItems: "center",
 
-    borderWidth: 3,
-    borderColor: colors.background,
-  },
+      borderWidth: 3,
+      borderColor: colors.background,
+    },
 
-  changePhotoText: {
-    color: colors.primary,
+    changePhotoText: {
+      color: colors.primary,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.sm,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xl,
 
-    marginTop: 12,
-  },
+      marginTop: 12,
+    },
 
-  /* =======================================================
+    /* =======================================================
      SECTION TITLE
   ======================================================= */
 
-  sectionTitle: {
-    color: colors.textPrimary,
+    sectionTitle: {
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.lg,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.lg,
 
-    marginBottom: 14,
-    marginTop: 4,
-  },
+      marginBottom: 14,
+      marginTop: 4,
+    },
 
-  /* =======================================================
+    /* =======================================================
      INPUT GROUP
   ======================================================= */
 
-  inputGroup: {
-    marginBottom: 17,
-  },
+    inputGroup: {
+      marginBottom: 17,
+    },
 
-  label: {
-    color: colors.textSecondary,
+    label: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.medium,
-    fontSize: Fonts.size.sm,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xl,
 
-    marginBottom: 8,
-    marginLeft: 2,
-  },
+      marginBottom: 8,
+      marginLeft: 2,
+    },
 
-  /* =======================================================
+    /* =======================================================
      INPUT
   ======================================================= */
 
-  inputContainer: {
-    height: 58,
+    inputContainer: {
+      height: 58,
 
-    flexDirection: "row",
-    alignItems: "center",
+      flexDirection: "row",
+      alignItems: "center",
 
-    backgroundColor: colors.surface,
+      backgroundColor: colors.surface,
 
-    borderRadius: 15,
+      borderRadius: 15,
 
-    borderWidth: 1,
-    borderColor: colors.border,
+      borderWidth: 1,
+      borderColor: colors.border,
 
-    paddingHorizontal: 10,
-  },
+      paddingHorizontal: 10,
+    },
 
-  inputIcon: {
-    width: 40,
-    height: 40,
+    inputIcon: {
+      width: 40,
+      height: 40,
 
-    borderRadius: 12,
+      borderRadius: 12,
 
-    justifyContent: "center",
-    alignItems: "center",
+      justifyContent: "center",
+      alignItems: "center",
 
-    marginRight: 11,
-  },
+      marginRight: 11,
+    },
 
-  input: {
-    flex: 1,
+    input: {
+      flex: 1,
 
-    height: 56,
+      height: 35,
 
-    color: colors.textPrimary,
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.medium,
-    fontSize: Fonts.size.md,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xl,
 
-    paddingHorizontal: 2,
-  },
+      paddingHorizontal: 2,
+    },
 
-  /* =======================================================
+    /* =======================================================
      ACCOUNT CARD
   ======================================================= */
 
-  infoCard: {
-    minHeight: 72,
+    infoCard: {
+      minHeight: 72,
 
-    backgroundColor: colors.card,
+      backgroundColor: colors.card,
 
-    borderRadius: 16,
+      borderRadius: 16,
 
-    borderWidth: 1,
-    borderColor: colors.border,
+      borderWidth: 1,
+      borderColor: colors.border,
 
-    flexDirection: "row",
-    alignItems: "center",
+      flexDirection: "row",
+      alignItems: "center",
 
-    paddingHorizontal: 13,
+      paddingHorizontal: 13,
 
-    marginBottom: 25,
-  },
+      marginBottom: 25,
+    },
 
-  infoIcon: {
-    width: 42,
-    height: 42,
+    infoIcon: {
+      width: 42,
+      height: 42,
 
-    borderRadius: 12,
+      borderRadius: 12,
 
-    justifyContent: "center",
-    alignItems: "center",
+      justifyContent: "center",
+      alignItems: "center",
 
-    marginRight: 12,
-  },
+      marginRight: 12,
+    },
 
-  infoContent: {
-    flex: 1,
-  },
+    infoContent: {
+      flex: 1,
+    },
 
-  infoTitle: {
-    color: colors.textPrimary,
+    infoTitle: {
+      color: colors.textPrimary,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.md,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xl,
 
-    marginBottom: 3,
-  },
+      marginBottom: 3,
+    },
 
-  infoText: {
-    color: colors.textSecondary,
+    infoText: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
-  },
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.base,
+    },
 
-  /* =======================================================
+    /* =======================================================
      SAVE BUTTON
   ======================================================= */
 
-  saveButton: {
-    height: 56,
+    saveButton: {
+      height: 56,
 
-    borderRadius: 28,
+      borderRadius: 28,
 
-    backgroundColor: colors.primary,
+      backgroundColor: colors.primary,
 
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
 
-    marginTop: 5,
-  },
+      marginTop: 5,
+    },
 
-  saveButtonDisabled: {
-    opacity: 0.6,
-  },
+    saveButtonDisabled: {
+      opacity: 0.6,
+    },
 
-  saveText: {
-    color: colors.white,
+    saveText: {
+      color: colors.white,
 
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xxl,
 
-    marginRight: 10,
-  },
+      marginRight: 10,
+    },
 
-  /* =======================================================
+    /* =======================================================
      CANCEL
   ======================================================= */
 
-  cancelButton: {
-    height: 52,
+    cancelButton: {
+      height: 52,
 
-    borderRadius: 26,
+      borderRadius: 26,
 
-    borderWidth: 1,
-    borderColor: colors.border,
+      borderWidth: 1,
+      borderColor: colors.border,
 
-    backgroundColor: colors.backgroundElement,
+      backgroundColor: colors.backgroundElement,
 
-    justifyContent: "center",
-    alignItems: "center",
+      justifyContent: "center",
+      alignItems: "center",
 
-    marginTop: 12,
-  },
+      marginTop: 12,
+    },
 
-  cancelText: {
-    color: colors.textSecondary,
+    cancelText: {
+      color: colors.textSecondary,
 
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.md,
-  },
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xl,
+    },
 
-  /* =======================================================
+    /* =======================================================
      BOTTOM
   ======================================================= */
 
-  bottomSpace: {
-    height: 25,
-  },
-});
+    bottomSpace: {
+      height: 25,
+    },
+  });
