@@ -583,14 +583,14 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   headerTitle: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.extraBold,
-    fontSize: 20,
+    fontFamily: Fonts.regular,
+    fontSize: 27,
   },
 
   headerSubtitle: {
     color: Colors.textSecondary,
     fontFamily: Fonts.regular,
-    fontSize: 10,
+    fontSize: 18,
     marginTop: 3,
   },
 
@@ -601,8 +601,8 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   clearText: {
     color: Colors.primary,
-    fontFamily: Fonts.bold,
-    fontSize: 10,
+    fontFamily: Fonts.regular,
+    fontSize: 17,
   },
 
   // ==========================================================
@@ -634,8 +634,8 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   tabText: {
     color: Colors.textSecondary,
-    fontFamily: Fonts.semiBold,
-    fontSize: 15,
+    fontFamily: Fonts.regular,
+    fontSize: 19,
   },
 
   activeTabText: {
@@ -694,8 +694,8 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   offerText: {
     color: Colors.white,
-    fontFamily: Fonts.bold,
-    fontSize: 9,
+    fontFamily: Fonts.regular,
+    fontSize: 14,
   },
 
   restaurantDetails: {
@@ -712,8 +712,8 @@ const makeStyles = (Colors) => StyleSheet.create({
   restaurantName: {
     flex: 1,
     color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 20,
+    fontFamily: Fonts.regular,
+    fontSize: 28,
   },
 
   heartButton: {
@@ -726,7 +726,7 @@ const makeStyles = (Colors) => StyleSheet.create({
   cuisine: {
     color: Colors.goldDark,
     fontFamily: Fonts.regular,
-    fontSize: 15,
+    fontSize: 20,
     marginTop: 5,
   },
 
@@ -749,7 +749,7 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   ratingText: {
     color: Colors.white,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
     fontSize: 15,
     marginLeft: 4,
   },
@@ -769,7 +769,7 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   timeText: {
     color: Colors.success,
-    fontFamily: Fonts.medium,
+    fontFamily: Fonts.regular,
     fontSize: 15,
   },
 
@@ -783,14 +783,14 @@ const makeStyles = (Colors) => StyleSheet.create({
     flex: 1,
     color: Colors.textSecondary,
     fontFamily: Fonts.regular,
-    fontSize: 13,
+    fontSize: 16,
     marginLeft: 5,
   },
 
   priceText: {
     color: Colors.success,
     fontFamily: Fonts.regular,
-    fontSize: 13,
+    fontSize: 18,
     marginTop: 9,
   },
 
@@ -854,14 +854,14 @@ const makeStyles = (Colors) => StyleSheet.create({
   dishName: {
     flex: 1,
     color: Colors.goldDark,
-    fontFamily: Fonts.bold,
-    fontSize: 16,
+    fontFamily: Fonts.regular,
+    fontSize: 25,
   },
 
   dishRestaurant: {
     color: Colors.textSecondary,
     fontFamily: Fonts.regular,
-    fontSize: 13,
+    fontSize: 17,
     marginTop: 4,
   },
 
@@ -874,7 +874,7 @@ const makeStyles = (Colors) => StyleSheet.create({
   dishTime: {
     color: Colors.textSecondary,
     fontFamily: Fonts.regular,
-    fontSize: 9,
+    fontSize: 15,
     marginLeft: 7,
   },
 
@@ -893,14 +893,14 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   dishPrice: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 14,
+    fontFamily: Fonts.regular,
+    fontSize: 18,
   },
 
   dishOldPrice: {
     color: Colors.textMuted,
     fontFamily: Fonts.regular,
-    fontSize: 9,
+    fontSize: 13,
     textDecorationLine: "line-through",
     marginLeft: 6,
   },
@@ -918,8 +918,8 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   addText: {
     color: Colors.white,
-    fontFamily: Fonts.bold,
-    fontSize: 9,
+    fontFamily: Fonts.regular,
+    fontSize: 15,
     marginLeft: 3,
   },
 

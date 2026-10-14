@@ -793,22 +793,22 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   itemName: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.semiBold,
-    fontSize: 15,
+    fontFamily: Fonts.regular,
+    fontSize: 20,
     lineHeight: 19,
   },
 
   itemRestaurant: {
     color: Colors.textSecondary,
     fontFamily: Fonts.regular,
-    fontSize: 13,
+    fontSize: 19,
     marginTop: 3,
   },
 
   itemPrice: {
     color: Colors.gold,
-    fontFamily: Fonts.medium,
-    fontSize: 14,
+    fontFamily: Fonts.regular,
+    fontSize: 18,
     marginTop: 5,
   },
 
@@ -837,8 +837,8 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   quantityText: {
     color: Colors.white,
-    fontFamily: Fonts.bold,
-    fontSize: 13,
+    fontFamily: Fonts.regular,
+    fontSize: 16,
     minWidth: 15,
     textAlign: "center",
   },
@@ -889,8 +889,8 @@ const makeStyles = (Colors) => StyleSheet.create({
   addMoreText: {
     flex: 1,
     color: Colors.textPrimary,
-    fontFamily: Fonts.medium,
-    fontSize: 11,
+    fontFamily: Fonts.regular,
+    fontSize: 17,
     marginLeft: 9,
   },
 
@@ -924,15 +924,15 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   couponTitle: {
     color: Colors.primary,
-    fontFamily: Fonts.bold,
-    fontSize: 17,
+    fontFamily: Fonts.regular,
+    fontSize: 20,
     marginLeft: 9,
   },
 
   couponSubtitle: {
     color: Colors.textSecondary,
     fontFamily: Fonts.regular,
-    fontSize: 14,
+    fontSize: 16,
     marginLeft: 9,
     marginTop: 2,
   },
@@ -953,8 +953,8 @@ const makeStyles = (Colors) => StyleSheet.create({
     height: "100%",
     paddingHorizontal: 11,
     color: Colors.textPrimary,
-    fontFamily: Fonts.medium,
-    fontSize: 10,
+    fontFamily: Fonts.regular,
+    fontSize: 15,
   },
 
   applyButton: {
@@ -971,8 +971,8 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   applyButtonText: {
     color: Colors.white,
-    fontFamily: Fonts.bold,
-    fontSize: 9,
+    fontFamily: Fonts.regular,
+    fontSize: 13,
   },
 
   appliedCouponRow: {
@@ -983,8 +983,8 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   appliedCouponText: {
     color: Colors.success,
-    fontFamily: Fonts.medium,
-    fontSize: 9,
+    fontFamily: Fonts.regular,
+    fontSize: 13,
     marginLeft: 5,
   },
 
@@ -1020,14 +1020,14 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   offerTipTitle: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.semiBold,
-    fontSize: 10,
+    fontFamily: Fonts.regular,
+    fontSize: 17,
   },
 
   offerTipText: {
     color: Colors.textSecondary,
     fontFamily: Fonts.regular,
-    fontSize: 8,
+    fontSize: 15,
     marginTop: 2,
   },
 
@@ -1047,8 +1047,8 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   billTitle: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 18,
+    fontFamily: Fonts.regular,
+    fontSize: 20,
     marginBottom: 12,
   },
 
@@ -1062,18 +1062,18 @@ const makeStyles = (Colors) => StyleSheet.create({
   billLabel: {
     color: Colors.textSecondary,
     fontFamily: Fonts.regular,
-    fontSize: 17,
+    fontSize: 19,
   },
 
   billValue: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.medium,
-    fontSize: 15,
+    fontFamily: Fonts.regular,
+    fontSize: 18,
   },
 
   freeText: {
     color: Colors.success,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
     fontSize: 15,
   },
 
@@ -1085,7 +1085,7 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   discountValue: {
     color: Colors.success,
-    fontFamily: Fonts.semiBold,
+    fontFamily: Fonts.regular,
     fontSize: 15,
   },
 
@@ -1103,7 +1103,7 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   totalLabel: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
     fontSize: 15,
   },
 
@@ -1148,7 +1148,7 @@ const makeStyles = (Colors) => StyleSheet.create({
   deliveryInfoText: {
     color: Colors.textSecondary,
     fontFamily: Fonts.regular,
-    fontSize: 12,
+    fontSize: 17,
     marginTop: 2,
   },
 
@@ -1196,8 +1196,8 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   checkoutPrice: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.extraBold,
-    fontSize: 19,
+    fontFamily: Fonts.regular,
+    fontSize: 20,
     marginTop: 2,
   },
 
@@ -1215,8 +1215,8 @@ const makeStyles = (Colors) => StyleSheet.create({
 
   checkoutText: {
     color: Colors.white,
-    fontFamily: Fonts.extraBold,
-    fontSize: 11,
+    fontFamily: Fonts.regular,
+    fontSize: 18,
   },
 
   // ==========================================================

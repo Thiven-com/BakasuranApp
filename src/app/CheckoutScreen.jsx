@@ -12,8 +12,8 @@ import {
   View,
 } from "react-native";
 
-import { useTheme } from "../hooks/use-theme";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 const CheckoutScreen = () => {
   const { colors: Colors } = useTheme();
@@ -525,8 +525,8 @@ const createStyles = (Colors) => StyleSheet.create({
 
   headerTitle: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.extraBold,
-    fontSize: 20,
+    fontFamily: Fonts.regular,
+    fontSize: 25,
   },
 
   headerRightSpace: {
@@ -569,7 +569,7 @@ const createStyles = (Colors) => StyleSheet.create({
 
   stepActiveText: {
     color: Colors.white,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
     fontSize: 15,
   },
 
@@ -581,8 +581,8 @@ const createStyles = (Colors) => StyleSheet.create({
 
   stepInactiveText: {
     color: Colors.textSecondary,
-    fontFamily: Fonts.medium,
-    fontSize: 10,
+    fontFamily: Fonts.regular,
+    fontSize: 15,
   },
 
   stepLineActive: {
@@ -632,7 +632,7 @@ const createStyles = (Colors) => StyleSheet.create({
 
   addressType: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
     fontSize: 19,
   },
 
@@ -673,15 +673,15 @@ const createStyles = (Colors) => StyleSheet.create({
 
   sectionTitle: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 19,
+    fontFamily: Fonts.regular,
+    fontSize: 20,
     marginBottom: 9,
   },
 
   optionalText: {
     color: Colors.textMuted,
     fontFamily: Fonts.regular,
-    fontSize: 14,
+    fontSize: 15,
   },
 
   // ==========================================================
@@ -705,7 +705,7 @@ const createStyles = (Colors) => StyleSheet.create({
     marginLeft: 10,
     color: Colors.textPrimary,
     fontFamily: Fonts.regular,
-    fontSize: 18,
+    fontSize: 19,
   },
 
   // ==========================================================
@@ -827,14 +827,14 @@ const createStyles = (Colors) => StyleSheet.create({
 
   paymentTitle: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.semiBold,
+    fontFamily: Fonts.regular,
     fontSize: 17,
   },
 
   paymentSubtitle: {
     color: Colors.textMuted,
     fontFamily: Fonts.regular,
-    fontSize: 16,
+    fontSize: 18,
     marginTop: 4,
   },
 
@@ -860,14 +860,14 @@ const createStyles = (Colors) => StyleSheet.create({
 
   summaryTitle: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
     fontSize: 19,
   },
 
   itemCount: {
     color: Colors.primary,
-    fontFamily: Fonts.bold,
-    fontSize: 17,
+    fontFamily: Fonts.regular,
+    fontSize: 19,
   },
 
   summaryRow: {
@@ -918,13 +918,13 @@ const createStyles = (Colors) => StyleSheet.create({
 
   toPayLabel: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.extraBold,
+    fontFamily: Fonts.regular,
     fontSize: 18,
   },
 
   toPayValue: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.extraBold,
+    fontFamily: Fonts.regular,
     fontSize: 22,
   },
 
@@ -957,14 +957,14 @@ const createStyles = (Colors) => StyleSheet.create({
 
   securityTitle: {
     color: Colors.textPrimary,
-    fontFamily: Fonts.medium,
-    fontSize: 15,
+    fontFamily: Fonts.regular,
+    fontSize: 17,
   },
 
   securityText: {
     color: Colors.textMuted,
     fontFamily: Fonts.regular,
-    fontSize: 15,
+    fontSize: 17,
     marginTop: 2,
   },
 
@@ -1000,14 +1000,14 @@ const createStyles = (Colors) => StyleSheet.create({
 
   placeOrderText: {
     color: Colors.white,
-    fontFamily: Fonts.extraBold,
-    fontSize: 15,
+    fontFamily: Fonts.regular,
+    fontSize: 20,
   },
 
   placeOrderAmount: {
     color: Colors.white,
-    fontFamily: Fonts.extraBold,
-    fontSize: 15,
+    fontFamily: Fonts.regular,
+    fontSize: 19,
     marginLeft: 5,
     marginRight: 10,
   },
