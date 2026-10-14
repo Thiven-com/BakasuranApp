@@ -325,8 +325,6 @@ const OffersDealsScreen = () => {
 
             <View style={styles.heroOverlay} />
 
-            
-
             <View style={styles.discountBadge}>
               <Text style={styles.discountBadgeText}>50%</Text>
 

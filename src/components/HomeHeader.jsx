@@ -12,20 +12,36 @@ const HomeHeader = () => {
 
   return (
     <View style={styles.container}>
-      {/* Centered logo */}
-      {/*<View style={styles.headerRow}>
-        <View style={styles.sideSpace} />
+      {/* Location and Notification */}
+      <View style={styles.topRow}>
+        <TouchableOpacity
+          style={styles.locationPanel}
+          activeOpacity={0.8}
+          onPress={() => router.push("/enable-location")}
+        >
+          <Ionicons name="location-sharp" size={17} color={colors.primary} />
 
-        <Image
-          source={require("../../assets/images/logo.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+          <View style={styles.locationTextWrap}>
+            <Text style={styles.locationLabel}>DELIVERING TO</Text>
 
+            <View style={styles.locationNameRow}>
+              <Text style={styles.locationName}>Jakkasandra</Text>
+
+              <Ionicons
+                name="chevron-down"
+                size={14}
+                color={colors.textPrimary}
+              />
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        {/* Notification Button on Right */}
         <TouchableOpacity
           style={styles.iconButton}
           activeOpacity={0.8}
-          onPress={() => {}}
+          onPress={() => router.push("/notifications")}
+          accessibilityLabel="Notifications"
         >
           <Ionicons
             name="notifications-outline"
@@ -33,32 +49,9 @@ const HomeHeader = () => {
             color={colors.textPrimary}
           />
         </TouchableOpacity>
-      </View>*/}
+      </View>
 
-      {/* Location */}
-      <TouchableOpacity
-        style={styles.locationPanel}
-        activeOpacity={0.8}
-        onPress={() => router.push("/enable-location")}
-      >
-        <Ionicons name="location-sharp" size={17} color={colors.primary} />
-
-        <View style={styles.locationTextWrap}>
-          <Text style={styles.locationLabel}>DELIVERING TO</Text>
-
-          <View style={styles.locationNameRow}>
-            <Text style={styles.locationName}>Jakkasandra</Text>
-
-            <Ionicons
-              name="chevron-down"
-              size={14}
-              color={colors.textPrimary}
-            />
-          </View>
-        </View>
-      </TouchableOpacity>
-
-      {/* Full address */}
+      {/* Full Address */}
       <View style={styles.addressRow}>
         <Text style={styles.addressText}>Sector V, Koramangala, Bengaluru</Text>
       </View>
@@ -77,49 +70,25 @@ const makeStyles = (colors) =>
       backgroundColor: colors.background,
     },
 
-    headerRow: {
-      height: 66,
+    topRow: {
+      width: "100%",
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      position: "relative",
-      marginBottom: 8,
-    },
-
-    sideSpace: {
-      width: 40,
-    },
-
-    logo: {
-      position: "absolute",
-      width: 180,
-      height: 64,
-      alignSelf: "center",
-      left: 0,
-      right: 0,
-      marginHorizontal: "auto",
-    },
-
-    iconButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.border,
     },
 
     locationPanel: {
+      flex: 1,
       flexDirection: "row",
       alignItems: "center",
       alignSelf: "flex-start",
       paddingVertical: 5,
       gap: 8,
+      marginRight: 12,
     },
 
     locationTextWrap: {
+      flex: 1,
       justifyContent: "center",
     },
 
@@ -141,6 +110,15 @@ const makeStyles = (colors) =>
       color: colors.textPrimary,
       fontFamily: Fonts.bold,
       fontSize: 19,
+    },
+
+    iconButton: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.card ?? "#201f1f",
     },
 
     addressRow: {

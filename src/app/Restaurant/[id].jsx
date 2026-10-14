@@ -631,7 +631,7 @@ const RestaurantDetails = () => {
                 style={styles.quantityButton}
                 onPress={() => increaseQuantity(item.id)}
               >
-                <Ionicons name="add" size={17} color={Colors.primary} />
+                <Ionicons name="add" size={17} color={Colors.white} />
               </TouchableOpacity>
             </View>
           )}
@@ -1455,7 +1455,7 @@ const createStyles = (Colors) =>
     },
 
     addButtonText: {
-      color: Colors.textPrimary,
+      color: Colors.white,
       fontFamily: Fonts.bold,
       fontSize: 15,
     },

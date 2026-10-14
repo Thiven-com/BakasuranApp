@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   SafeAreaView,
@@ -13,18 +13,14 @@ import {
 } from "react-native";
 
 import Fonts from "../constants/Fonts";
-
-const RED = "#FF1515";
-const WHITE = "#FFFFFF";
-const MUTED = "#C8C8C8";
-const TRACK_OFF = "#383838";
+import { useTheme } from "../hooks/use-theme";
 
 /* =====================================================
    CUSTOM SWITCH
    Consistent red and white colors on Web and Mobile
 ===================================================== */
 
-function SettingSwitch({ value, onValueChange }) {
+function SettingSwitch({ value, onValueChange, styles, colors }) {
   return (
     <TouchableOpacity
       activeOpacity={0.85}
@@ -38,7 +34,7 @@ function SettingSwitch({ value, onValueChange }) {
         style={[
           styles.switchTrack,
           {
-            backgroundColor: value ? RED : TRACK_OFF,
+            backgroundColor: value ? colors.primary : colors.borderLight,
           },
         ]}
       >
@@ -56,11 +52,14 @@ function SettingSwitch({ value, onValueChange }) {
 }
 
 export default function SettingsScreen() {
+  const { colors, isDark, toggleTheme } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const RED = colors.primary;
+  const MUTED = colors.textMuted;
   const [notifications, setNotifications] = useState(true);
   const [orderUpdates, setOrderUpdates] = useState(true);
   const [offers, setOffers] = useState(false);
   const [sound, setSound] = useState(true);
-  const [darkMode, setDarkMode] = useState(true);
 
   /* =====================================================
      CLEAR CACHE
@@ -182,13 +181,21 @@ export default function SettingsScreen() {
         <Text style={styles.settingSubtitle}>{subtitle}</Text>
       </View>
 
-      <SettingSwitch value={value} onValueChange={onValueChange} />
+      <SettingSwitch
+        value={value}
+        onValueChange={onValueChange}
+        styles={styles}
+        colors={colors}
+      />
     </View>
   );
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#080808" />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
+      />
 
       {/* HEADER */}
 
@@ -200,7 +207,7 @@ export default function SettingsScreen() {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <Ionicons name="chevron-back" size={26} color={WHITE} />
+          <Ionicons name="chevron-back" size={26} color={colors.textPrimary} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Settings</Text>
@@ -285,11 +292,13 @@ export default function SettingsScreen() {
           )}
 
           {renderToggleRow(
-            "moon-outline",
+            isDark ? "moon-outline" : "sunny-outline",
             "Dark Mode",
-            "Use the dark BAKASURAN theme",
-            darkMode,
-            setDarkMode,
+            isDark
+              ? "Use the light BAKASURAN theme"
+              : "Use the dark BAKASURAN theme",
+            isDark,
+            toggleTheme,
             true,
           )}
         </View>
@@ -368,10 +377,10 @@ export default function SettingsScreen() {
    STYLES
 ===================================================== */
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#080808",
+    backgroundColor: colors.background,
   },
 
   scrollContent: {
@@ -388,14 +397,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#292323",
+    borderBottomColor: colors.border,
   },
 
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#171414",
+    backgroundColor: colors.surface,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -403,7 +412,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: "center",
-    color: WHITE,
+    color: colors.textPrimary,
     fontFamily: Fonts.regular,
     fontSize: 25,
     lineHeight: 23,
@@ -418,7 +427,7 @@ const styles = StyleSheet.create({
   /* SECTION */
 
   sectionTitle: {
-    color: WHITE,
+    color: colors.textPrimary,
     fontFamily: Fonts.regular,
     fontSize: 25,
     lineHeight: 26,
@@ -430,10 +439,10 @@ const styles = StyleSheet.create({
   /* CARD */
 
   settingsCard: {
-    backgroundColor: "#202020",
+    backgroundColor: colors.card,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#292929",
+    borderColor: colors.border,
     overflow: "hidden",
   },
 
@@ -446,7 +455,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#353535",
+    borderBottomColor: colors.border,
   },
 
   lastRow: {
@@ -457,7 +466,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 11,
-    backgroundColor: "rgba(255, 21, 21, 0.12)",
+    backgroundColor: `${colors.primary}20`,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -470,7 +479,7 @@ const styles = StyleSheet.create({
   },
 
   settingTitle: {
-    color: WHITE,
+    color: colors.textPrimary,
     fontFamily: Fonts.regular,
     fontSize: 23,
     lineHeight: 28,
@@ -479,7 +488,7 @@ const styles = StyleSheet.create({
   },
 
   settingSubtitle: {
-    color: MUTED,
+    color: colors.textMuted,
     fontFamily: Fonts.regular,
     fontSize: 16,
     lineHeight: 15,
@@ -512,7 +521,7 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: WHITE,
+    backgroundColor: colors.white,
   },
 
   /* LOGOUT */
@@ -521,8 +530,8 @@ const styles = StyleSheet.create({
     minHeight: 50,
     borderRadius: 25,
     borderWidth: 1.5,
-    borderColor: RED,
-    backgroundColor: "#111010",
+    borderColor: colors.primary,
+    backgroundColor: colors.surface,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -530,7 +539,7 @@ const styles = StyleSheet.create({
   },
 
   logoutText: {
-    color: RED,
+    color: colors.primary,
     fontFamily: Fonts.regular,
     fontSize: 25,
     lineHeight: 23,
@@ -548,7 +557,7 @@ const styles = StyleSheet.create({
   },
 
   deleteAccountText: {
-    color: "#BDBDBD",
+    color: colors.textSecondary,
     fontFamily: Fonts.medium,
     fontSize: 19,
     lineHeight: 20,
@@ -563,7 +572,7 @@ const styles = StyleSheet.create({
   },
 
   brandText: {
-    color: "#A8A8A8",
+    color: colors.textSecondary,
     fontFamily: Fonts.bold,
     fontSize: 17,
     lineHeight: 17,
@@ -572,7 +581,7 @@ const styles = StyleSheet.create({
   },
 
   versionText: {
-    color: "#888888",
+    color: colors.textMuted,
     fontFamily: Fonts.regular,
     fontSize: 16,
     lineHeight: 16,
@@ -581,7 +590,7 @@ const styles = StyleSheet.create({
   },
 
   copyrightText: {
-    color: "#A8A8A8",
+    color: colors.textSecondary,
     fontFamily: Fonts.regular,
     fontSize: 19,
     lineHeight: 18,

@@ -102,7 +102,7 @@ export default function CancellationRefundScreen() {
             <Ionicons
               name="chevron-back"
               size={29}
-              color={Colors.iconPrimary}
+              color={isDark ? "#B8C0CC" : "#4B5563"}
             />
           </Pressable>
 
@@ -400,449 +400,449 @@ export default function CancellationRefundScreen() {
 
 const createStyles = (Colors) => {
   return StyleSheet.create({
-  // =========================================
-  // SCREEN
-  // =========================================
+    // =========================================
+    // SCREEN
+    // =========================================
 
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+    safeArea: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
 
-  screen: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+    screen: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
 
-  content: {
-    paddingTop: 8,
-    paddingBottom: 35,
-  },
+    content: {
+      paddingTop: 8,
+      paddingBottom: 35,
+    },
 
-  // =========================================
-  // HERO
-  // =========================================
+    // =========================================
+    // HERO
+    // =========================================
 
-  hero: {
-    minHeight: 320,
-    flexDirection: "row",
-    alignItems: "flex-end",
-    position: "relative",
-    paddingTop: 10,
-    paddingBottom: 50,
-  },
+    hero: {
+      minHeight: 320,
+      flexDirection: "row",
+      alignItems: "flex-end",
+      position: "relative",
+      paddingTop: 10,
+      paddingBottom: 50,
+    },
 
-  backButton: {
-    position: "absolute",
-    top: 8,
-    left: 5,
-    zIndex: 5,
-    width: 55,
-    height: 55,
-    borderRadius: 28,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    backButton: {
+      position: "absolute",
+      top: 8,
+      left: 5,
+      zIndex: 5,
+      width: 55,
+      height: 55,
+      borderRadius: 28,
+      borderWidth: 1.5,
+      borderColor: Colors.border,
+      backgroundColor: Colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  heroText: {
-    width: "57%",
-    zIndex: 2,
-    paddingBottom: 5,
-  },
+    heroText: {
+      width: "57%",
+      zIndex: 2,
+      paddingBottom: 5,
+    },
 
-  heroTitle: {
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.lg,
-    lineHeight: 38,
-    letterSpacing: -0.7,
-    color: Colors.textPrimary,
-    marginBottom: 10,
-  },
+    heroTitle: {
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.lg,
+      lineHeight: 38,
+      letterSpacing: -0.7,
+      color: Colors.textPrimary,
+      marginBottom: 10,
+    },
 
-  heroDescription: {
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
-    lineHeight: 22,
-    color: Colors.textSecondary,
-  },
+    heroDescription: {
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.base,
+      lineHeight: 22,
+      color: Colors.textSecondary,
+    },
 
-  // =========================================
-  // HERO ART
-  // =========================================
+    // =========================================
+    // HERO ART
+    // =========================================
 
-  heroArt: {
-    position: "absolute",
-    right: -2,
-    bottom: 16,
-    borderRadius: 200,
-    backgroundColor: "#230506",
-    overflow: "hidden",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    heroArt: {
+      position: "absolute",
+      right: -2,
+      bottom: 16,
+      borderRadius: 200,
+      backgroundColor: "#230506",
+      overflow: "hidden",
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  artGlow: {
-    position: "absolute",
-    width: "80%",
-    height: "80%",
-    borderRadius: 200,
-    backgroundColor: "#3B080B",
-  },
+    artGlow: {
+      position: "absolute",
+      width: "80%",
+      height: "80%",
+      borderRadius: 200,
+      backgroundColor: "#3B080B",
+    },
 
-  artArrow: {
-    position: "absolute",
-    top: 12,
-    right: 31,
-    transform: [{ rotate: "25deg" }],
-  },
+    artArrow: {
+      position: "absolute",
+      top: 12,
+      right: 31,
+      transform: [{ rotate: "25deg" }],
+    },
 
-  receipt: {
-    position: "absolute",
-    top: "27%",
-    right: "13%",
-    width: "33%",
-    height: "52%",
-    backgroundColor: "#E7D0D0",
-    borderRadius: 7,
-    transform: [{ rotate: "12deg" }],
-    paddingTop: 15,
-    paddingHorizontal: 8,
-    gap: 9,
-  },
+    receipt: {
+      position: "absolute",
+      top: "27%",
+      right: "13%",
+      width: "33%",
+      height: "52%",
+      backgroundColor: "#E7D0D0",
+      borderRadius: 7,
+      transform: [{ rotate: "12deg" }],
+      paddingTop: 15,
+      paddingHorizontal: 8,
+      gap: 9,
+    },
 
-  receiptLine: {
-    height: 4,
-    width: "90%",
-    backgroundColor: "#B89E9E",
-    borderRadius: 3,
-  },
+    receiptLine: {
+      height: 4,
+      width: "90%",
+      backgroundColor: "#B89E9E",
+      borderRadius: 3,
+    },
 
-  receiptLineShort: {
-    height: 4,
-    width: "60%",
-    backgroundColor: "#B89E9E",
-    borderRadius: 3,
-  },
+    receiptLineShort: {
+      height: 4,
+      width: "60%",
+      backgroundColor: "#B89E9E",
+      borderRadius: 3,
+    },
 
-  shoppingBag: {
-    position: "absolute",
-    left: "15%",
-    bottom: "10%",
-    width: "53%",
-    height: "57%",
-    backgroundColor: Colors.primary,
-    borderRadius: 13,
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 8,
-    zIndex: 2,
-  },
+    shoppingBag: {
+      position: "absolute",
+      left: "15%",
+      bottom: "10%",
+      width: "53%",
+      height: "57%",
+      backgroundColor: Colors.primary,
+      borderRadius: 13,
+      alignItems: "center",
+      justifyContent: "center",
+      elevation: 8,
+      zIndex: 2,
+    },
 
-  bagHandle: {
-    position: "absolute",
-    top: -14,
-    width: "48%",
-    height: 31,
-    borderWidth: 5,
-    borderColor: Colors.primaryLight,
-    borderBottomWidth: 0,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-  },
+    bagHandle: {
+      position: "absolute",
+      top: -14,
+      width: "48%",
+      height: 31,
+      borderWidth: 5,
+      borderColor: Colors.primaryLight,
+      borderBottomWidth: 0,
+      borderTopLeftRadius: 12,
+      borderTopRightRadius: 12,
+    },
 
-  cancelCircle: {
-    position: "absolute",
-    zIndex: 3,
-    bottom: "7%",
-    right: "21%",
-    width: "34%",
-    aspectRatio: 1,
-    borderRadius: 100,
-    borderWidth: 4,
-    borderColor: Colors.primaryDark,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    cancelCircle: {
+      position: "absolute",
+      zIndex: 3,
+      bottom: "7%",
+      right: "21%",
+      width: "34%",
+      aspectRatio: 1,
+      borderRadius: 100,
+      borderWidth: 4,
+      borderColor: Colors.primaryDark,
+      backgroundColor: Colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  artBase: {
-    position: "absolute",
-    bottom: "5%",
-    width: "95%",
-    height: 7,
-    borderRadius: 100,
-    backgroundColor: Colors.primaryDark,
-  },
+    artBase: {
+      position: "absolute",
+      bottom: "5%",
+      width: "95%",
+      height: 7,
+      borderRadius: 100,
+      backgroundColor: Colors.primaryDark,
+    },
 
-  // =========================================
-  // TABS
-  // =========================================
+    // =========================================
+    // TABS
+    // =========================================
 
-  tabs: {
-    flexDirection: "row",
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    borderRadius: 22,
-    overflow: "hidden",
-    marginBottom: 20,
-    backgroundColor: Colors.backgroundElement,
-  },
+    tabs: {
+      flexDirection: "row",
+      borderWidth: 1.5,
+      borderColor: Colors.border,
+      borderRadius: 22,
+      overflow: "hidden",
+      marginBottom: 20,
+      backgroundColor: Colors.backgroundElement,
+    },
 
-  tab: {
-    flex: 1,
-    minHeight: 66,
-    paddingHorizontal: 7,
-    paddingVertical: 9,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-  },
+    tab: {
+      flex: 1,
+      minHeight: 66,
+      paddingHorizontal: 7,
+      paddingVertical: 9,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+    },
 
-  activeTab: {
-    backgroundColor: Colors.primary,
-    borderRadius: 20,
-  },
+    activeTab: {
+      backgroundColor: Colors.primary,
+      borderRadius: 20,
+    },
 
-  tabText: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
-    flexShrink: 1,
-  },
+    tabText: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.base,
+      flexShrink: 1,
+    },
 
-  // =========================================
-  // PANELS
-  // =========================================
+    // =========================================
+    // PANELS
+    // =========================================
 
-  panel: {
-    padding: 17,
-    marginBottom: 18,
-    borderRadius: 22,
-    borderWidth: 1.5,
-    borderColor: Colors.divider,
-    backgroundColor: Colors.card,
-  },
+    panel: {
+      padding: 17,
+      marginBottom: 18,
+      borderRadius: 22,
+      borderWidth: 1.5,
+      borderColor: Colors.divider,
+      backgroundColor: Colors.card,
+    },
 
-  panelTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xxl,
-    lineHeight: 30,
-    marginBottom: 3,
-  },
+    panelTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xxl,
+      lineHeight: 30,
+      marginBottom: 3,
+    },
 
-  panelDescription: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
-    lineHeight: 22,
-    marginBottom: 20,
-  },
+    panelDescription: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.base,
+      lineHeight: 22,
+      marginBottom: 20,
+    },
 
-  // =========================================
-  // TIMELINE
-  // =========================================
+    // =========================================
+    // TIMELINE
+    // =========================================
 
-  timeline: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: 5,
-  },
+    timeline: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: 5,
+    },
 
-  timelineStep: {
-    flex: 1,
-    alignItems: "center",
-  },
+    timelineStep: {
+      flex: 1,
+      alignItems: "center",
+    },
 
-  stepIconActive: {
-    width: 67,
-    height: 67,
-    borderRadius: 36,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 10,
-  },
+    stepIconActive: {
+      width: 67,
+      height: 67,
+      borderRadius: 36,
+      backgroundColor: Colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 10,
+    },
 
-  stepIcon: {
-    width: 67,
-    height: 67,
-    borderRadius: 36,
-    backgroundColor: Colors.borderLight,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 10,
-  },
+    stepIcon: {
+      width: 67,
+      height: 67,
+      borderRadius: 36,
+      backgroundColor: Colors.borderLight,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 10,
+    },
 
-  stepTitle: {
-    color: Colors.textPrimary,
-    textAlign: "center",
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
-    lineHeight: 19,
-    minHeight: 39,
-  },
+    stepTitle: {
+      color: Colors.textPrimary,
+      textAlign: "center",
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.base,
+      lineHeight: 19,
+      minHeight: 39,
+    },
 
-  stepDescription: {
-    color: Colors.textSecondary,
-    textAlign: "center",
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
-    lineHeight: 18,
-    marginTop: 4,
-  },
+    stepDescription: {
+      color: Colors.textSecondary,
+      textAlign: "center",
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.md,
+      lineHeight: 18,
+      marginTop: 4,
+    },
 
-  // =========================================
-  // ACTION BUTTON
-  // =========================================
+    // =========================================
+    // ACTION BUTTON
+    // =========================================
 
-  actionButton: {
-    backgroundColor: Colors.buttonPrimary,
-    minHeight: 49,
-    borderRadius: 15,
-    marginTop: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 9,
-  },
+    actionButton: {
+      backgroundColor: Colors.buttonPrimary,
+      minHeight: 49,
+      borderRadius: 15,
+      marginTop: 20,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 9,
+    },
 
-  actionButtonPressed: {
-    backgroundColor: Colors.buttonPressed,
-  },
+    actionButtonPressed: {
+      backgroundColor: Colors.buttonPressed,
+    },
 
-  actionButtonText: {
-    color: Colors.buttonText,
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xl,
-  },
+    actionButtonText: {
+      color: Colors.buttonText,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xl,
+    },
 
-  // =========================================
-  // PAYMENT CARDS
-  // =========================================
+    // =========================================
+    // PAYMENT CARDS
+    // =========================================
 
-  paymentCards: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-  },
+    paymentCards: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: 12,
+    },
 
-  paymentCard: {
-    minHeight: 190,
-    padding: 12,
-    borderRadius: 19,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    alignItems: "flex-start",
-  },
+    paymentCard: {
+      minHeight: 190,
+      padding: 12,
+      borderRadius: 19,
+      borderWidth: 1.5,
+      borderColor: Colors.border,
+      backgroundColor: Colors.surface,
+      alignItems: "flex-start",
+    },
 
-  paymentIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 30,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 13,
-  },
+    paymentIcon: {
+      width: 56,
+      height: 56,
+      borderRadius: 30,
+      backgroundColor: Colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 13,
+    },
 
-  paymentTextContainer: {
-    width: "100%",
-  },
+    paymentTextContainer: {
+      width: "100%",
+    },
 
-  paymentTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xl,
-    lineHeight: 20,
-    marginBottom: 6,
-  },
+    paymentTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xl,
+      lineHeight: 20,
+      marginBottom: 6,
+    },
 
-  paymentDescription: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
-    lineHeight: 19,
-  },
+    paymentDescription: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.md,
+      lineHeight: 19,
+    },
 
-  // =========================================
-  // FAQ
-  // =========================================
+    // =========================================
+    // FAQ
+    // =========================================
 
-  faqSection: {
-    marginTop: 3,
-  },
+    faqSection: {
+      marginTop: 3,
+    },
 
-  faqHeading: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xxl,
-    lineHeight: 30,
-    marginBottom: 13,
-    paddingHorizontal: 5,
-  },
+    faqHeading: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xxl,
+      lineHeight: 30,
+      marginBottom: 13,
+      paddingHorizontal: 5,
+    },
 
-  faqCard: {
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: Colors.divider,
-    backgroundColor: Colors.surface,
-    marginBottom: 10,
-    overflow: "hidden",
-  },
+    faqCard: {
+      borderRadius: 20,
+      borderWidth: 1.5,
+      borderColor: Colors.divider,
+      backgroundColor: Colors.surface,
+      marginBottom: 10,
+      overflow: "hidden",
+    },
 
-  faqQuestion: {
-    minHeight: 65,
-    paddingHorizontal: 13,
-    paddingVertical: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
+    faqQuestion: {
+      minHeight: 65,
+      paddingHorizontal: 13,
+      paddingVertical: 10,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
 
-  faqIcon: {
-    width: 43,
-    height: 43,
-    borderRadius: 23,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    faqIcon: {
+      width: 43,
+      height: 43,
+      borderRadius: 23,
+      backgroundColor: Colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  faqQuestionText: {
-    flex: 1,
-    color: Colors.textPrimary,
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.base,
-    lineHeight: 21,
-  },
+    faqQuestionText: {
+      flex: 1,
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.base,
+      lineHeight: 21,
+    },
 
-  faqAnswer: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.md,
-    lineHeight: 22,
-    paddingHorizontal: 17,
-    paddingBottom: 17,
-    paddingLeft: 68,
-  },
+    faqAnswer: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.md,
+      lineHeight: 22,
+      paddingHorizontal: 17,
+      paddingBottom: 17,
+      paddingLeft: 68,
+    },
 
-  // =========================================
-  // FOOTER
-  // =========================================
+    // =========================================
+    // FOOTER
+    // =========================================
 
-  footer: {
-    color: Colors.textMuted,
-    textAlign: "center",
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xl,
-    marginTop: 12,
-  },
+    footer: {
+      color: Colors.textMuted,
+      textAlign: "center",
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xl,
+      marginTop: 12,
+    },
   });
 };

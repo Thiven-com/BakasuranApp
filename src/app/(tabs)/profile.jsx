@@ -34,8 +34,8 @@ export default function ProfileScreen() {
       title: "My Orders",
       subtitle: "View your order history",
       icon: "bag-handle",
-      color: colors.order,
-      background: isDark ? "#35151B" : "#FFE9EC",
+      color: colors.goldLight,
+
       route: "/MyOrdersScreen",
     },
     {
@@ -43,7 +43,7 @@ export default function ProfileScreen() {
       subtitle: "Manage your delivery addresses",
       icon: "location",
       color: colors.warning,
-      background: isDark ? "#352A14" : "#FFF3DC",
+
       route: "/addresses",
     },
     {
@@ -51,7 +51,7 @@ export default function ProfileScreen() {
       subtitle: "Manage cards, UPI & wallets",
       icon: "card",
       color: colors.info,
-      background: isDark ? "#102F42" : "#E3F2FB",
+
       route: "/payments",
     },
     {
@@ -59,7 +59,7 @@ export default function ProfileScreen() {
       subtitle: "Your saved restaurants",
       icon: "heart",
       color: colors.favourite || colors.offer,
-      background: isDark ? "#35141F" : "#FFE6EE",
+
       route: "/favourites",
     },
     {
@@ -67,15 +67,15 @@ export default function ProfileScreen() {
       subtitle: "Exclusive offers and rewards",
       icon: "gift",
       color: colors.offer,
-      background: isDark ? "#2C1740" : "#F1E6FB",
+
       route: "/Offers&DealsScreen",
     },
     {
       title: "Help & Support",
       subtitle: "Get help, FAQs and support",
       icon: "headset",
-      color: "#f82408",
-      background: "#0c0909",
+      color: "#01a2ff",
+
       route: "/help&support",
     },
     {
@@ -83,7 +83,7 @@ export default function ProfileScreen() {
       subtitle: "App preferences and notifications",
       icon: "settings",
       color: isDark ? "#B8C0CC" : "#4B5563",
-      background: isDark ? "#29303A" : "#EBEDF0",
+
       route: "/settings",
     },
 
@@ -91,16 +91,16 @@ export default function ProfileScreen() {
       title: "Blogs",
       subtitle: " Discover food stories, tips and trends",
       icon: "newspaper-outline",
-      color: "#f82408",
-      background: "#0c0909",
+      color: "#0d701e",
+
       route: "/Blogs",
     },
 
     {
-      title: "Cancellation-Refund",
+      title: "Cancellation-refund",
       icon: "receipt-outline",
-      color: "#f82408",
-      background: "#0c0909",
+      color: "#8b4011",
+
       route: "/cancellation-refund",
     },
   ];
