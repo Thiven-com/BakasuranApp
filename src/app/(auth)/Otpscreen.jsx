@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
   Image,
@@ -18,11 +19,9 @@ import {
   View,
 } from "react-native";
 
-// =========================================================
-// GLOBAL COLORS & FONTS
-// =========================================================
 import Fonts from "../../constants/Fonts";
 import { useTheme } from "../../hooks/use-theme";
+import { login, verifyMobile } from "../../utils/Function";
 
 const { width } = Dimensions.get("window");
 const OTP_LENGTH = 4;
@@ -30,39 +29,41 @@ const OTP_LENGTH = 4;
 export default function OTPScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { mobile } = useLocalSearchParams();
+  const params = useLocalSearchParams();
+
+  const mobile = Array.isArray(params.mobile)
+    ? params.mobile[0]
+    : params.mobile;
+
+  const mobileNumber = mobile ? String(mobile) : "";
 
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [seconds, setSeconds] = useState(30);
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
 
   const inputRefs = useRef([]);
 
-  // TIMER
+  // OTP countdown
   useEffect(() => {
     if (seconds <= 0) return;
 
     const timer = setInterval(() => {
-      setSeconds((previous) => previous - 1);
+      setSeconds((previous) => Math.max(previous - 1, 0));
     }, 1000);
 
     return () => clearInterval(timer);
   }, [seconds]);
-
-  // MOBILE NUMBER
-  const mobileNumber =
-    mobile && String(mobile).length > 0 ? String(mobile) : "8886742779";
 
   const formattedMobile =
     mobileNumber.length === 10
       ? `+91 ${mobileNumber.slice(0, 5)} ${mobileNumber.slice(5)}`
       : `+91 ${mobileNumber}`;
 
-  // OTP CHANGE
+  // OTP input handling
   const handleOTPChange = (value, index) => {
     const cleaned = value.replace(/[^0-9]/g, "");
 
-    // Clear current digit
     if (!cleaned) {
       const updatedOTP = [...otp];
       updatedOTP[index] = "";
@@ -70,34 +71,21 @@ export default function OTPScreen() {
       return;
     }
 
-    // Handle pasted OTP
-    if (cleaned.length > 1) {
-      const updatedOTP = [...otp];
-      const digits = cleaned.slice(0, OTP_LENGTH - index).split("");
-
-      digits.forEach((digit, i) => {
-        updatedOTP[index + i] = digit;
-      });
-
-      setOtp(updatedOTP);
-
-      const nextIndex = Math.min(index + digits.length, OTP_LENGTH - 1);
-
-      inputRefs.current[nextIndex]?.focus();
-      return;
-    }
-
-    // Handle single digit
     const updatedOTP = [...otp];
-    updatedOTP[index] = cleaned;
+    const digits = cleaned.slice(0, OTP_LENGTH - index).split("");
+
+    digits.forEach((digit, i) => {
+      updatedOTP[index + i] = digit;
+    });
+
     setOtp(updatedOTP);
 
-    if (index < OTP_LENGTH - 1) {
-      inputRefs.current[index + 1]?.focus();
-    }
+    const nextIndex = Math.min(index + digits.length, OTP_LENGTH - 1);
+
+    inputRefs.current[nextIndex]?.focus();
   };
 
-  // BACKSPACE
+  // Backspace handling
   const handleKeyPress = (event, index) => {
     if (
       event.nativeEvent.key === "Backspace" &&
@@ -108,42 +96,115 @@ export default function OTPScreen() {
     }
   };
 
-  // VERIFY OTP
-  const handleVerifyOTP = () => {
-    const enteredOTP = otp.join("");
+  // VERIFY OTP API
+
+  const handleVerifyOTP = async () => {
+    const enteredOTP = otp.join("").trim();
+
+    if (!mobileNumber || mobileNumber.length !== 10) {
+      Alert.alert(
+        "Invalid Mobile Number",
+        "Please return to the login screen and enter a valid mobile number.",
+      );
+      return;
+    }
 
     if (enteredOTP.length !== OTP_LENGTH) {
       Alert.alert("Invalid OTP", "Please enter the complete 4-digit OTP.");
       return;
     }
 
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    // Connect your OTP verification API here.
-    // This currently simulates verification only.
-    setTimeout(() => {
+      console.log("Verifying OTP...");
+      console.log("Mobile:", mobileNumber);
+
+      const response = await verifyMobile(mobileNumber, enteredOTP);
+
+      console.log("OTP API RESPONSE:", response);
+
+      const isSuccess =
+        response?.success === 1 ||
+        response?.success === true ||
+        response?.success === "1";
+
+      if (isSuccess) {
+        console.log("OTP verified. Opening Home screen.");
+
+        // Navigate directly to the tabs entry route.
+        router.replace("/HomeScreen");
+      } else {
+        Alert.alert(
+          "Verification Failed",
+          response?.message || "OTP verification failed. Please try again.",
+        );
+      }
+    } catch (error) {
+      console.log("OTP API ERROR:", error?.message || error);
+
+      Alert.alert(
+        "API Error",
+        error?.message || "Unable to verify OTP. Please try again.",
+      );
+    } finally {
       setLoading(false);
-
-      // Navigate after verification
-      router.replace("/setprofile");
-    }, 500);
+    }
   };
 
-  // RESEND OTP
-  const handleResendOTP = () => {
-    if (seconds > 0) return;
+  // RESEND OTP using the existing login API
+  const handleResendOTP = async () => {
+    if (seconds > 0 || resending || loading) return;
 
-    setOtp(["", "", "", ""]);
-    setSeconds(30);
+    if (!mobileNumber || mobileNumber.length !== 10) {
+      Alert.alert("Error", "Mobile number is missing.");
+      return;
+    }
 
-    setTimeout(() => {
-      inputRefs.current[0]?.focus();
-    }, 100);
+    try {
+      setResending(true);
 
-    Alert.alert("OTP Sent", "A new OTP has been requested.");
+      const response = await login(mobileNumber);
+
+      console.log("Resend OTP response:", response);
+
+      const isSuccess =
+        response?.success === 1 ||
+        response?.success === true ||
+        response?.success === "1";
+
+      if (isSuccess) {
+        setOtp(["", "", "", ""]);
+        setSeconds(30);
+
+        setTimeout(() => {
+          inputRefs.current[0]?.focus();
+        }, 100);
+
+        Alert.alert(
+          "OTP Sent",
+          response?.message || "A new OTP has been sent.",
+        );
+      } else {
+        Alert.alert(
+          "Resend Failed",
+          response?.message || "Unable to resend OTP.",
+        );
+      }
+    } catch (error) {
+      console.log("Resend OTP error:", error);
+
+      Alert.alert(
+        "Resend Failed",
+        error?.response?.data?.message ||
+          error?.message ||
+          "Unable to resend OTP.",
+      );
+    } finally {
+      setResending(false);
+    }
   };
 
-  // EDIT MOBILE
   const handleEditMobile = () => {
     router.back();
   };
@@ -174,13 +235,7 @@ export default function OTPScreen() {
               resizeMode="cover"
             />
 
-            <Pressable
-              style={({ pressed }) => [
-                styles.backButton,
-                pressed && styles.backButtonPressed,
-              ]}
-              onPress={() => router.back()}
-            >
+            <Pressable style={styles.backButton} onPress={() => router.back()}>
               <Ionicons name="arrow-back" size={24} color={colors.white} />
             </Pressable>
           </View>
@@ -194,7 +249,6 @@ export default function OTPScreen() {
 
             <Text style={styles.description}>We've sent a 4-digit OTP to</Text>
 
-            {/* MOBILE NUMBER */}
             <View style={styles.mobileRow}>
               <Text style={styles.mobileNumber}>{formattedMobile}</Text>
 
@@ -215,7 +269,7 @@ export default function OTPScreen() {
                   onChangeText={(value) => handleOTPChange(value, index)}
                   onKeyPress={(event) => handleKeyPress(event, index)}
                   keyboardType="number-pad"
-                  maxLength={index === 0 ? 4 : 1}
+                  maxLength={index === 0 ? OTP_LENGTH : 1}
                   textContentType="oneTimeCode"
                   autoComplete="sms-otp"
                   selectionColor={colors.primary}
@@ -239,33 +293,39 @@ export default function OTPScreen() {
                   {String(seconds).padStart(2, "0")}
                 </Text>
               ) : (
-                <Pressable onPress={handleResendOTP} hitSlop={10}>
-                  <Text style={styles.resendRed}> Resend OTP</Text>
+                <Pressable
+                  onPress={handleResendOTP}
+                  disabled={resending || loading}
+                  hitSlop={10}
+                >
+                  <Text style={styles.resendRed}>
+                    {resending ? " Sending..." : " Resend OTP"}
+                  </Text>
                 </Pressable>
               )}
             </View>
 
             {/* VERIFY BUTTON */}
             <Pressable
-              style={({ pressed }) => [
+              style={[
                 styles.verifyButton,
-                loading && styles.verifyButtonDisabled,
-                pressed && !loading && styles.verifyButtonPressed,
+                (loading || resending) && styles.verifyButtonDisabled,
               ]}
               onPress={handleVerifyOTP}
-              disabled={loading}
+              disabled={loading || resending}
             >
-              <Text style={styles.verifyText}>
-                {loading ? "Verifying..." : "Verify OTP"}
-              </Text>
-
-              {!loading && (
-                <Ionicons
-                  name="arrow-forward"
-                  size={27}
-                  color={colors.white}
-                  style={styles.verifyIcon}
-                />
+              {loading ? (
+                <ActivityIndicator color={colors.white} />
+              ) : (
+                <>
+                  <Text style={styles.verifyText}>Verify OTP</Text>
+                  <Ionicons
+                    name="arrow-forward"
+                    size={27}
+                    color={colors.white}
+                    style={styles.verifyIcon}
+                  />
+                </>
               )}
             </Pressable>
 
@@ -273,10 +333,9 @@ export default function OTPScreen() {
             <View style={styles.securityRow}>
               <Ionicons
                 name="shield-checkmark-outline"
-                size={12}
+                size={14}
                 color={colors.textMuted}
               />
-
               <Text style={styles.securityText}>
                 Your OTP is secure and private
               </Text>
@@ -290,221 +349,185 @@ export default function OTPScreen() {
   );
 }
 
-const createStyles = (colors) => StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-
-  keyboardContainer: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-
-  scrollView: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 20,
-    backgroundColor: colors.background,
-  },
-
-  heroContainer: {
-    width: "100%",
-    height: width * 1.28,
-    position: "relative",
-    backgroundColor: colors.background,
-    overflow: "hidden",
-  },
-
-  heroImage: {
-    width: "100%",
-    height: "100%",
-  },
-
-  backButton: {
-    position: "absolute",
-    top: 18,
-    left: 12,
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: colors.overlay,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.overlayLight,
-  },
-
-  backButtonPressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.95 }],
-  },
-
-  otpSection: {
-    width: "100%",
-    backgroundColor: colors.surface,
-    paddingHorizontal: 12,
-    paddingTop: 25,
-    paddingBottom: 25,
-    minHeight: 470,
-  },
-
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-
-  titleWhite: {
-    color: colors.textPrimary,
-    fontSize: Fonts.size.xxl,
-    fontFamily: Fonts.extraBold,
-    fontWeight: "800",
-    letterSpacing: -0.3,
-  },
-
-  titleRed: {
-    color: colors.primary,
-    fontSize: Fonts.size.xxl,
-    fontFamily: Fonts.extraBold,
-    fontWeight: "800",
-    letterSpacing: -0.3,
-  },
-
-  description: {
-    color: colors.textSecondary,
-    fontSize: Fonts.size.xl,
-    fontFamily: Fonts.regular,
-    lineHeight: 20,
-    marginBottom: 7,
-  },
-
-  mobileRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 22,
-  },
-
-  mobileNumber: {
-    color: colors.textPrimary,
-    fontSize: Fonts.size.xl,
-    fontFamily: Fonts.bold,
-    fontWeight: "700",
-    letterSpacing: 0.2,
-  },
-
-  editText: {
-    color: colors.primary,
-    fontSize: Fonts.size.sm,
-    fontFamily: Fonts.semiBold,
-    fontWeight: "600",
-    marginLeft: 9,
-    textDecorationLine: "underline",
-  },
-
-  otpContainer: {
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-evenly",
-    alignItems: "center",
-    marginBottom: 17,
-  },
-
-  otpInput: {
-    width: Math.min((width - 80) / 4, 60),
-    height: 54,
-    borderRadius: 9,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    color: colors.textPrimary,
-    textAlign: "center",
-    fontSize: Fonts.size.xxl,
-    fontFamily: Fonts.bold,
-    fontWeight: "700",
-    padding: 0,
-  },
-
-  otpInputActive: {
-    borderColor: colors.borderLight,
-    backgroundColor: colors.card,
-  },
-
-  resendRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 22,
-    flexWrap: "wrap",
-  },
-
-  resendText: {
-    color: colors.textSecondary,
-    fontSize: Fonts.size.xl,
-    fontFamily: Fonts.regular,
-  },
-
-  resendRed: {
-    color: colors.primary,
-    fontSize: Fonts.size.xl,
-    fontFamily: Fonts.bold,
-    fontWeight: "700",
-  },
-
-  verifyButton: {
-    width: "100%",
-    height: 60,
-    borderRadius: 25,
-    backgroundColor: colors.primary,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-
-  verifyButtonPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.985 }],
-  },
-
-  verifyButtonDisabled: {
-    opacity: 0.7,
-  },
-
-  verifyText: {
-    color: colors.white,
-    fontSize: Fonts.size.xxl,
-    fontFamily: Fonts.bold,
-    fontWeight: "700",
-  },
-
-  verifyIcon: {
-    marginLeft: 9,
-  },
-
-  securityRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 16,
-  },
-
-  securityText: {
-    color: colors.textMuted,
-    fontSize: Fonts.size.base,
-    fontFamily: Fonts.regular,
-    marginLeft: 4,
-  },
-
-  bottomSpace: {
-    height: 35,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    keyboardContainer: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollView: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingBottom: 20,
+      backgroundColor: colors.background,
+    },
+    heroContainer: {
+      width: "100%",
+      height: width * 1.28,
+      position: "relative",
+      backgroundColor: colors.background,
+      overflow: "hidden",
+    },
+    heroImage: {
+      width: "100%",
+      height: "100%",
+    },
+    backButton: {
+      position: "absolute",
+      top: 18,
+      left: 12,
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: colors.overlay,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.overlayLight,
+    },
+    otpSection: {
+      width: "100%",
+      backgroundColor: colors.surface,
+      paddingHorizontal: 12,
+      paddingTop: 25,
+      paddingBottom: 25,
+      minHeight: 470,
+    },
+    titleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    titleWhite: {
+      color: colors.textPrimary,
+      fontSize: Fonts.size.xxl,
+      fontFamily: Fonts.extraBold,
+      fontWeight: "800",
+      letterSpacing: -0.3,
+    },
+    titleRed: {
+      color: colors.primary,
+      fontSize: Fonts.size.xxl,
+      fontFamily: Fonts.extraBold,
+      fontWeight: "800",
+      letterSpacing: -0.3,
+    },
+    description: {
+      color: colors.textSecondary,
+      fontSize: Fonts.size.xl,
+      fontFamily: Fonts.regular,
+      lineHeight: 20,
+      marginBottom: 7,
+    },
+    mobileRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 22,
+    },
+    mobileNumber: {
+      color: colors.textPrimary,
+      fontSize: Fonts.size.xl,
+      fontFamily: Fonts.bold,
+      fontWeight: "700",
+      letterSpacing: 0.2,
+    },
+    editText: {
+      color: colors.primary,
+      fontSize: Fonts.size.sm,
+      fontFamily: Fonts.semiBold,
+      fontWeight: "600",
+      marginLeft: 9,
+      textDecorationLine: "underline",
+    },
+    otpContainer: {
+      width: "100%",
+      flexDirection: "row",
+      justifyContent: "space-evenly",
+      alignItems: "center",
+      marginBottom: 17,
+    },
+    otpInput: {
+      width: Math.min((width - 80) / 4, 60),
+      height: 54,
+      borderRadius: 9,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      color: colors.textPrimary,
+      textAlign: "center",
+      fontSize: Fonts.size.xxl,
+      fontFamily: Fonts.bold,
+      fontWeight: "700",
+      padding: 0,
+    },
+    otpInputActive: {
+      borderColor: colors.borderLight,
+      backgroundColor: colors.card,
+    },
+    resendRow: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 22,
+      flexWrap: "wrap",
+    },
+    resendText: {
+      color: colors.textSecondary,
+      fontSize: Fonts.size.xl,
+      fontFamily: Fonts.regular,
+    },
+    resendRed: {
+      color: colors.primary,
+      fontSize: Fonts.size.xl,
+      fontFamily: Fonts.bold,
+      fontWeight: "700",
+    },
+    verifyButton: {
+      width: "100%",
+      height: 60,
+      borderRadius: 25,
+      backgroundColor: colors.primary,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 5 },
+      shadowOpacity: 0.25,
+      shadowRadius: 10,
+      elevation: 5,
+    },
+    verifyButtonDisabled: {
+      opacity: 0.7,
+    },
+    verifyText: {
+      color: colors.white,
+      fontSize: Fonts.size.xxl,
+      fontFamily: Fonts.bold,
+      fontWeight: "700",
+    },
+    verifyIcon: {
+      marginLeft: 9,
+    },
+    securityRow: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 16,
+    },
+    securityText: {
+      color: colors.textMuted,
+      fontSize: Fonts.size.base,
+      fontFamily: Fonts.regular,
+      marginLeft: 4,
+    },
+    bottomSpace: {
+      height: 35,
+    },
+  });

@@ -1,9 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   FlatList,
   Image,
+  RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -12,57 +15,93 @@ import {
 
 import { useTheme } from "../hooks/use-theme";
 import Fonts from "../constants/Fonts";
+import { getOrders } from "../utils/Function";
 
-const orders = [
-  {
-    id: "1",
-    name: "Chicken Biryani",
-    restaurant: "Spice House",
-    image: require("../../assets/images/chicken_biryani.jpg"),
-    items: "2 items",
-    price: "₹420",
-    date: "25 Oct 2026",
-    status: "Delivered",
-    statusType: "delivered",
-    action: "Reorder",
-  },
-  {
-    id: "2",
-    name: "Margherita Pizza",
-    restaurant: "Pizza Planet",
-    image: require("../../assets/images/pizza_planet.jpg"),
-    items: "1 item",
-    price: "₹299",
-    date: "20 Oct 2026",
-    status: "Preparing",
-    statusType: "preparing",
-    action: "Track",
-  },
-  {
-    id: "3",
-    name: "Classic Veg Burger",
-    restaurant: "Burger Mania",
-    image: require("../../assets/images/burger_mania.jpg"),
-    items: "3 items",
-    price: "₹380",
-    date: "18 Oct 2026",
-    status: "Cancelled",
-    statusType: "cancelled",
-    action: "View",
-  },
-  {
-    id: "4",
-    name: "Hakka Noodles",
-    restaurant: "The Grand Bowl",
-    image: require("../../assets/images/crispy_bowl.jpg"),
-    items: "2 items",
-    price: "₹260",
-    date: "15 Oct 2026",
-    status: "Delivered",
-    statusType: "delivered",
-    action: "Reorder",
-  },
-];
+const FALLBACK_IMAGE = require("../../assets/images/chicken_biryani.jpg");
+
+const extractOrders = (response) => {
+  const data = response?.data;
+  const orders = Array.isArray(data)
+    ? data
+    : Array.isArray(data?.data)
+      ? data.data
+      : data?.orders ?? data?.items ?? response?.orders ?? [];
+
+  return Array.isArray(orders) ? orders : [];
+};
+
+const toOrderImage = (value) => {
+  const image =
+    typeof value === "string"
+      ? value
+      : value?.url ?? value?.image_url ?? value?.path;
+
+  return typeof image === "string" && image.trim()
+    ? { uri: image }
+    : FALLBACK_IMAGE;
+};
+
+const formatOrder = (order) => {
+  const items = order?.items ?? order?.order_items ?? order?.details ?? [];
+  const firstItem = Array.isArray(items) ? items[0] : null;
+  const product =
+    firstItem?.product ??
+    firstItem?.variant?.product ??
+    firstItem?.food ??
+    firstItem;
+  const rawStatus = String(
+    order?.status ?? order?.order_status ?? order?.delivery_status ?? "pending",
+  );
+  const normalizedStatus = rawStatus.toLowerCase().replace(/[_-]/g, " ");
+  const statusType =
+    normalizedStatus.includes("cancel")
+      ? "cancelled"
+      : ["delivered", "complete", "completed"].some((status) =>
+            normalizedStatus.includes(status),
+          )
+        ? "delivered"
+        : "preparing";
+  const orderDate = order?.created_at ?? order?.order_date ?? order?.date;
+  const parsedDate = orderDate ? new Date(orderDate) : null;
+  const formattedDate =
+    parsedDate && !Number.isNaN(parsedDate.getTime())
+      ? parsedDate.toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : "";
+
+  return {
+    id: String(order?.id ?? order?.order_id ?? ""),
+    name:
+      product?.name ??
+      product?.title ??
+      firstItem?.name ??
+      "Order",
+    restaurant:
+      order?.restaurant?.name ??
+      order?.restaurant_name ??
+      product?.restaurant?.name ??
+      "",
+    image: toOrderImage(
+      product?.image_url ??
+        product?.image ??
+        firstItem?.image_url ??
+        firstItem?.image,
+    ),
+    items: `${Array.isArray(items) ? items.length : 0} ${
+      Array.isArray(items) && items.length === 1 ? "item" : "items"
+    }`,
+    price: `₹${Number(
+      order?.grand_total ?? order?.total_amount ?? order?.total ?? order?.amount ?? 0,
+    ).toLocaleString("en-IN")}`,
+    date: formattedDate,
+    status: rawStatus.replace(/[_-]/g, " "),
+    statusType,
+    action: statusType === "preparing" ? "Track" : "View",
+  };
+};
 
 const filters = ["All Orders", "Ongoing", "Completed", "Cancelled"];
 
@@ -70,6 +109,44 @@ const OrdersScreen = () => {
   const { colors: Colors } = useTheme();
   const styles = useMemo(() => createStyles(Colors), [Colors]);
   const [activeFilter, setActiveFilter] = useState("All Orders");
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadOrders = useCallback(async (refresh = false) => {
+    if (refresh) setRefreshing(true);
+    else setLoading(true);
+
+    try {
+      const response = await getOrders();
+
+      if (response?.success === 9) {
+        router.replace("/login");
+        return;
+      }
+
+      if (
+        response?.success != null &&
+        ![1, true, "1"].includes(response.success)
+      ) {
+        Alert.alert("Orders", response?.message || "Unable to load orders.");
+        return;
+      }
+
+      setOrders(extractOrders(response).map(formatOrder).filter((order) => order.id));
+    } catch (error) {
+      Alert.alert("Orders", error?.message || "Unable to load orders.");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadOrders();
+    }, [loadOrders]),
+  );
 
   const filteredOrders = orders.filter((order) => {
     if (activeFilter === "All Orders") {
@@ -109,7 +186,10 @@ const OrdersScreen = () => {
 
   const handleAction = (item) => {
     if (item.action === "Track") {
-      router.push("/Track-OrderScreen");
+      router.push({
+        pathname: "/Order-Details",
+        params: { orderId: item.id, status: item.status },
+      });
       return;
     }
 
@@ -119,7 +199,10 @@ const OrdersScreen = () => {
     }
 
     if (item.action === "View") {
-      router.push("/Order-Details");
+      router.push({
+        pathname: "/Order-Details",
+        params: { orderId: item.id, status: item.status },
+      });
       return;
     }
   };
@@ -270,17 +353,31 @@ const OrdersScreen = () => {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.ordersList}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadOrders(true)}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <View style={styles.emptyIcon}>
-              <Ionicons
-                name="receipt-outline"
-                size={42}
-                color={Colors.primary}
-              />
+              {loading ? (
+                <ActivityIndicator size="large" color={Colors.primary} />
+              ) : (
+                <Ionicons
+                  name="receipt-outline"
+                  size={42}
+                  color={Colors.primary}
+                />
+              )}
             </View>
 
-            <Text style={styles.emptyTitle}>No Orders Found</Text>
+            <Text style={styles.emptyTitle}>
+              {loading ? "Loading orders..." : "No Orders Found"}
+            </Text>
 
             <Text style={styles.emptyText}>
               You don't have any {activeFilter.toLowerCase()} yet.

@@ -1,143 +1,205 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Image,
+  RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 
+import BASE_URL from "../../constants/AppUrls";
 import Fonts from "../../constants/Fonts";
 import { useTheme } from "../../hooks/use-theme";
+import {
+  getProduct,
+  getWishlist,
+  removeFromWishlist,
+} from "../../utils/Function";
 
 // ============================================================
-// RESTAURANT DATA
+// RESPONSE MAPPERS
+//
+// The backend wishlist stores product VARIANTS (dishes).
+// The mappers below accept the common Laravel shapes:
+//   { success: 1, data: [ ... ] }
+//   { success: 1, data: { wishlist: [ ... ] } }
+//   { success: 1, data: { items | dishes | products: [ ... ] } }
+// and items shaped like { id, variant: {...}, product: {...} }
+// or flat objects.
+//
+// If your dishes show blank fields, open the "wishlist" request in
+// the Network tab, copy one item, and adjust mapDish() below.
 // ============================================================
 
-const initialRestaurants = [
-  {
-    id: "1",
-    name: "Spice House",
-    image: require("../../../assets/images/Restaurant1.png"),
-    cuisine: "Biryani • North Indian • Chinese",
-    rating: "4.5",
-    time: "30-40 mins",
-    location: "Hitech City, Hyderabad",
-    offer: "20% OFF",
-    price: "₹250 for two",
-  },
-  {
-    id: "2",
-    name: "Pizza Planet",
-    image: require("../../../assets/images/Restaurant3.png"),
-    cuisine: "Pizza • Italian • Fast Food",
-    rating: "4.2",
-    time: "25-35 mins",
-    location: "Madhapur, Hyderabad",
-    offer: "15% OFF",
-    price: "₹300 for two",
-  },
-  {
-    id: "3",
-    name: "Burger Mania",
-    image: require("../../../assets/images/Restaurant2.png"),
-    cuisine: "Burgers • Fast Food • Beverages",
-    rating: "4.3",
-    time: "20-30 mins",
-    location: "Kondapur, Hyderabad",
-    offer: "10% OFF",
-    price: "₹250 for two",
-  },
+const FALLBACK_IMAGE = require("../../../assets/images/Restaurant1.png");
 
-  {
-    id: "4",
-    name: "Udupi Ruchi",
-    image: require("../../../assets/images/south_indian.png"),
-    cuisine: "South Indian • Breakfast • Fast Food",
-    rating: "4.4",
-    time: "15-25 mins",
-    location: "Gachibowli, Hyderabad",
-    offer: "25% OFF",
-    price: "₹180 for two",
-  },
-  {
-    id: "5",
-    name: "China Town",
-    image: require("../../../assets/images/chinese.png"),
-    cuisine: "Chinese • Asian • Thai",
-    rating: "4.1",
-    time: "25-35 mins",
-    location: "KPHB, Hyderabad",
-    offer: "30% OFF",
-    price: "₹220 for two",
-  },
-];
+const normalizeImageUri = (image) => {
+  const value =
+    typeof image === "string"
+      ? image
+      : (image?.url ?? image?.path ?? image?.image_url ?? image?.image);
+  if (typeof value !== "string" || !value.trim()) return null;
 
-// ============================================================
-// DISH DATA
-// ============================================================
+  const uri = value.trim();
+  if (/^https?:\/\//i.test(uri)) {
+    try {
+      const parsed = new URL(uri);
+      return parsed.pathname !== "/" ? uri : null;
+    } catch {
+      return null;
+    }
+  }
 
-const initialDishes = [
-  {
-    id: "1",
-    name: "Chicken Biryani",
-    restaurant: "Spice House",
-    image: require("../../../assets/images/chicken_biryani.jpg"),
-    rating: "4.8",
-    price: "₹249",
-    oldPrice: "₹299",
-    time: "25 min",
-    isVeg: false,
-  },
-  {
-    id: "2",
-    name: "Paneer Special",
-    restaurant: "Spice House",
-    image: require("../../../assets/images/paneer.jpg"),
-    rating: "4.6",
-    price: "₹199",
-    oldPrice: "₹249",
-    time: "25 min",
-    isVeg: true,
-  },
-  {
-    id: "3",
-    name: "Fried Chicken",
-    restaurant: "Crispy Bowl",
-    image: require("../../../assets/images/fried_chicken.jpg"),
-    rating: "4.7",
-    price: "₹279",
-    oldPrice: "₹329",
-    time: "30 min",
-    isVeg: false,
-  },
-  {
-    id: "4",
-    name: "Veg Special",
-    restaurant: "Food Paradise",
-    image: require("../../../assets/images/veg_specials.jpg"),
-    rating: "4.5",
-    price: "₹179",
-    oldPrice: "₹219",
-    time: "20 min",
-    isVeg: true,
-  },
-  {
-    id: "5",
-    name: "Ice Cream",
-    restaurant: "Sweet Corner",
-    image: require("../../../assets/images/ice_cream.jpg"),
-    rating: "4.8",
-    price: "₹149",
-    oldPrice: "₹179",
-    time: "15 min",
-    isVeg: true,
-  },
-];
+  return `${BASE_URL.replace(/\/+$/, "")}/${uri.replace(/^\/+/, "")}`;
+};
+
+const toImageSource = (image) => {
+  const uri = normalizeImageUri(image);
+  return uri ? { uri } : FALLBACK_IMAGE;
+};
+
+const formatPrice = (value) =>
+  value === undefined || value === null || value === ""
+    ? ""
+    : `₹${String(value).replace(/^₹/, "")}`;
+
+const extractList = (res, keys) => {
+  const data = res?.data;
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data?.data)) {
+    return data.data;
+  }
+
+  for (const key of keys) {
+    if (Array.isArray(data?.[key])) {
+      return data[key];
+    }
+
+    if (Array.isArray(data?.data?.[key])) {
+      return data.data[key];
+    }
+  }
+
+  return [];
+};
+
+const extractProducts = (res) => {
+  const data = res?.data;
+  const products = Array.isArray(data)
+    ? data
+    : Array.isArray(data?.data)
+      ? data.data
+      : (data?.products ??
+        data?.product ??
+        data?.data?.products ??
+        data?.data?.product ??
+        res?.products ??
+        res?.product ??
+        []);
+
+  return Array.isArray(products) ? products : [];
+};
+
+const getProductImage = (product, variantId) => {
+  if (!product) return null;
+
+  const variants = [
+    ...(Array.isArray(product?.variants) ? product.variants : []),
+    ...(Array.isArray(product?.product_variants)
+      ? product.product_variants
+      : []),
+  ];
+  const matchingVariant = variants.find(
+    (variant) =>
+      String(variant?.id ?? variant?.variant_id ?? "") === String(variantId),
+  );
+  const candidates = [
+    matchingVariant?.image,
+    matchingVariant?.image_url,
+    product?.image,
+    product?.image_url,
+    product?.product_image,
+    product?.product_image_url,
+    product?.thumbnail,
+    product?.thumbnail_url,
+    product?.images?.[0]?.image_url,
+    product?.images?.[0]?.url,
+    product?.images?.[0]?.image,
+  ];
+
+  return candidates.map(normalizeImageUri).find(Boolean) ?? null;
+};
+
+const mapDish = (entry, products = []) => {
+  const variant = entry?.variant ?? entry;
+  const product = entry?.product ?? variant?.product ?? entry;
+
+  // id sent to DELETE wishlist/{item}
+  const variantId = variant?.id ?? entry?.variant_id ?? entry?.id;
+  const matchingProduct = products.find(
+    (item) =>
+      String(item?.id ?? item?.product_id ?? "") ===
+      String(product?.id ?? entry?.product_id ?? ""),
+  );
+  const imageUri =
+    [product?.image, product?.image_url, variant?.image, entry?.image]
+      .map(normalizeImageUri)
+      .find(Boolean) ?? getProductImage(matchingProduct, variantId);
+
+  return {
+    id: String(variantId),
+    name:
+      product?.name ??
+      product?.title ??
+      variant?.name ??
+      entry?.name ??
+      entry?.title ??
+      "",
+    restaurant:
+      product?.restaurant?.name ??
+      product?.restaurant_name ??
+      product?.vendor?.name ??
+      entry?.restaurant_name ??
+      product?.category ??
+      "",
+    image: imageUri ? { uri: imageUri } : FALLBACK_IMAGE,
+    rating: String(product?.rating ?? entry?.rating ?? "0.0"),
+    price: formatPrice(
+      variant?.price ?? variant?.selling_price ?? product?.price,
+    ),
+    oldPrice: formatPrice(
+      variant?.mrp ?? variant?.old_price ?? product?.old_price,
+    ),
+    time: product?.time ?? product?.delivery_time ?? "",
+    isVeg:
+      product?.is_veg === 1 ||
+      product?.is_veg === true ||
+      product?.veg === 1 ||
+      product?.veg_type === "veg",
+  };
+};
+
+const mapRestaurant = (r) => ({
+  id: String(r?.id ?? r?.restaurant_id),
+  name: r?.name ?? "",
+  image: toImageSource(r?.image ?? r?.logo),
+  cuisine: r?.cuisine ?? r?.cuisines ?? "",
+  rating: String(r?.rating ?? "0.0"),
+  time: r?.time ?? r?.delivery_time ?? "",
+  location: r?.location ?? r?.address ?? "",
+  offer: r?.offer ?? "",
+  price: r?.price ?? r?.cost_for_two ?? "",
+});
 
 // ============================================================
 // WISHLIST SCREEN
@@ -146,14 +208,81 @@ const initialDishes = [
 const Wishlist = () => {
   const { colors: Colors } = useTheme();
   const styles = useMemo(() => makeStyles(Colors), [Colors]);
-  const [activeTab, setActiveTab] = useState("restaurants");
 
-  const [restaurants, setRestaurants] = useState(initialRestaurants);
-
-  const [dishes, setDishes] = useState(initialDishes);
+  const [activeTab, setActiveTab] = useState("dishes");
+  const [restaurants, setRestaurants] = useState([]);
+  const [dishes, setDishes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // ==========================================================
-  // OPEN RESTAURANT  (file: app/Restaurants/[id].jsx)
+  // LOAD WISHLIST (GET /api/customer/wishlist)
+  // ==========================================================
+
+  const loadWishlist = useCallback(async (isRefresh = false) => {
+    try {
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+
+      const [wishlistResult, productsResult] = await Promise.allSettled([
+        getWishlist(),
+        getProduct(),
+      ]);
+
+      if (wishlistResult.status === "rejected") {
+        throw wishlistResult.reason;
+      }
+
+      const res = wishlistResult.value;
+      const products =
+        productsResult.status === "fulfilled"
+          ? extractProducts(productsResult.value)
+          : [];
+
+      // No token -> send to login
+      if (res?.success === 9) {
+        router.replace("/login"); // change to your login route
+        return;
+      }
+
+      const hasSuccessFlag = res?.success != null;
+      const requestSucceeded =
+        [1, true, "1"].includes(res?.success) ||
+        (!hasSuccessFlag &&
+          (Array.isArray(res?.data) || Array.isArray(res?.data?.data)));
+
+      if (requestSucceeded) {
+        setDishes(
+          extractList(res, ["wishlist", "items", "dishes", "products"]).map(
+            (entry) => mapDish(entry, products),
+          ),
+        );
+
+        // only present if the backend ever returns saved restaurants
+        setRestaurants(extractList(res, ["restaurants"]).map(mapRestaurant));
+      } else {
+        Alert.alert("Wishlist", res?.message || "Unable to load wishlist.");
+      }
+    } catch (error) {
+      Alert.alert("Wishlist", error?.message || "Unable to load wishlist.");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  // Reload every time the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadWishlist();
+    }, [loadWishlist]),
+  );
+
+  // ==========================================================
+  // OPEN RESTAURANT
   // ==========================================================
 
   const openRestaurant = (id) => {
@@ -164,7 +293,7 @@ const Wishlist = () => {
   };
 
   // ==========================================================
-  // REMOVE RESTAURANT
+  // REMOVE RESTAURANT (local only, no backend endpoint yet)
   // ==========================================================
 
   const removeRestaurant = (id) => {
@@ -172,11 +301,26 @@ const Wishlist = () => {
   };
 
   // ==========================================================
-  // REMOVE DISH
+  // REMOVE DISH (DELETE /api/customer/wishlist/{item})
   // ==========================================================
 
-  const removeDish = (id) => {
+  const removeDish = async (id) => {
+    const previous = dishes;
+
+    // optimistic update
     setDishes((prev) => prev.filter((item) => item.id !== id));
+
+    const res = await removeFromWishlist(id);
+
+    if (res?.success === 9) {
+      router.replace("/login"); // change to your login route
+      return;
+    }
+
+    if (res?.success !== 1) {
+      setDishes(previous); // rollback
+      Alert.alert("Wishlist", res?.message || "Unable to remove dish.");
+    }
   };
 
   // ==========================================================
@@ -184,8 +328,8 @@ const Wishlist = () => {
   // ==========================================================
 
   const clearAll = () => {
-    const count =
-      activeTab === "restaurants" ? restaurants.length : dishes.length;
+    const isRestaurantTab = activeTab === "restaurants";
+    const count = isRestaurantTab ? restaurants.length : dishes.length;
 
     if (count === 0) {
       return;
@@ -193,9 +337,7 @@ const Wishlist = () => {
 
     Alert.alert(
       "Clear Wishlist",
-      `Remove all saved ${
-        activeTab === "restaurants" ? "restaurants" : "dishes"
-      }?`,
+      `Remove all saved ${isRestaurantTab ? "restaurants" : "dishes"}?`,
       [
         {
           text: "Cancel",
@@ -204,12 +346,27 @@ const Wishlist = () => {
         {
           text: "Clear All",
           style: "destructive",
-          onPress: () => {
-            if (activeTab === "restaurants") {
+          onPress: async () => {
+            if (isRestaurantTab) {
               setRestaurants([]);
-            } else {
-              setDishes([]);
+              return;
             }
+
+            const results = await Promise.all(
+              dishes.map((item) => removeFromWishlist(item.id)),
+            );
+
+            const failed = results.filter((r) => r?.success !== 1).length;
+
+            if (failed > 0) {
+              Alert.alert(
+                "Wishlist",
+                `${failed} item(s) could not be removed.`,
+              );
+            }
+
+            // reload so the screen matches the backend
+            loadWishlist();
           },
         },
       ],
@@ -238,9 +395,11 @@ const Wishlist = () => {
 
           {/* OFFER */}
 
-          <View style={styles.offerBadge}>
-            <Text style={styles.offerText}>{item.offer}</Text>
-          </View>
+          {!!item.offer && (
+            <View style={styles.offerBadge}>
+              <Text style={styles.offerText}>{item.offer}</Text>
+            </View>
+          )}
         </View>
 
         {/* DETAILS */}
@@ -353,9 +512,11 @@ const Wishlist = () => {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.dishRestaurant} numberOfLines={1}>
-            {item.restaurant}
-          </Text>
+          {!!item.restaurant && (
+            <Text style={styles.dishRestaurant} numberOfLines={1}>
+              {item.restaurant}
+            </Text>
+          )}
 
           <View style={styles.dishInfoRow}>
             <View style={styles.ratingBadge}>
@@ -364,14 +525,16 @@ const Wishlist = () => {
               <Text style={styles.ratingText}>{item.rating}</Text>
             </View>
 
-            <Text style={styles.dishTime}>• {item.time}</Text>
+            {!!item.time && <Text style={styles.dishTime}>• {item.time}</Text>}
           </View>
 
           <View style={styles.dishBottomRow}>
             <View style={styles.priceContainer}>
               <Text style={styles.dishPrice}>{item.price}</Text>
 
-              <Text style={styles.dishOldPrice}>{item.oldPrice}</Text>
+              {!!item.oldPrice && (
+                <Text style={styles.dishOldPrice}>{item.oldPrice}</Text>
+              )}
             </View>
 
             <TouchableOpacity
@@ -389,10 +552,18 @@ const Wishlist = () => {
   };
 
   // ==========================================================
-  // EMPTY STATE
+  // EMPTY / LOADING STATE
   // ==========================================================
 
   const renderEmpty = () => {
+    if (loading) {
+      return (
+        <View style={styles.emptyContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      );
+    }
+
     const isRestaurant = activeTab === "restaurants";
 
     return (
@@ -417,7 +588,7 @@ const Wishlist = () => {
 
         <TouchableOpacity
           style={styles.exploreButton}
-          onPress={() => router.push("/explore")}
+          onPress={() => router.push("/ExploreScreen")} // change to your explore route
           activeOpacity={0.85}
         >
           <Text style={styles.exploreButtonText}>EXPLORE FOOD</Text>
@@ -427,6 +598,19 @@ const Wishlist = () => {
       </View>
     );
   };
+
+  // ==========================================================
+  // PULL TO REFRESH
+  // ==========================================================
+
+  const refreshControl = (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={() => loadWishlist(true)}
+      tintColor={Colors.primary}
+      colors={[Colors.primary]}
+    />
+  );
 
   // ==========================================================
   // CURRENT COUNT
@@ -517,6 +701,7 @@ const Wishlist = () => {
           keyExtractor={(item) => item.id}
           renderItem={renderRestaurant}
           ListEmptyComponent={renderEmpty}
+          refreshControl={refreshControl}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.listContent,
@@ -529,6 +714,7 @@ const Wishlist = () => {
           keyExtractor={(item) => item.id}
           renderItem={renderDish}
           ListEmptyComponent={renderEmpty}
+          refreshControl={refreshControl}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.listContent,
@@ -961,8 +1147,8 @@ const makeStyles = (Colors) =>
     emptyDescription: {
       color: Colors.textMuted,
       fontFamily: Fonts.regular,
-      fontSize: 10,
-      lineHeight: 17,
+      fontSize: 14,
+      lineHeight: 20,
       textAlign: "center",
       marginTop: 7,
     },
@@ -981,7 +1167,7 @@ const makeStyles = (Colors) =>
     exploreButtonText: {
       color: Colors.white,
       fontFamily: Fonts.bold,
-      fontSize: 10,
+      fontSize: 14,
       marginRight: 7,
     },
   });

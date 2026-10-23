@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   ScrollView,
@@ -12,42 +13,80 @@ import {
   View,
 } from "react-native";
 
+import BASE_URL from "../../constants/AppUrls";
 import Fonts from "../../constants/Fonts";
 import { useTheme } from "../../hooks/use-theme";
+import { getCart } from "../../utils/Function";
 
 // ============================================================
-// INITIAL CART DATA
+// LOCAL FALLBACK IMAGES
 // ============================================================
 
-const initialCart = [
-  {
-    id: "1",
-    name: "Chicken Biryani",
-    restaurant: "Spice House",
-    price: 249,
-    quantity: 1,
-    image: require("../../../assets/images/chicken_biryani.jpg"),
-    isVeg: false,
-  },
-  {
-    id: "2",
-    name: "Paneer Special",
-    restaurant: "Spice House",
-    price: 199,
-    quantity: 1,
-    image: require("../../../assets/images/paneer.jpg"),
-    isVeg: true,
-  },
-  {
-    id: "3",
-    name: "Fried Chicken",
-    restaurant: "Spice House",
-    price: 279,
-    quantity: 1,
-    image: require("../../../assets/images/fried_chicken.jpg"),
-    isVeg: false,
-  },
-];
+const FALLBACK_IMAGE = require("../../../assets/images/chicken_biryani.jpg");
+
+// ============================================================
+// CART RESPONSE MAPPING
+// ============================================================
+
+const getCartArray = (response) => {
+  const candidates = [
+    response?.data?.items,
+    response?.data?.cart_items,
+    response?.data?.cart?.items,
+    response?.data?.cart?.cart_items,
+    response?.data?.cart,
+    response?.items,
+    response?.cart_items,
+    response?.data,
+  ];
+
+  const result = candidates.find(Array.isArray);
+
+  return result || [];
+};
+
+const formatCartItem = (item, index) => {
+  const product = item?.product ?? item?.food ?? item?.menu_item ?? item;
+
+  const rawPrice =
+    item?.unit_price ??
+    item?.price ??
+    item?.product_price ??
+    product?.selling_price ??
+    product?.price ??
+    0;
+
+  const rawImage =
+    product?.image_url ??
+    product?.image ??
+    product?.image_path ??
+    item?.image_url ??
+    item?.image ??
+    null;
+
+  return {
+    id: String(item?.cart_item_id ?? item?.id ?? item?.cart_id ?? index),
+    name:
+      product?.name ??
+      product?.product_name ??
+      product?.food_name ??
+      item?.name ??
+      "Food Item",
+    restaurant:
+      item?.restaurant?.name ??
+      product?.restaurant?.name ??
+      item?.restaurant_name ??
+      product?.restaurant_name ??
+      "Bakasuran Restaurant",
+    price: Math.max(0, Number(rawPrice) || 0),
+    quantity: Math.max(
+      1,
+      Math.floor(Number(item?.quantity ?? item?.qty ?? 1) || 1),
+    ),
+    image: rawImage,
+    isVeg: Boolean(product?.is_veg ?? product?.isVeg ?? item?.is_veg ?? false),
+  };
+};
 
 // ============================================================
 // CART SCREEN
@@ -56,98 +95,152 @@ const initialCart = [
 const CartScreen = () => {
   const { colors: Colors } = useTheme();
   const styles = useMemo(() => makeStyles(Colors), [Colors]);
-  const [cartItems, setCartItems] = useState(initialCart);
+
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [cartError, setCartError] = useState("");
 
   const [coupon, setCoupon] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(false);
+
+  // ==========================================================
+  // FETCH CART
+  // ==========================================================
+
+  const fetchCart = useCallback(async (isRefresh = false) => {
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
+    setCartError("");
+
+    try {
+      const response = await getCart();
+
+      console.log("GET CART RESPONSE:", JSON.stringify(response, null, 2));
+
+      // Change this mapping if your API response uses another structure.
+      const items = getCartArray(response);
+
+      const formattedItems = items.map(formatCartItem);
+
+      setCartItems(formattedItems);
+    } catch (error) {
+      console.error("GET CART ERROR:", error.response?.data ?? error.message);
+
+      setCartError(
+        error.response?.data?.message ??
+          error.message ??
+          "Unable to load your cart.",
+      );
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  // Refresh whenever the screen receives focus.
+  useFocusEffect(
+    useCallback(() => {
+      fetchCart();
+    }, [fetchCart]),
+  );
 
   // ==========================================================
   // QUANTITY
   // ==========================================================
 
   const increaseQuantity = (id) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              quantity: item.quantity + 1,
-            }
-          : item,
+    setCartItems((previous) =>
+      previous.map((item) =>
+        item.id === id ? { ...item, quantity: item.quantity + 1 } : item,
       ),
     );
   };
 
   const decreaseQuantity = (id) => {
-    setCartItems((prev) =>
-      prev
+    setCartItems((previous) =>
+      previous
         .map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                quantity: item.quantity - 1,
-              }
-            : item,
+          item.id === id ? { ...item, quantity: item.quantity - 1 } : item,
         )
         .filter((item) => item.quantity > 0),
     );
   };
 
   // ==========================================================
-  // REMOVE
+  // REMOVE ITEM
   // ==========================================================
 
   const removeItem = (id) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
+    Alert.alert("Remove Item", "Remove this item from your cart?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Remove",
+        style: "destructive",
+        onPress: () => {
+          setCartItems((previous) => previous.filter((item) => item.id !== id));
+        },
+      },
+    ]);
+  };
+
+  // ==========================================================
+  // CLEAR CART
+  // ==========================================================
+
+  const clearCart = () => {
+    Alert.alert("Clear Cart", "Remove all items from your cart?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Clear",
+        style: "destructive",
+        onPress: () => {
+          setCartItems([]);
+          setCoupon("");
+          setAppliedCoupon(false);
+        },
+      },
+    ]);
   };
 
   // ==========================================================
   // TOTAL ITEMS
   // ==========================================================
 
-  const totalItems = useMemo(() => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
-  }, [cartItems]);
+  const totalItems = useMemo(
+    () => cartItems.reduce((total, item) => total + item.quantity, 0),
+    [cartItems],
+  );
 
   // ==========================================================
   // SUBTOTAL
   // ==========================================================
 
-  const subtotal = useMemo(() => {
-    return cartItems.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0,
-    );
-  }, [cartItems]);
+  const subtotal = useMemo(
+    () =>
+      cartItems.reduce((total, item) => total + item.price * item.quantity, 0),
+    [cartItems],
+  );
 
   // ==========================================================
-  // DELIVERY
+  // DELIVERY, TAX, DISCOUNT AND TOTAL
   // ==========================================================
 
-  const deliveryFee = subtotal >= 299 ? 0 : 30;
-
-  // ==========================================================
-  // GST
-  // ==========================================================
-
+  const deliveryFee = subtotal === 0 || subtotal >= 299 ? 0 : 30;
   const gst = Math.round(subtotal * 0.05);
-
-  // ==========================================================
-  // COUPON DISCOUNT
-  // ==========================================================
 
   const couponDiscount = appliedCoupon
     ? Math.min(Math.round(subtotal * 0.1), 100)
     : 0;
 
-  // ==========================================================
-  // TOTAL
-  // ==========================================================
-
-  const grandTotal = subtotal + deliveryFee + gst - couponDiscount;
+  const grandTotal = Math.max(0, subtotal + deliveryFee + gst - couponDiscount);
 
   // ==========================================================
-  // APPLY COUPON
+  // COUPON
   // ==========================================================
 
   const applyCoupon = () => {
@@ -158,13 +251,17 @@ const CartScreen = () => {
       return;
     }
 
-    if (code === "BAKA50" || code === "BAKA30" || code === "BAKASURAN") {
-      setAppliedCoupon(true);
+    if (subtotal <= 0) {
+      Alert.alert("Empty Cart", "Add items before applying a coupon.");
+      return;
+    }
 
+    if (["BAKA50", "BAKA30", "BAKASURAN"].includes(code)) {
+      setCoupon(code);
+      setAppliedCoupon(true);
       Alert.alert("Coupon Applied", "You saved on your order!");
     } else {
       setAppliedCoupon(false);
-
       Alert.alert("Invalid Coupon", "Please enter a valid coupon code.");
     }
   };
@@ -172,25 +269,67 @@ const CartScreen = () => {
   // ==========================================================
   // CHECKOUT
   // ==========================================================
+
   const handleCheckout = () => {
     if (cartItems.length === 0) {
       Alert.alert("Cart Empty", "Add some delicious food first.");
       return;
     }
 
-    // Checkout screen will be created next.
-    router.push("/CheckoutScreen");
+    router.push({
+      pathname: "/CheckoutScreen",
+      params: {
+        subtotal: String(subtotal),
+        deliveryFee: String(deliveryFee),
+        gst: String(gst),
+        couponDiscount: String(couponDiscount),
+        grandTotal: String(grandTotal),
+      },
+    });
   };
 
   // ==========================================================
-  // EMPTY CART
+  // IMAGE SOURCE
+  // ==========================================================
+
+  const getImageSource = (image) => {
+    if (typeof image === "number") {
+      return image;
+    }
+
+    if (typeof image === "string" && image.trim()) {
+      if (/^https?:\/\//i.test(image)) {
+        return { uri: image };
+      }
+
+      // Assumes relative image paths are served from BASE_URL.
+      const path = image.replace(/^\/+/, "");
+      return { uri: `${BASE_URL}/${path}` };
+    }
+
+    return FALLBACK_IMAGE;
+  };
+
+  // ==========================================================
+  // LOADING
+  // ==========================================================
+
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={styles.loadingText}>Loading your cart...</Text>
+      </View>
+    );
+  }
+
+  // ==========================================================
+  // EMPTY CART OR API ERROR
   // ==========================================================
 
   if (cartItems.length === 0) {
     return (
       <View style={styles.container}>
-        {/* HEADER */}
-
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.headerButton}
@@ -199,48 +338,73 @@ const CartScreen = () => {
             <Ionicons name="arrow-back" size={21} color={Colors.textPrimary} />
           </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>Your Cart</Text>
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle}>Your Cart</Text>
+            <Text style={styles.headerSubtitle}>0 items</Text>
+          </View>
 
           <View style={styles.headerButton} />
         </View>
 
-        {/* EMPTY */}
-
         <View style={styles.emptyContainer}>
-          <View style={styles.emptyIconContainer}>
-            <Ionicons name="cart-outline" size={60} color={Colors.primary} />
-          </View>
+          {cartError ? (
+            <>
+              <View style={styles.emptyIconContainer}>
+                <Ionicons
+                  name="cloud-offline-outline"
+                  size={52}
+                  color={Colors.primary}
+                />
+              </View>
 
-          <Text style={styles.emptyTitle}>Your cart is empty</Text>
+              <Text style={styles.emptyTitle}>Unable to load cart</Text>
 
-          <Text style={styles.emptyDescription}>
-            Looks like you haven't added anything delicious yet.
-          </Text>
+              <Text style={styles.emptyDescription}>{cartError}</Text>
 
-          <TouchableOpacity
-            style={styles.startOrderingButton}
-            onPress={() => router.push("/explore")}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.startOrderingText}>START ORDERING</Text>
+              <TouchableOpacity
+                style={styles.startOrderingButton}
+                onPress={() => fetchCart()}
+              >
+                <Ionicons name="refresh" size={18} color={Colors.white} />
+                <Text style={styles.startOrderingText}>RETRY</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <View style={styles.emptyIconContainer}>
+                <Ionicons
+                  name="cart-outline"
+                  size={60}
+                  color={Colors.primary}
+                />
+              </View>
 
-            <Ionicons name="arrow-forward" size={18} color={Colors.white} />
-          </TouchableOpacity>
+              <Text style={styles.emptyTitle}>Your cart is empty</Text>
+
+              <Text style={styles.emptyDescription}>
+                Looks like you haven't added anything delicious yet.
+              </Text>
+
+              <TouchableOpacity
+                style={styles.startOrderingButton}
+                onPress={() => router.push("/explore")}
+              >
+                <Text style={styles.startOrderingText}>START ORDERING</Text>
+                <Ionicons name="arrow-forward" size={18} color={Colors.white} />
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
     );
   }
 
   // ==========================================================
-  // MAIN UI
+  // MAIN CART UI
   // ==========================================================
 
   return (
     <View style={styles.container}>
-      {/* ====================================================
-          HEADER
-      ==================================================== */}
-
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.headerButton}
@@ -252,7 +416,6 @@ const CartScreen = () => {
 
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Your Cart</Text>
-
           <Text style={styles.headerSubtitle}>
             {totalItems} {totalItems === 1 ? "item" : "items"}
           </Text>
@@ -260,32 +423,27 @@ const CartScreen = () => {
 
         <TouchableOpacity
           style={styles.headerButton}
-          onPress={() => {
-            Alert.alert("Clear Cart", "Remove all items from your cart?", [
-              {
-                text: "Cancel",
-                style: "cancel",
-              },
-              {
-                text: "Clear",
-                style: "destructive",
-                onPress: () => setCartItems([]),
-              },
-            ]);
-          }}
+          onPress={clearCart}
           activeOpacity={0.8}
         >
           <Ionicons name="trash-outline" size={19} color={Colors.primary} />
         </TouchableOpacity>
       </View>
 
+      {cartError ? (
+        <TouchableOpacity
+          style={styles.errorBanner}
+          onPress={() => fetchCart(true)}
+        >
+          <Text style={styles.errorBannerText}>{cartError} Tap to retry.</Text>
+        </TouchableOpacity>
+      ) : null}
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* ==================================================
-            RESTAURANT
-        ================================================== */}
+        {/* RESTAURANT */}
 
         <View style={styles.restaurantSection}>
           <View style={styles.restaurantIcon}>
@@ -293,34 +451,39 @@ const CartScreen = () => {
           </View>
 
           <View style={styles.restaurantInfo}>
-            <Text style={styles.restaurantName}>Spice House</Text>
-
-            <Text style={styles.restaurantLocation}>
-              Hitech City, Hyderabad
+            <Text style={styles.restaurantName}>
+              {cartItems[0]?.restaurant ?? "Bakasuran Restaurant"}
             </Text>
+
+            <Text style={styles.restaurantLocation}>Restaurant order</Text>
           </View>
 
           <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
         </View>
 
-        {/* ==================================================
-            CART ITEMS
-        ================================================== */}
+        {/* ITEMS HEADER */}
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Your Items</Text>
-
           <Text style={styles.itemCount}>{totalItems} items</Text>
         </View>
 
-        <View style={styles.itemsContainer}>
-          {cartItems.map((item) => (
-            <View key={item.id} style={styles.cartItem}>
-              {/* IMAGE */}
+        {/* CART ITEMS */}
 
+        <View style={styles.itemsContainer}>
+          {cartItems.map((item, index) => (
+            <View
+              key={`${item.id}-${index}`}
+              style={[
+                styles.cartItem,
+                index === cartItems.length - 1 && {
+                  borderBottomWidth: 0,
+                },
+              ]}
+            >
               <View style={styles.itemImageContainer}>
                 <Image
-                  source={item.image}
+                  source={getImageSource(item.image)}
                   style={styles.itemImage}
                   resizeMode="cover"
                 />
@@ -346,25 +509,24 @@ const CartScreen = () => {
                 </View>
               </View>
 
-              {/* DETAILS */}
-
               <View style={styles.itemDetails}>
                 <Text style={styles.itemName} numberOfLines={2}>
                   {item.name}
                 </Text>
 
-                <Text style={styles.itemRestaurant}>{item.restaurant}</Text>
+                <Text style={styles.itemRestaurant} numberOfLines={1}>
+                  {item.restaurant}
+                </Text>
 
-                <Text style={styles.itemPrice}>₹{item.price}</Text>
+                <Text style={styles.itemPrice}>₹{item.price.toFixed(2)}</Text>
               </View>
-
-              {/* QUANTITY */}
 
               <View style={styles.itemRight}>
                 <View style={styles.quantityContainer}>
                   <TouchableOpacity
                     style={styles.quantityButton}
                     onPress={() => decreaseQuantity(item.id)}
+                    accessibilityLabel={`Decrease ${item.name} quantity`}
                   >
                     <Ionicons name="remove" size={15} color={Colors.white} />
                   </TouchableOpacity>
@@ -374,21 +536,21 @@ const CartScreen = () => {
                   <TouchableOpacity
                     style={styles.quantityButton}
                     onPress={() => increaseQuantity(item.id)}
+                    accessibilityLabel={`Increase ${item.name} quantity`}
                   >
                     <Ionicons name="add" size={15} color={Colors.white} />
                   </TouchableOpacity>
                 </View>
 
                 <Text style={styles.itemTotal}>
-                  ₹{item.price * item.quantity}
+                  ₹{(item.price * item.quantity).toFixed(2)}
                 </Text>
               </View>
-
-              {/* REMOVE */}
 
               <TouchableOpacity
                 style={styles.removeButton}
                 onPress={() => removeItem(item.id)}
+                accessibilityLabel={`Remove ${item.name}`}
               >
                 <Ionicons name="close" size={14} color={Colors.textMuted} />
               </TouchableOpacity>
@@ -396,9 +558,7 @@ const CartScreen = () => {
           ))}
         </View>
 
-        {/* ==================================================
-            ADD MORE
-        ================================================== */}
+        {/* ADD MORE */}
 
         <TouchableOpacity
           style={styles.addMoreButton}
@@ -414,9 +574,7 @@ const CartScreen = () => {
           <Ionicons name="chevron-forward" size={17} color={Colors.textMuted} />
         </TouchableOpacity>
 
-        {/* ==================================================
-            COUPON
-        ================================================== */}
+        {/* COUPON */}
 
         <View style={styles.couponSection}>
           <View style={styles.couponHeader}>
@@ -430,7 +588,6 @@ const CartScreen = () => {
 
             <View>
               <Text style={styles.couponTitle}>Apply Coupon</Text>
-
               <Text style={styles.couponSubtitle}>Save more on your order</Text>
             </View>
           </View>
@@ -438,10 +595,14 @@ const CartScreen = () => {
           <View style={styles.couponInputRow}>
             <TextInput
               value={coupon}
-              onChangeText={setCoupon}
+              onChangeText={(value) => {
+                setCoupon(value);
+                setAppliedCoupon(false);
+              }}
               placeholder="Enter coupon code"
               placeholderTextColor={Colors.textMuted}
               autoCapitalize="characters"
+              editable={!appliedCoupon}
               style={styles.couponInput}
             />
 
@@ -466,7 +627,6 @@ const CartScreen = () => {
                 size={15}
                 color={Colors.success}
               />
-
               <Text style={styles.appliedCouponText}>
                 Coupon applied successfully
               </Text>
@@ -474,9 +634,7 @@ const CartScreen = () => {
           )}
         </View>
 
-        {/* ==================================================
-            OFFERS
-        ================================================== */}
+        {/* OFFER */}
 
         <View style={styles.offerTip}>
           <View style={styles.offerTipIcon}>
@@ -487,76 +645,58 @@ const CartScreen = () => {
             <Text style={styles.offerTipTitle}>
               You are saving with BAKASURAN
             </Text>
-
             <Text style={styles.offerTipText}>
               Free delivery on orders above ₹299
             </Text>
           </View>
         </View>
 
-        {/* ==================================================
-            BILL DETAILS
-        ================================================== */}
+        {/* BILL DETAILS */}
 
         <View style={styles.billSection}>
           <Text style={styles.billTitle}>Bill Details</Text>
 
-          {/* SUBTOTAL */}
-
           <View style={styles.billRow}>
             <Text style={styles.billLabel}>Item total</Text>
-
-            <Text style={styles.billValue}>₹{subtotal}</Text>
+            <Text style={styles.billValue}>₹{subtotal.toFixed(2)}</Text>
           </View>
-
-          {/* DELIVERY */}
 
           <View style={styles.billRow}>
             <Text style={styles.billLabel}>Delivery fee</Text>
-
             {deliveryFee === 0 ? (
               <Text style={styles.freeText}>FREE</Text>
             ) : (
-              <Text style={styles.billValue}>₹{deliveryFee}</Text>
+              <Text style={styles.billValue}>₹{deliveryFee.toFixed(2)}</Text>
             )}
           </View>
 
-          {/* GST */}
-
           <View style={styles.billRow}>
             <Text style={styles.billLabel}>GST & taxes</Text>
-
-            <Text style={styles.billValue}>₹{gst}</Text>
+            <Text style={styles.billValue}>₹{gst.toFixed(2)}</Text>
           </View>
-
-          {/* DISCOUNT */}
 
           {couponDiscount > 0 && (
             <View style={styles.billRow}>
               <Text style={styles.discountLabel}>Coupon discount</Text>
-
-              <Text style={styles.discountValue}>-₹{couponDiscount}</Text>
+              <Text style={styles.discountValue}>
+                -₹{couponDiscount.toFixed(2)}
+              </Text>
             </View>
           )}
 
           <View style={styles.billDivider} />
 
-          {/* TOTAL */}
-
           <View style={styles.totalRow}>
             <View>
               <Text style={styles.totalLabel}>To Pay</Text>
-
               <Text style={styles.totalSubtext}>Inclusive of all taxes</Text>
             </View>
 
-            <Text style={styles.totalValue}>₹{grandTotal}</Text>
+            <Text style={styles.totalValue}>₹{grandTotal.toFixed(2)}</Text>
           </View>
         </View>
 
-        {/* ==================================================
-            DELIVERY INFORMATION
-        ================================================== */}
+        {/* PAYMENT SAFETY */}
 
         <View style={styles.deliveryInfo}>
           <Ionicons
@@ -567,7 +707,6 @@ const CartScreen = () => {
 
           <View style={styles.deliveryInfoContent}>
             <Text style={styles.deliveryInfoTitle}>Safe & secure payment</Text>
-
             <Text style={styles.deliveryInfoText}>
               Your payment information is encrypted and secure.
             </Text>
@@ -577,15 +716,12 @@ const CartScreen = () => {
         <View style={styles.bottomSpace} />
       </ScrollView>
 
-      {/* ====================================================
-          CHECKOUT BAR
-      ==================================================== */}
+      {/* CHECKOUT BAR */}
 
       <View style={styles.checkoutBar}>
         <View style={styles.checkoutPriceContainer}>
           <Text style={styles.checkoutLabel}>Total</Text>
-
-          <Text style={styles.checkoutPrice}>₹{grandTotal}</Text>
+          <Text style={styles.checkoutPrice}>₹{grandTotal.toFixed(2)}</Text>
         </View>
 
         <TouchableOpacity
@@ -594,10 +730,15 @@ const CartScreen = () => {
           activeOpacity={0.85}
         >
           <Text style={styles.checkoutText}>CHECKOUT</Text>
-
           <Ionicons name="arrow-forward" size={18} color={Colors.white} />
         </TouchableOpacity>
       </View>
+
+      {refreshing && (
+        <View style={styles.refreshOverlay}>
+          <ActivityIndicator color={Colors.primary} />
+        </View>
+      )}
     </View>
   );
 };
@@ -615,9 +756,19 @@ const makeStyles = (Colors) =>
       backgroundColor: Colors.background,
     },
 
-    // ==========================================================
-    // HEADER
-    // ==========================================================
+    centerContainer: {
+      flex: 1,
+      backgroundColor: Colors.background,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+
+    loadingText: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
+      marginTop: 12,
+    },
 
     header: {
       height: 64,
@@ -652,21 +803,29 @@ const makeStyles = (Colors) =>
     headerSubtitle: {
       color: Colors.textSecondary,
       fontFamily: Fonts.regular,
-      fontSize: 16,
+      fontSize: 14,
       marginTop: 2,
     },
-
-    // ==========================================================
-    // SCROLL
-    // ==========================================================
 
     scrollContent: {
       paddingBottom: 100,
     },
 
-    // ==========================================================
-    // RESTAURANT
-    // ==========================================================
+    errorBanner: {
+      marginHorizontal: 15,
+      marginTop: 10,
+      padding: 10,
+      borderRadius: 8,
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.primary,
+    },
+
+    errorBannerText: {
+      color: Colors.primary,
+      fontFamily: Fonts.regular,
+      fontSize: 13,
+    },
 
     restaurantSection: {
       marginHorizontal: 15,
@@ -697,19 +856,15 @@ const makeStyles = (Colors) =>
     restaurantName: {
       color: Colors.textPrimary,
       fontFamily: Fonts.bold,
-      fontSize: 20,
+      fontSize: 18,
     },
 
     restaurantLocation: {
-      color: Colors.textPrimary,
+      color: Colors.textSecondary,
       fontFamily: Fonts.regular,
-      fontSize: 17,
+      fontSize: 13,
       marginTop: 3,
     },
-
-    // ==========================================================
-    // SECTION HEADER
-    // ==========================================================
 
     sectionHeader: {
       marginTop: 20,
@@ -730,10 +885,6 @@ const makeStyles = (Colors) =>
       fontFamily: Fonts.regular,
       fontSize: 14,
     },
-
-    // ==========================================================
-    // ITEMS
-    // ==========================================================
 
     itemsContainer: {
       marginHorizontal: 15,
@@ -756,13 +907,13 @@ const makeStyles = (Colors) =>
     },
 
     itemImageContainer: {
-      width: 76,
+      width: 68,
       height: 76,
       position: "relative",
     },
 
     itemImage: {
-      width: 76,
+      width: 68,
       height: 76,
       borderRadius: 10,
     },
@@ -788,34 +939,35 @@ const makeStyles = (Colors) =>
 
     itemDetails: {
       flex: 1,
-      marginLeft: 10,
-      paddingRight: 5,
+      marginLeft: 9,
+      paddingRight: 3,
     },
 
     itemName: {
       color: Colors.textPrimary,
-      fontFamily: Fonts.regular,
-      fontSize: 20,
-      lineHeight: 19,
+      fontFamily: Fonts.bold,
+      fontSize: 15,
     },
 
     itemRestaurant: {
       color: Colors.textSecondary,
       fontFamily: Fonts.regular,
-      fontSize: 19,
+      fontSize: 12,
       marginTop: 3,
     },
 
     itemPrice: {
       color: Colors.gold,
-      fontFamily: Fonts.regular,
-      fontSize: 18,
+      fontFamily: Fonts.medium,
+      fontSize: 14,
       marginTop: 5,
     },
 
     itemRight: {
       alignItems: "flex-end",
       justifyContent: "center",
+      marginLeft: 2,
+      marginTop: 12,
     },
 
     quantityContainer: {
@@ -838,8 +990,8 @@ const makeStyles = (Colors) =>
 
     quantityText: {
       color: Colors.white,
-      fontFamily: Fonts.regular,
-      fontSize: 16,
+      fontFamily: Fonts.bold,
+      fontSize: 14,
       minWidth: 15,
       textAlign: "center",
     },
@@ -847,23 +999,19 @@ const makeStyles = (Colors) =>
     itemTotal: {
       color: Colors.textPrimary,
       fontFamily: Fonts.bold,
-      fontSize: 15,
+      fontSize: 13,
       marginTop: 7,
     },
 
     removeButton: {
       position: "absolute",
-      right: 5,
-      top: 4,
-      width: 20,
-      height: 20,
+      right: 3,
+      top: 2,
+      width: 22,
+      height: 22,
       alignItems: "center",
       justifyContent: "center",
     },
-
-    // ==========================================================
-    // ADD MORE
-    // ==========================================================
 
     addMoreButton: {
       marginHorizontal: 15,
@@ -891,13 +1039,9 @@ const makeStyles = (Colors) =>
       flex: 1,
       color: Colors.textPrimary,
       fontFamily: Fonts.regular,
-      fontSize: 17,
+      fontSize: 15,
       marginLeft: 9,
     },
-
-    // ==========================================================
-    // COUPON
-    // ==========================================================
 
     couponSection: {
       marginHorizontal: 15,
@@ -925,15 +1069,15 @@ const makeStyles = (Colors) =>
 
     couponTitle: {
       color: Colors.primary,
-      fontFamily: Fonts.regular,
-      fontSize: 20,
+      fontFamily: Fonts.bold,
+      fontSize: 17,
       marginLeft: 9,
     },
 
     couponSubtitle: {
       color: Colors.textSecondary,
       fontFamily: Fonts.regular,
-      fontSize: 16,
+      fontSize: 13,
       marginLeft: 9,
       marginTop: 2,
     },
@@ -955,7 +1099,7 @@ const makeStyles = (Colors) =>
       paddingHorizontal: 11,
       color: Colors.textPrimary,
       fontFamily: Fonts.regular,
-      fontSize: 15,
+      fontSize: 14,
     },
 
     applyButton: {
@@ -972,8 +1116,8 @@ const makeStyles = (Colors) =>
 
     applyButtonText: {
       color: Colors.white,
-      fontFamily: Fonts.regular,
-      fontSize: 13,
+      fontFamily: Fonts.bold,
+      fontSize: 12,
     },
 
     appliedCouponRow: {
@@ -988,10 +1132,6 @@ const makeStyles = (Colors) =>
       fontSize: 13,
       marginLeft: 5,
     },
-
-    // ==========================================================
-    // OFFER TIP
-    // ==========================================================
 
     offerTip: {
       marginHorizontal: 15,
@@ -1021,20 +1161,16 @@ const makeStyles = (Colors) =>
 
     offerTipTitle: {
       color: Colors.textPrimary,
-      fontFamily: Fonts.regular,
-      fontSize: 17,
+      fontFamily: Fonts.medium,
+      fontSize: 14,
     },
 
     offerTipText: {
       color: Colors.textSecondary,
       fontFamily: Fonts.regular,
-      fontSize: 15,
+      fontSize: 12,
       marginTop: 2,
     },
-
-    // ==========================================================
-    // BILL
-    // ==========================================================
 
     billSection: {
       marginHorizontal: 15,
@@ -1048,8 +1184,8 @@ const makeStyles = (Colors) =>
 
     billTitle: {
       color: Colors.textPrimary,
-      fontFamily: Fonts.regular,
-      fontSize: 20,
+      fontFamily: Fonts.bold,
+      fontSize: 18,
       marginBottom: 12,
     },
 
@@ -1063,31 +1199,31 @@ const makeStyles = (Colors) =>
     billLabel: {
       color: Colors.textSecondary,
       fontFamily: Fonts.regular,
-      fontSize: 19,
+      fontSize: 14,
     },
 
     billValue: {
       color: Colors.textPrimary,
       fontFamily: Fonts.regular,
-      fontSize: 18,
+      fontSize: 14,
     },
 
     freeText: {
       color: Colors.success,
-      fontFamily: Fonts.regular,
-      fontSize: 15,
+      fontFamily: Fonts.bold,
+      fontSize: 13,
     },
 
     discountLabel: {
       color: Colors.success,
       fontFamily: Fonts.regular,
-      fontSize: 15,
+      fontSize: 14,
     },
 
     discountValue: {
       color: Colors.success,
-      fontFamily: Fonts.regular,
-      fontSize: 15,
+      fontFamily: Fonts.bold,
+      fontSize: 14,
     },
 
     billDivider: {
@@ -1104,26 +1240,22 @@ const makeStyles = (Colors) =>
 
     totalLabel: {
       color: Colors.textPrimary,
-      fontFamily: Fonts.regular,
+      fontFamily: Fonts.bold,
       fontSize: 15,
     },
 
     totalSubtext: {
       color: Colors.textMuted,
       fontFamily: Fonts.regular,
-      fontSize: 14,
+      fontSize: 12,
       marginTop: 2,
     },
 
     totalValue: {
       color: Colors.primary,
       fontFamily: Fonts.extraBold,
-      fontSize: 20,
+      fontSize: 21,
     },
-
-    // ==========================================================
-    // DELIVERY INFO
-    // ==========================================================
 
     deliveryInfo: {
       marginHorizontal: 15,
@@ -1149,7 +1281,7 @@ const makeStyles = (Colors) =>
     deliveryInfoText: {
       color: Colors.textSecondary,
       fontFamily: Fonts.regular,
-      fontSize: 17,
+      fontSize: 12,
       marginTop: 2,
     },
 
@@ -1157,16 +1289,12 @@ const makeStyles = (Colors) =>
       height: 20,
     },
 
-    // ==========================================================
-    // CHECKOUT BAR
-    // ==========================================================
-
     checkoutBar: {
       position: "absolute",
       left: 10,
       right: 10,
       bottom: 10,
-      height: 65,
+      minHeight: 65,
       paddingHorizontal: 14,
       borderRadius: 15,
       backgroundColor: Colors.surface,
@@ -1177,10 +1305,7 @@ const makeStyles = (Colors) =>
       justifyContent: "space-between",
       elevation: 8,
       shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 4,
-      },
+      shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.4,
       shadowRadius: 8,
     },
@@ -1192,20 +1317,20 @@ const makeStyles = (Colors) =>
     checkoutLabel: {
       color: Colors.textSecondary,
       fontFamily: Fonts.regular,
-      fontSize: 15,
+      fontSize: 13,
     },
 
     checkoutPrice: {
       color: Colors.textPrimary,
-      fontFamily: Fonts.regular,
-      fontSize: 20,
+      fontFamily: Fonts.bold,
+      fontSize: 19,
       marginTop: 2,
     },
 
     checkoutButton: {
       height: 44,
-      minWidth: 145,
-      paddingHorizontal: 18,
+      minWidth: 135,
+      paddingHorizontal: 15,
       borderRadius: 10,
       backgroundColor: Colors.primary,
       flexDirection: "row",
@@ -1216,13 +1341,9 @@ const makeStyles = (Colors) =>
 
     checkoutText: {
       color: Colors.white,
-      fontFamily: Fonts.regular,
-      fontSize: 18,
+      fontFamily: Fonts.bold,
+      fontSize: 14,
     },
-
-    // ==========================================================
-    // EMPTY CART
-    // ==========================================================
 
     emptyContainer: {
       flex: 1,
@@ -1245,20 +1366,21 @@ const makeStyles = (Colors) =>
       fontFamily: Fonts.extraBold,
       fontSize: 22,
       marginTop: 20,
+      textAlign: "center",
     },
 
     emptyDescription: {
       color: Colors.textSecondary,
       fontFamily: Fonts.regular,
-      fontSize: 11,
+      fontSize: 13,
       textAlign: "center",
-      lineHeight: 18,
+      lineHeight: 19,
       marginTop: 7,
     },
 
     startOrderingButton: {
       marginTop: 22,
-      height: 46,
+      minHeight: 46,
       paddingHorizontal: 22,
       borderRadius: 23,
       backgroundColor: Colors.primary,
@@ -1271,6 +1393,15 @@ const makeStyles = (Colors) =>
     startOrderingText: {
       color: Colors.white,
       fontFamily: Fonts.bold,
-      fontSize: 11,
+      fontSize: 12,
+    },
+
+    refreshOverlay: {
+      position: "absolute",
+      top: 70,
+      right: 15,
+      padding: 10,
+      borderRadius: 20,
+      backgroundColor: Colors.surface,
     },
   });

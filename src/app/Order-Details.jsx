@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     Alert,
+    ActivityIndicator,
     SafeAreaView,
     ScrollView,
     StatusBar,
@@ -14,33 +15,7 @@ import {
 
 import { useTheme } from "../hooks/use-theme";
 import Fonts from "../constants/Fonts";
-
-const defaultItems = [
-  {
-    id: "1",
-    name: "Chicken Biryani",
-    description: "Regular | Spicy",
-    price: 249,
-    quantity: 1,
-    icon: "fast-food-outline",
-  },
-  {
-    id: "2",
-    name: "Paneer Special",
-    description: "Full Portion",
-    price: 199,
-    quantity: 1,
-    icon: "restaurant-outline",
-  },
-  {
-    id: "3",
-    name: "Fried Chicken",
-    description: "4 Pieces",
-    price: 60,
-    quantity: 1,
-    icon: "flame-outline",
-  },
-];
+import { cancelOrder, getOrderDetails } from "../utils/Function";
 
 const formatMoney = (amount) =>
   `₹${Number(amount || 0).toLocaleString("en-IN")}`;
@@ -54,29 +29,123 @@ export default function OrderDetailsScreen() {
   const GREEN = Colors.success;
   const params = useLocalSearchParams();
 
-  const orderId = params.orderId || "BAKA123456";
-  const status = String(params.status || "Delivered");
-  const paymentMethod = String(params.paymentMethod || "UPI");
-  const address = String(
-    params.address || "Home • Hitech City, Hyderabad, Telangana 500081",
-  );
+  const orderId = params.orderId;
+  const [orderData, setOrderData] = useState(null);
+  const [loading, setLoading] = useState(Boolean(orderId));
+  const [cancelling, setCancelling] = useState(false);
 
-  // Default example data matches the reference UI.
-  const items = defaultItems;
+  useEffect(() => {
+    if (!orderId) return;
+    let active = true;
+
+    const loadOrder = async () => {
+      const response = await getOrderDetails(orderId);
+      if (!active) return;
+
+      if (response?.success === 9) {
+        router.replace("/login");
+        return;
+      }
+
+      if (
+        response?.success != null &&
+        ![1, true, "1"].includes(response.success)
+      ) {
+        Alert.alert("Order", response?.message || "Unable to load order.");
+        setLoading(false);
+        return;
+      }
+
+      const detail =
+        response?.data?.order ??
+        response?.data?.data ??
+        response?.data ??
+        response?.order ??
+        response;
+      setOrderData(detail);
+      setLoading(false);
+    };
+
+    loadOrder().catch((error) => {
+      if (!active) return;
+      setLoading(false);
+      Alert.alert("Order", error?.message || "Unable to load order.");
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [orderId]);
+
+  const order = orderData ?? {};
+  const status = String(
+    order?.status ??
+      order?.order_status ??
+      order?.delivery_status ??
+      params.status ??
+      "Pending",
+  );
+  const paymentMethod = String(
+    order?.payment_method ?? order?.payment?.method ?? params.paymentMethod ?? "—",
+  );
+  const address = String(
+    order?.delivery_address?.address ??
+      order?.address?.address ??
+      order?.delivery_address ??
+      order?.address ??
+      params.address ??
+      "Address unavailable",
+  );
+  const rawItems = order?.items ?? order?.order_items ?? order?.details;
+  const items = Array.isArray(rawItems)
+    ? rawItems.map((entry, index) => {
+        const product =
+          entry?.product ??
+          entry?.variant?.product ??
+          entry?.food ??
+          entry;
+        const quantity = Number(entry?.quantity ?? entry?.qty ?? 1) || 1;
+        return {
+          id: String(entry?.id ?? index),
+          name: product?.name ?? product?.title ?? entry?.name ?? "Order item",
+          description:
+            entry?.variant?.sku ??
+            entry?.variant_name ??
+            entry?.description ??
+            "",
+          price: Number(
+            entry?.unit_price ??
+              entry?.price ??
+              entry?.variant?.price ??
+              product?.price ??
+              0,
+          ),
+          quantity,
+          icon: "fast-food-outline",
+        };
+      })
+    : [];
 
   const itemTotal = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
 
-  const deliveryFee = 30;
-  const gst = Math.round(itemTotal * 0.05);
-  const couponDiscount = 50;
+  const deliveryFee = Number(order?.delivery_fee ?? order?.delivery_charge ?? 0);
+  const gst = Number(order?.tax ?? order?.gst ?? 0);
+  const couponDiscount = Number(order?.discount ?? order?.coupon_discount ?? 0);
   const calculatedTotal = itemTotal + deliveryFee + gst - couponDiscount;
 
-  const grandTotal = params.total ? Number(params.total) : calculatedTotal;
+  const grandTotal = Number(
+    order?.grand_total ??
+      order?.total_amount ??
+      order?.total ??
+      params.total ??
+      calculatedTotal,
+  );
 
   const isDelivered = status.toLowerCase() === "delivered";
+  const isCancelled = status.toLowerCase().includes("cancel");
 
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -138,6 +207,44 @@ export default function OrderDetailsScreen() {
     });
   };
 
+  const handleCancelOrder = () => {
+    Alert.alert("Cancel Order", "Are you sure you want to cancel this order?", [
+      { text: "Keep Order", style: "cancel" },
+      {
+        text: "Cancel Order",
+        style: "destructive",
+        onPress: async () => {
+          setCancelling(true);
+          const response = await cancelOrder(orderId);
+          setCancelling(false);
+
+          if (response?.success === 9) {
+            router.replace("/login");
+            return;
+          }
+
+          if (
+            response?.success != null &&
+            ![1, true, "1"].includes(response.success)
+          ) {
+            Alert.alert(
+              "Cancel Order",
+              response?.message || "Unable to cancel this order.",
+            );
+            return;
+          }
+
+          setOrderData((previous) => ({
+            ...(previous ?? {}),
+            ...(response?.data?.order ?? response?.data ?? {}),
+            status: "Cancelled",
+          }));
+          Alert.alert("Order", response?.message || "Order cancelled.");
+        },
+      },
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
@@ -149,6 +256,13 @@ export default function OrderDetailsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {loading && (
+          <ActivityIndicator
+            style={{ marginTop: 24 }}
+            size="large"
+            color={RED}
+          />
+        )}
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
@@ -173,7 +287,9 @@ export default function OrderDetailsScreen() {
               Order <Text style={styles.redText}>#{String(orderId)}</Text>
             </Text>
 
-            <Text style={styles.orderDate}>12 Oct 2026, 12:32 PM</Text>
+            <Text style={styles.orderDate}>
+              {order?.created_at ?? order?.order_date ?? ""}
+            </Text>
           </View>
 
           <View
@@ -423,7 +539,29 @@ export default function OrderDetailsScreen() {
           <Ionicons name="chevron-forward" size={23} color={RED} />
         </TouchableOpacity>
 
-        {!isDelivered && (
+        {!isDelivered && !isCancelled && orderId ? (
+          <TouchableOpacity
+            style={styles.outlineAction}
+            activeOpacity={0.75}
+            onPress={handleCancelOrder}
+            disabled={cancelling}
+            accessibilityRole="button"
+          >
+            {cancelling ? (
+              <ActivityIndicator color={RED} />
+            ) : (
+              <Ionicons name="close-circle-outline" size={25} color={RED} />
+            )}
+            <View style={styles.actionTextContainer}>
+              <Text style={styles.actionTitle}>Cancel Order</Text>
+              <Text style={styles.actionSubtitle}>
+                Request cancellation for this order
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ) : null}
+
+        {!isDelivered && !isCancelled && (
           <TouchableOpacity
             style={styles.trackButton}
             activeOpacity={0.8}
