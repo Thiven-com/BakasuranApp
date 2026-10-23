@@ -40,7 +40,7 @@ export default function Addresses() {
       landmark: "Near City Center",
       city: "Hyderabad",
       pincode: "500001",
-      color: colors.info,
+      color: colors.primary,
       icon: "home-outline",
     },
     {

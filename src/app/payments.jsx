@@ -40,7 +40,7 @@ export default function PaymentsScreen() {
       lastFour: "4242",
       name: "Raju Kumar",
       expiry: "12/28",
-      color: Colors.info,
+      color: Colors.primary,
     },
     {
       id: 2,
@@ -49,7 +49,7 @@ export default function PaymentsScreen() {
       lastFour: "5678",
       name: "Raju Kumar",
       expiry: "09/27",
-      color: Colors.warning,
+      color: Colors.primary,
     },
   ]);
 

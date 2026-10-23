@@ -1,7 +1,10 @@
+
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
+
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -17,57 +20,92 @@ import {
 
 import Fonts from "../constants/Fonts";
 import { useTheme } from "../hooks/use-theme";
+import { updateProfile } from "../utils/Function";
+
+// =========================================================
+// API CONFIGURATION
+// =========================================================
+
 
 export default function EditProfileScreen() {
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const [fullName, setFullName] = useState("Raju Kumar");
-  const [mobile, setMobile] = useState("+91 98765 43210");
-  const [email, setEmail] = useState("raju.kumar@email.com");
-  const [location, setLocation] = useState("Hyderabad");
+
+  // =======================================================
+  // FORM STATE
+  // =======================================================
+
+  const [fullName, setFullName] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [email, setEmail] = useState("");
+  const [location, setLocation] = useState("");
   const [saving, setSaving] = useState(false);
 
-  /* =========================================================
-     SAVE PROFILE
-  ========================================================= */
+  // =======================================================
+  // UPDATE PROFILE API
+  // POST /api/customer/profile/update
+  // =======================================================
 
-  const handleSave = () => {
-    if (!fullName.trim()) {
-      Alert.alert("Required", "Please enter your full name.");
-      return;
-    }
+  
+const handleSave = async () => {
+  if (!fullName.trim()) {
+    Alert.alert("Required", "Please enter your full name.");
+    return;
+  }
 
-    if (!mobile.trim()) {
-      Alert.alert("Required", "Please enter your mobile number.");
-      return;
-    }
+  if (email.trim() &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    Alert.alert("Invalid Email", "Please enter a valid email address.");
+    return;
+  }
 
-    if (!email.trim()) {
-      Alert.alert("Required", "Please enter your email address.");
-      return;
-    }
+  if (saving) return;
 
-    setSaving(true);
+  setSaving(true);
 
-    setTimeout(() => {
-      setSaving(false);
+  try {
+    const result = await updateProfile({
+      name: fullName,
+      email: email,
+    });
 
+    if (Number(result?.success) === 1) {
       Alert.alert(
         "Profile Updated",
-        "Your profile has been updated successfully.",
+        result.message || "Your profile has been updated successfully.",
         [
           {
             text: "OK",
             onPress: () => router.back(),
           },
-        ],
+        ]
       );
-    }, 700);
-  };
+    } else if (Number(result?.success) === 9) {
+      Alert.alert(
+        "Login Required",
+        result.message || "Please login again."
+      );
+    } else {
+      const errorMessage = result?.errors
+        ? Object.values(result.errors).flat().join("\n")
+        : result?.message || "Unable to update your profile.";
 
-  /* =========================================================
-     SCREEN
-  ========================================================= */
+      Alert.alert("Update Failed", errorMessage);
+    }
+  } catch (error) {
+    Alert.alert(
+      "Error",
+      error?.message || "Unable to update your profile."
+    );
+  } finally {
+    setSaving(false);
+  }
+};
+
+
+  // =======================================================
+  // SCREEN
+  // =======================================================
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -80,15 +118,14 @@ export default function EditProfileScreen() {
         style={styles.keyboardView}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {/* =====================================================
-            HEADER
-        ===================================================== */}
+        {/* HEADER */}
 
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.headerButton}
             onPress={() => router.back()}
             activeOpacity={0.8}
+            disabled={saving}
           >
             <Ionicons
               name="chevron-back"
@@ -102,18 +139,14 @@ export default function EditProfileScreen() {
           <View style={styles.headerPlaceholder} />
         </View>
 
-        {/* =====================================================
-            CONTENT
-        ===================================================== */}
+        {/* CONTENT */}
 
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.scrollContent}
         >
-          {/* ===================================================
-              PROFILE PHOTO
-          =================================================== */}
+          {/* PROFILE PHOTO */}
 
           <View style={styles.photoSection}>
             <View style={styles.avatar}>
@@ -126,21 +159,23 @@ export default function EditProfileScreen() {
               onPress={() =>
                 Alert.alert(
                   "Profile Photo",
-                  "Photo selection can be connected here.",
+                  "Connect an image picker to upload your profile photo."
                 )
               }
             >
               <Ionicons name="camera" size={18} color={colors.white} />
             </TouchableOpacity>
 
-            <Text style={styles.changePhotoText}>Change Profile Photo</Text>
+            <Text style={styles.changePhotoText}>
+              Change Profile Photo
+            </Text>
           </View>
 
-          {/* ===================================================
-              PERSONAL INFORMATION
-          =================================================== */}
+          {/* PERSONAL INFORMATION */}
 
-          <Text style={styles.sectionTitle}>Personal Information</Text>
+          <Text style={styles.sectionTitle}>
+            Personal Information
+          </Text>
 
           {/* FULL NAME */}
 
@@ -151,15 +186,13 @@ export default function EditProfileScreen() {
               <View
                 style={[
                   styles.inputIcon,
-                  {
-                    backgroundColor: `${Colors.primary}20`,
-                  },
+                  { backgroundColor: `${colors.primary}20` },
                 ]}
               >
                 <Ionicons
                   name="person-outline"
                   size={25}
-                  color={Colors.primary}
+                  color={colors.primary}
                 />
               </View>
 
@@ -170,11 +203,15 @@ export default function EditProfileScreen() {
                 placeholderTextColor={colors.textMuted}
                 style={styles.input}
                 autoCapitalize="words"
+                autoCorrect={false}
+                editable={!saving}
+                returnKeyType="next"
+                maxLength={100}
               />
             </View>
           </View>
 
-          {/* MOBILE */}
+          {/* MOBILE NUMBER */}
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Mobile Number</Text>
@@ -183,27 +220,30 @@ export default function EditProfileScreen() {
               <View
                 style={[
                   styles.inputIcon,
-                  {
-                    backgroundColor: `${Colors.primary}20`,
-                  },
+                  { backgroundColor: `${colors.primary}20` },
                 ]}
               >
                 <Ionicons
                   name="call-outline"
                   size={25}
-                  color={Colors.primary}
+                  color={colors.primary}
                 />
               </View>
 
               <TextInput
                 value={mobile}
                 onChangeText={setMobile}
-                placeholder="+91 Mobile Number"
+                placeholder="Enter mobile number"
                 placeholderTextColor={colors.textMuted}
                 style={styles.input}
                 keyboardType="phone-pad"
+                editable={!saving}
               />
             </View>
+
+            <Text style={styles.helperText}>
+              Mobile number updates are not supported by this API yet.
+            </Text>
           </View>
 
           {/* EMAIL */}
@@ -215,15 +255,13 @@ export default function EditProfileScreen() {
               <View
                 style={[
                   styles.inputIcon,
-                  {
-                    backgroundColor: `${Colors.primary}20`,
-                  },
+                  { backgroundColor: `${colors.primary}20` },
                 ]}
               >
                 <Ionicons
                   name="mail-outline"
                   size={25}
-                  color={Colors.primary}
+                  color={colors.primary}
                 />
               </View>
 
@@ -235,6 +273,8 @@ export default function EditProfileScreen() {
                 style={styles.input}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoCorrect={false}
+                editable={!saving}
               />
             </View>
           </View>
@@ -248,15 +288,13 @@ export default function EditProfileScreen() {
               <View
                 style={[
                   styles.inputIcon,
-                  {
-                    backgroundColor: `${Colors.primary}20`,
-                  },
+                  { backgroundColor: `${colors.primary}20` },
                 ]}
               >
                 <Ionicons
                   name="location-outline"
                   size={25}
-                  color={Colors.primary}
+                  color={colors.primary}
                 />
               </View>
 
@@ -267,23 +305,26 @@ export default function EditProfileScreen() {
                 placeholderTextColor={colors.textMuted}
                 style={styles.input}
                 autoCapitalize="words"
+                editable={!saving}
               />
             </View>
+
+            <Text style={styles.helperText}>
+              Location updates are not supported by this API yet.
+            </Text>
           </View>
 
-          {/* ===================================================
-              ACCOUNT INFORMATION
-          =================================================== */}
+          {/* ACCOUNT INFORMATION */}
 
-          <Text style={styles.sectionTitle}>Account Information</Text>
+          <Text style={styles.sectionTitle}>
+            Account Information
+          </Text>
 
           <View style={styles.infoCard}>
             <View
               style={[
                 styles.infoIcon,
-                {
-                  backgroundColor: `${colors.primary}20`,
-                },
+                { backgroundColor: `${colors.primary}20` },
               ]}
             >
               <Ionicons
@@ -294,49 +335,61 @@ export default function EditProfileScreen() {
             </View>
 
             <View style={styles.infoContent}>
-              <Text style={styles.infoTitle}>Account Verified</Text>
+              <Text style={styles.infoTitle}>
+                Account Verification
+              </Text>
 
               <Text style={styles.infoText}>
-                Your mobile number is verified.
+                Your mobile number verification status is managed by your
+                account.
               </Text>
             </View>
 
             <Ionicons
-              name="checkmark-circle"
+              name="shield-checkmark"
               size={22}
               color={colors.success}
             />
           </View>
 
-          {/* ===================================================
-              SAVE BUTTON
-          =================================================== */}
+          {/* SAVE BUTTON */}
 
           <TouchableOpacity
-            style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+            style={[
+              styles.saveButton,
+              saving && styles.saveButtonDisabled,
+            ]}
             onPress={handleSave}
             activeOpacity={0.85}
             disabled={saving}
           >
             {saving ? (
-              <Text style={styles.saveText}>Saving...</Text>
+              <>
+                <ActivityIndicator
+                  size="small"
+                  color={colors.white}
+                />
+                <Text style={styles.saveText}>Saving...</Text>
+              </>
             ) : (
               <>
                 <Text style={styles.saveText}>Save Changes</Text>
-
-                <Ionicons name="arrow-forward" size={23} color={colors.white} />
+                <Ionicons
+                  name="arrow-forward"
+                  size={23}
+                  color={colors.white}
+                />
               </>
             )}
           </TouchableOpacity>
 
-          {/* ===================================================
-              CANCEL
-          =================================================== */}
+          {/* CANCEL */}
 
           <TouchableOpacity
             style={styles.cancelButton}
             onPress={() => router.back()}
             activeOpacity={0.8}
+            disabled={saving}
           >
             <Text style={styles.cancelText}>Cancel</Text>
           </TouchableOpacity>
@@ -348,16 +401,12 @@ export default function EditProfileScreen() {
   );
 }
 
-/* =========================================================
-   STYLES
-========================================================= */
+// =========================================================
+// STYLES
+// =========================================================
 
 const createStyles = (colors) =>
   StyleSheet.create({
-    /* =======================================================
-     SCREEN
-  ======================================================= */
-
     safeArea: {
       flex: 1,
       backgroundColor: colors.background,
@@ -373,36 +422,24 @@ const createStyles = (colors) =>
       paddingBottom: 30,
     },
 
-    /* =======================================================
-     HEADER
-  ======================================================= */
-
     header: {
       height: 64,
-
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-
       paddingHorizontal: 18,
-
       borderBottomWidth: 1,
       borderBottomColor: colors.divider,
-
       backgroundColor: colors.background,
     },
 
     headerButton: {
       width: 42,
       height: 42,
-
       borderRadius: 21,
-
       backgroundColor: colors.surface,
-
       borderWidth: 1,
       borderColor: colors.border,
-
       justifyContent: "center",
       alignItems: "center",
     },
@@ -414,22 +451,14 @@ const createStyles = (colors) =>
 
     headerTitle: {
       color: colors.textPrimary,
-
       fontFamily: Fonts.regular,
       fontSize: Fonts.size.xxl,
-
       letterSpacing: 0.2,
-
       textAlign: "center",
     },
 
-    /* =======================================================
-     PROFILE PHOTO
-  ======================================================= */
-
     photoSection: {
       alignItems: "center",
-
       marginTop: 24,
       marginBottom: 28,
     },
@@ -437,64 +466,42 @@ const createStyles = (colors) =>
     avatar: {
       width: 108,
       height: 108,
-
       borderRadius: 54,
-
       backgroundColor: colors.primary,
-
       justifyContent: "center",
       alignItems: "center",
-
       borderWidth: 4,
       borderColor: colors.primaryDark,
     },
 
     cameraButton: {
       position: "absolute",
-
       right: "34%",
       bottom: 29,
-
       width: 36,
       height: 36,
-
       borderRadius: 18,
-
       backgroundColor: colors.primary,
-
       justifyContent: "center",
       alignItems: "center",
-
       borderWidth: 3,
       borderColor: colors.background,
     },
 
     changePhotoText: {
       color: colors.primary,
-
       fontFamily: Fonts.regular,
       fontSize: Fonts.size.xl,
-
       marginTop: 12,
     },
 
-    /* =======================================================
-     SECTION TITLE
-  ======================================================= */
-
     sectionTitle: {
       color: colors.textPrimary,
-
       fontFamily: Fonts.regular,
       fontSize: Fonts.size.lg,
-
       marginBottom: 14,
       marginTop: 4,
     },
-
-    /* =======================================================
-     INPUT GROUP
-  ======================================================= */
 
     inputGroup: {
       marginBottom: 17,
@@ -502,90 +509,69 @@ const createStyles = (colors) =>
 
     label: {
       color: colors.textSecondary,
-
       fontFamily: Fonts.regular,
       fontSize: Fonts.size.xl,
-
       marginBottom: 8,
       marginLeft: 2,
     },
 
-    /* =======================================================
-     INPUT
-  ======================================================= */
-
     inputContainer: {
-      height: 58,
-
+      minHeight: 58,
       flexDirection: "row",
       alignItems: "center",
-
       backgroundColor: colors.surface,
-
       borderRadius: 15,
-
       borderWidth: 1,
       borderColor: colors.border,
-
       paddingHorizontal: 10,
     },
 
     inputIcon: {
       width: 40,
       height: 40,
-
       borderRadius: 12,
-
       justifyContent: "center",
       alignItems: "center",
-
       marginRight: 11,
     },
 
     input: {
       flex: 1,
-
-      height: 35,
-
+      minHeight: 45,
       color: colors.textPrimary,
-
       fontFamily: Fonts.regular,
       fontSize: Fonts.size.xl,
-
       paddingHorizontal: 2,
+      paddingVertical: 8,
     },
 
-    /* =======================================================
-     ACCOUNT CARD
-  ======================================================= */
+    helperText: {
+      color: colors.textMuted,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.base,
+      marginTop: 6,
+      marginLeft: 2,
+    },
 
     infoCard: {
       minHeight: 72,
-
       backgroundColor: colors.card,
-
       borderRadius: 16,
-
       borderWidth: 1,
       borderColor: colors.border,
-
       flexDirection: "row",
       alignItems: "center",
-
       paddingHorizontal: 13,
-
+      paddingVertical: 12,
       marginBottom: 25,
     },
 
     infoIcon: {
       width: 42,
       height: 42,
-
       borderRadius: 12,
-
       justifyContent: "center",
       alignItems: "center",
-
       marginRight: 12,
     },
 
@@ -595,36 +581,26 @@ const createStyles = (colors) =>
 
     infoTitle: {
       color: colors.textPrimary,
-
       fontFamily: Fonts.regular,
       fontSize: Fonts.size.xl,
-
       marginBottom: 3,
     },
 
     infoText: {
       color: colors.textSecondary,
-
       fontFamily: Fonts.regular,
       fontSize: Fonts.size.base,
     },
 
-    /* =======================================================
-     SAVE BUTTON
-  ======================================================= */
-
     saveButton: {
-      height: 56,
-
+      minHeight: 56,
       borderRadius: 28,
-
       backgroundColor: colors.primary,
-
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-
       marginTop: 5,
+      paddingHorizontal: 16,
     },
 
     saveButtonDisabled: {
@@ -633,43 +609,27 @@ const createStyles = (colors) =>
 
     saveText: {
       color: colors.white,
-
       fontFamily: Fonts.regular,
       fontSize: Fonts.size.xxl,
-
-      marginRight: 10,
+      marginHorizontal: 10,
     },
-
-    /* =======================================================
-     CANCEL
-  ======================================================= */
 
     cancelButton: {
       height: 52,
-
       borderRadius: 26,
-
       borderWidth: 1,
       borderColor: colors.border,
-
       backgroundColor: colors.backgroundElement,
-
       justifyContent: "center",
       alignItems: "center",
-
       marginTop: 12,
     },
 
     cancelText: {
       color: colors.textSecondary,
-
       fontFamily: Fonts.regular,
       fontSize: Fonts.size.xl,
     },
-
-    /* =======================================================
-     BOTTOM
-  ======================================================= */
 
     bottomSpace: {
       height: 25,

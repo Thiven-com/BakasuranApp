@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useMemo } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   ScrollView,
   StatusBar,
@@ -15,127 +16,252 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import Fonts from "../../constants/Fonts";
 import { useTheme } from "../../hooks/use-theme";
-
-/* =========================================================
-   PROFILE SCREEN
-========================================================= */
+import { getProfile, logout } from "../../utils/Function";
 
 export default function ProfileScreen() {
   const { isDark, toggleTheme, colors } = useTheme();
 
-  const styles = useMemo(() => makeStyles(colors, isDark), [colors, isDark]);
+  const styles = useMemo(
+    () => makeStyles(colors, isDark),
+    [colors, isDark]
+  );
 
-  /* =======================================================
-     MENU ITEMS
-  ======================================================= */
+  const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState("");
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  // =========================================
+  // GET PROFILE API
+  // =========================================
+
+  const loadProfile = useCallback(async () => {
+    try {
+      setProfileLoading(true);
+      setProfileError("");
+
+      const response = await getProfile();
+
+      console.log(
+        "PROFILE API RESPONSE:",
+        JSON.stringify(response, null, 2)
+      );
+
+      const profileData =
+        response?.data?.data ??
+        response?.data?.user ??
+        response?.data ??
+        response?.user ??
+        response;
+
+      if (
+        response?.success === 0 ||
+        response?.success === false
+      ) {
+        throw new Error(
+          response?.message || "Unable to load profile."
+        );
+      }
+
+      setProfile(profileData);
+    } catch (error) {
+      console.log(
+        "PROFILE API ERROR:",
+        error?.response?.data || error?.message
+      );
+
+      setProfileError(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Unable to load profile."
+      );
+    } finally {
+      setProfileLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [loadProfile])
+  );
+
+  // =========================================
+  // PROFILE VALUES
+  // =========================================
+
+  const profileName =
+    profile?.name ||
+    profile?.full_name ||
+    profile?.fullname ||
+    profile?.username ||
+    "User";
+
+  const profilePhone =
+    profile?.mobile ||
+    profile?.phone ||
+    profile?.phone_number ||
+    profile?.mobile_number ||
+    "";
+
+  const profileEmail =
+    profile?.email ||
+    profile?.email_address ||
+    "";
+
+  const profilePoints =
+    profile?.points ??
+    profile?.reward_points ??
+    profile?.wallet_points ??
+    profile?.loyalty_points ??
+    0;
+
+  const membership =
+    profile?.membership ||
+    profile?.membership_type ||
+    profile?.member_type ||
+    profile?.membership_name ||
+    "Gold Member";
+
+  // =========================================
+  // POST LOGOUT API
+  // =========================================
+
+  const handleLogout = useCallback(() => {
+    if (loggingOut) return;
+
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            if (loggingOut) return;
+
+            setLoggingOut(true);
+
+            try {
+              const result = await logout();
+
+              console.log(
+                "LOGOUT API RESULT:",
+                JSON.stringify(result, null, 2)
+              );
+
+              if (result?.localLogout) {
+                router.replace("/Loginscreen");
+              } else {
+                Alert.alert(
+                  "Logout Failed",
+                  result?.message ||
+                    "Unable to logout. Please try again."
+                );
+              }
+            } catch (error) {
+              console.log(
+                "LOGOUT API ERROR:",
+                error?.response?.data || error?.message
+              );
+
+              Alert.alert(
+                "Logout Failed",
+                error?.response?.data?.message ||
+                  error?.message ||
+                  "Unable to logout. Please try again."
+              );
+            } finally {
+              setLoggingOut(false);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  }, [loggingOut]);
+
+  // =========================================
+  // PROFILE MENU ITEMS
+  // =========================================
 
   const menuItems = [
     {
       title: "My Orders",
       subtitle: "View your order history",
       icon: "bag-handle",
-      color: colors.goldLight,
-
+      color: colors.primary,
       route: "/MyOrdersScreen",
     },
     {
       title: "Addresses",
       subtitle: "Manage your delivery addresses",
       icon: "location",
-      color: colors.warning,
-
+      color: colors.primary,
       route: "/addresses",
     },
     {
       title: "Payment Methods",
       subtitle: "Manage cards, UPI & wallets",
       icon: "card",
-      color: colors.info,
-
+      color: colors.primary,
       route: "/payments",
     },
     {
       title: "Favourite Restaurants",
       subtitle: "Your saved restaurants",
       icon: "heart",
-      color: colors.favourite || colors.offer,
-
+      color: colors.favourite || colors.primary,
       route: "/favourites",
     },
     {
       title: "Offers & Rewards",
       subtitle: "Exclusive offers and rewards",
       icon: "gift",
-      color: colors.offer,
-
+      color: colors.primary,
       route: "/Offers&DealsScreen",
     },
     {
       title: "Help & Support",
       subtitle: "Get help, FAQs and support",
       icon: "headset",
-      color: "#01a2ff",
-
+      color: colors.primary,
       route: "/help&support",
     },
     {
       title: "Settings",
       subtitle: "App preferences and notifications",
       icon: "settings",
-      color: isDark ? "#B8C0CC" : "#4B5563",
-
+      color: colors.primary,
       route: "/settings",
     },
-
     {
       title: "Blogs",
-      subtitle: " Discover food stories, tips and trends",
+      subtitle: "Discover food stories, tips and trends",
       icon: "newspaper-outline",
-      color: "#0d701e",
-
+      color: colors.primary,
       route: "/Blogs",
     },
-
     {
-      title: "Cancellation-refund",
+      title: "Cancellation & Refund",
+      subtitle: "Cancellation and refund information",
       icon: "receipt-outline",
-      color: "#8b4011",
-
+      color: colors.primary,
       route: "/cancellation-refund",
     },
   ];
 
-  /* =======================================================
-     LOGOUT
-  ======================================================= */
-
-  const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Logout",
-        style: "destructive",
-        onPress: () => {
-          router.replace("/(auth)/Loginscreen");
-        },
-      },
-    ]);
-  };
-
-  /* =======================================================
-     MENU NAVIGATION
-  ======================================================= */
-
-  const handleMenuPress = (route) => {
+  const handleMenuPress = useCallback((route) => {
     router.push(route);
-  };
+  }, []);
 
-  /* =======================================================
-     RENDER
-  ======================================================= */
+  // =========================================
+  // RENDER
+  // =========================================
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -148,19 +274,15 @@ export default function ProfileScreen() {
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        bounces={false}
+        keyboardShouldPersistTaps="handled"
       >
-        {/* =================================================
-            HEADER
-        ================================================= */}
+        {/* HEADER */}
 
         <View style={styles.header}>
-          {/* BACK */}
-
           <TouchableOpacity
             style={styles.headerButton}
-            activeOpacity={0.8}
             onPress={() => router.back()}
+            activeOpacity={0.8}
           >
             <Ionicons
               name="chevron-back"
@@ -169,16 +291,12 @@ export default function ProfileScreen() {
             />
           </TouchableOpacity>
 
-          {/* TITLE */}
-
           <Text style={styles.headerTitle}>My Profile</Text>
-
-          {/* SETTINGS */}
 
           <TouchableOpacity
             style={styles.headerButton}
-            activeOpacity={0.8}
             onPress={() => router.push("/settings")}
+            activeOpacity={0.8}
           >
             <Ionicons
               name="settings-outline"
@@ -188,53 +306,74 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* =================================================
-            PROFILE CARD
-        ================================================= */}
+        {/* PROFILE CARD */}
 
         <View style={styles.profileCard}>
-          {/* PROFILE TOP */}
-
           <View style={styles.profileTop}>
-            {/* AVATAR */}
-
             <View style={styles.avatarOuter}>
               <View style={styles.avatar}>
-                <Ionicons name="person" size={48} color={colors.textPrimary} />
+                <Ionicons
+                  name="person"
+                  size={48}
+                  color={colors.textPrimary}
+                />
               </View>
             </View>
-
-            {/* INFORMATION */}
 
             <View style={styles.profileInformation}>
-              <Text style={styles.profileName}>Raju Kumar</Text>
+              {profileLoading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator
+                    size="small"
+                    color={colors.primary}
+                  />
+                  <Text style={styles.loadingText}>
+                    Loading profile...
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  <Text
+                    style={styles.profileName}
+                    numberOfLines={1}
+                  >
+                    {profileName}
+                  </Text>
 
-              {/* PHONE */}
+                  {!!profilePhone && (
+                    <View style={styles.infoRow}>
+                      <Ionicons
+                        name="call-outline"
+                        size={16}
+                        color={colors.textSecondary}
+                      />
+                      <Text
+                        style={styles.infoText}
+                        numberOfLines={1}
+                      >
+                        {profilePhone}
+                      </Text>
+                    </View>
+                  )}
 
-              <View style={styles.infoRow}>
-                <Ionicons
-                  name="call-outline"
-                  size={16}
-                  color={colors.textSecondary}
-                />
-
-                <Text style={styles.infoText}>+91 98765 43210</Text>
-              </View>
-
-              {/* EMAIL */}
-
-              <View style={styles.infoRow}>
-                <Ionicons
-                  name="mail-outline"
-                  size={16}
-                  color={colors.textSecondary}
-                />
-
-                <Text style={styles.infoText}>raju.kumar@email.com</Text>
-              </View>
+                  {!!profileEmail && (
+                    <View style={styles.infoRow}>
+                      <Ionicons
+                        name="mail-outline"
+                        size={16}
+                        color={colors.textSecondary}
+                      />
+                      <Text
+                        style={styles.infoText}
+                        numberOfLines={1}
+                      >
+                        {profileEmail}
+                      </Text>
+                    </View>
+                  )}
+                </>
+              )}
             </View>
-
-            {/* EDIT PROFILE */}
 
             <TouchableOpacity
               style={styles.profileArrow}
@@ -249,42 +388,66 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* =================================================
-              MEMBER INFORMATION
-          ================================================= */}
+          {!!profileError && (
+            <View style={styles.profileErrorContainer}>
+              <View style={styles.errorMessageContainer}>
+                <Ionicons
+                  name="alert-circle-outline"
+                  size={18}
+                  color={colors.primary}
+                />
+                <Text style={styles.profileErrorText}>
+                  {profileError}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                onPress={loadProfile}
+                disabled={profileLoading}
+              >
+                <Text style={styles.retryText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* MEMBERSHIP */}
 
           <View style={styles.memberRow}>
-            {/* BAKASURAN */}
-
             <View style={styles.bakasuranBadge}>
-              <Ionicons name="trophy" size={16} color="#FFFFFF" />
-
-              <Text style={styles.bakasuranText}>BAKASURAN</Text>
+              <Ionicons
+                name="trophy"
+                size={16}
+                color="#FFFFFF"
+              />
+              <Text style={styles.bakasuranText}>
+                BAKASURAN
+              </Text>
             </View>
-
-            {/* GOLD MEMBER */}
 
             <View style={styles.goldBadge}>
-              <Ionicons name="star" size={16} color={colors.warning} />
-
-              <Text style={styles.goldText}>Gold Member</Text>
+              <Ionicons
+                name="star"
+                size={16}
+                color={colors.warning}
+              />
+              <Text
+                style={styles.goldText}
+                numberOfLines={1}
+              >
+                {membership}
+              </Text>
             </View>
 
-            {/* POINTS */}
-
-            <Text style={styles.pointsText}>500 Points</Text>
-
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={colors.textMuted}
-            />
+            <Text
+              style={styles.pointsText}
+              numberOfLines={1}
+            >
+              {profilePoints} Points
+            </Text>
           </View>
         </View>
 
-        {/* =================================================
-            MENU
-        ================================================= */}
+        {/* MENU */}
 
         <View style={styles.menuContainer}>
           {menuItems.map((item, index) => (
@@ -292,33 +455,38 @@ export default function ProfileScreen() {
               key={item.title}
               style={[
                 styles.menuItem,
-                index === menuItems.length - 1 && styles.lastMenuItem,
+                index === menuItems.length - 1 &&
+                  styles.lastMenuItem,
               ]}
               activeOpacity={0.75}
               onPress={() => handleMenuPress(item.route)}
             >
-              {/* ICON */}
-
               <View
                 style={[
                   styles.iconContainer,
                   {
-                    backgroundColor: item.background,
+                    backgroundColor: isDark
+                      ? "#241014"
+                      : "#FFF0F1",
                   },
                 ]}
               >
-                <Ionicons name={item.icon} size={24} color={item.color} />
+                <Ionicons
+                  name={item.icon}
+                  size={24}
+                  color={item.color}
+                />
               </View>
-
-              {/* TEXT */}
 
               <View style={styles.menuTextContainer}>
-                <Text style={styles.menuTitle}>{item.title}</Text>
+                <Text style={styles.menuTitle}>
+                  {item.title}
+                </Text>
 
-                <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
+                <Text style={styles.menuSubtitle}>
+                  {item.subtitle}
+                </Text>
               </View>
-
-              {/* ARROW */}
 
               <Ionicons
                 name="chevron-forward"
@@ -329,9 +497,7 @@ export default function ProfileScreen() {
           ))}
         </View>
 
-        {/* =================================================
-            THEME SETTINGS
-        ================================================= */}
+        {/* APPEARANCE */}
 
         <TouchableOpacity
           style={styles.themeItem}
@@ -350,7 +516,9 @@ export default function ProfileScreen() {
             <Text style={styles.themeTitle}>Appearance</Text>
 
             <Text style={styles.themeSubtitle}>
-              {isDark ? "Dark mode enabled" : "Light mode enabled"}
+              {isDark
+                ? "Dark mode enabled"
+                : "Light mode enabled"}
             </Text>
           </View>
 
@@ -365,18 +533,34 @@ export default function ProfileScreen() {
           />
         </TouchableOpacity>
 
-        {/* =================================================
-            LOGOUT
-        ================================================= */}
+        {/* LOGOUT */}
 
         <TouchableOpacity
-          style={styles.logoutButton}
+          style={[
+            styles.logoutButton,
+            loggingOut && styles.logoutButtonDisabled,
+          ]}
           activeOpacity={0.8}
-          onPressIn={() => router.push("/(auth)/Loginscreen")}
+          onPress={handleLogout}
+          disabled={loggingOut}
         >
-          <Ionicons name="log-out-outline" size={26} color={colors.primary} />
-
-          <Text style={styles.logoutText}>Logout</Text>
+          {loggingOut ? (
+            <>
+              <ActivityIndicator color={colors.primary} />
+              <Text style={styles.logoutText}>
+                Logging out...
+              </Text>
+            </>
+          ) : (
+            <>
+              <Ionicons
+                name="log-out-outline"
+                size={26}
+                color={colors.primary}
+              />
+              <Text style={styles.logoutText}>Logout</Text>
+            </>
+          )}
         </TouchableOpacity>
 
         <View style={styles.bottomSpace} />
@@ -385,16 +569,12 @@ export default function ProfileScreen() {
   );
 }
 
-/* =========================================================
-   STYLES  (built from the active theme)
-========================================================= */
+// =============================================
+// STYLES
+// =============================================
 
 const makeStyles = (colors, isDark) =>
   StyleSheet.create({
-    /* =====================================================
-       SCREEN
-    ===================================================== */
-
     safeArea: {
       flex: 1,
       backgroundColor: colors.background,
@@ -409,10 +589,6 @@ const makeStyles = (colors, isDark) =>
       paddingHorizontal: 14,
       paddingBottom: 24,
     },
-
-    /* =====================================================
-       HEADER
-    ===================================================== */
 
     header: {
       height: 82,
@@ -442,10 +618,6 @@ const makeStyles = (colors, isDark) =>
       letterSpacing: -0.3,
     },
 
-    /* =====================================================
-       PROFILE CARD
-    ===================================================== */
-
     profileCard: {
       backgroundColor: colors.card,
       borderRadius: 20,
@@ -462,10 +634,6 @@ const makeStyles = (colors, isDark) =>
       alignItems: "center",
       minHeight: 105,
     },
-
-    /* =====================================================
-       AVATAR
-    ===================================================== */
 
     avatarOuter: {
       width: 88,
@@ -484,13 +652,10 @@ const makeStyles = (colors, isDark) =>
       overflow: "hidden",
     },
 
-    /* =====================================================
-       PROFILE INFORMATION
-    ===================================================== */
-
     profileInformation: {
       flex: 1,
       marginLeft: 15,
+      minWidth: 0,
     },
 
     profileName: {
@@ -508,6 +673,19 @@ const makeStyles = (colors, isDark) =>
     },
 
     infoText: {
+      flex: 1,
+      color: colors.textSecondary,
+      fontFamily: Fonts.medium,
+      fontSize: Fonts.size.sm,
+      marginLeft: 8,
+    },
+
+    loadingContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    loadingText: {
       color: colors.textSecondary,
       fontFamily: Fonts.medium,
       fontSize: Fonts.size.sm,
@@ -521,9 +699,36 @@ const makeStyles = (colors, isDark) =>
       justifyContent: "center",
     },
 
-    /* =====================================================
-       MEMBER ROW
-    ===================================================== */
+    profileErrorContainer: {
+      marginTop: 12,
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: colors.divider,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+
+    errorMessageContainer: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    profileErrorText: {
+      flex: 1,
+      color: colors.textSecondary,
+      fontFamily: Fonts.medium,
+      fontSize: Fonts.size.sm,
+      marginLeft: 7,
+    },
+
+    retryText: {
+      color: colors.primary,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.sm,
+      marginLeft: 10,
+    },
 
     memberRow: {
       flexDirection: "row",
@@ -559,9 +764,11 @@ const makeStyles = (colors, isDark) =>
       flexDirection: "row",
       alignItems: "center",
       marginLeft: 8,
+      maxWidth: 115,
     },
 
     goldText: {
+      flexShrink: 1,
       color: colors.warning,
       fontFamily: Fonts.medium,
       fontSize: Fonts.size.xs,
@@ -576,10 +783,6 @@ const makeStyles = (colors, isDark) =>
       fontSize: Fonts.size.xs,
       marginRight: 7,
     },
-
-    /* =====================================================
-       MENU
-    ===================================================== */
 
     menuContainer: {
       backgroundColor: colors.backgroundSecondary,
@@ -631,10 +834,6 @@ const makeStyles = (colors, isDark) =>
       fontSize: Fonts.size.sm,
     },
 
-    /* =====================================================
-       THEME
-    ===================================================== */
-
     themeItem: {
       minHeight: 82,
       flexDirection: "row",
@@ -674,12 +873,8 @@ const makeStyles = (colors, isDark) =>
       fontSize: Fonts.size.sm,
     },
 
-    /* =====================================================
-       LOGOUT
-    ===================================================== */
-
     logoutButton: {
-      height: 64,
+      minHeight: 64,
       borderRadius: 33,
       borderWidth: 2,
       borderColor: colors.primary,
@@ -687,6 +882,10 @@ const makeStyles = (colors, isDark) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
+    },
+
+    logoutButtonDisabled: {
+      opacity: 0.7,
     },
 
     logoutText: {
