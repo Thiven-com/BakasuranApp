@@ -608,668 +608,669 @@ export default CartScreen;
 // STYLES
 // ============================================================
 
-const makeStyles = (Colors) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-
-  // ==========================================================
-  // HEADER
-  // ==========================================================
-
-  header: {
-    height: 64,
-    paddingHorizontal: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: Colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.divider,
-  },
-
-  headerButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.surface,
-  },
-
-  headerCenter: {
-    alignItems: "center",
-  },
-
-  headerTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 18,
-  },
-
-  headerSubtitle: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 16,
-    marginTop: 2,
-  },
-
-  // ==========================================================
-  // SCROLL
-  // ==========================================================
-
-  scrollContent: {
-    paddingBottom: 100,
-  },
-
-  // ==========================================================
-  // RESTAURANT
-  // ==========================================================
-
-  restaurantSection: {
-    marginHorizontal: 15,
-    marginTop: 15,
-    padding: 12,
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  restaurantIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 10,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  restaurantInfo: {
-    flex: 1,
-    marginLeft: 11,
-  },
-
-  restaurantName: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 20,
-  },
-
-  restaurantLocation: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.regular,
-    fontSize: 17,
-    marginTop: 3,
-  },
-
-  // ==========================================================
-  // SECTION HEADER
-  // ==========================================================
-
-  sectionHeader: {
-    marginTop: 20,
-    marginHorizontal: 15,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-
-  sectionTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.extraBold,
-    fontSize: 18,
-  },
-
-  itemCount: {
-    color: Colors.textMuted,
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-  },
-
-  // ==========================================================
-  // ITEMS
-  // ==========================================================
-
-  itemsContainer: {
-    marginHorizontal: 15,
-    marginTop: 8,
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    overflow: "hidden",
-  },
-
-  cartItem: {
-    minHeight: 105,
-    padding: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.divider,
-    position: "relative",
-  },
-
-  itemImageContainer: {
-    width: 76,
-    height: 76,
-    position: "relative",
-  },
-
-  itemImage: {
-    width: 76,
-    height: 76,
-    borderRadius: 10,
-  },
-
-  itemVegIndicator: {
-    position: "absolute",
-    top: 5,
-    left: 5,
-    width: 14,
-    height: 14,
-    borderRadius: 3,
-    borderWidth: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  itemVegDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-
-  itemDetails: {
-    flex: 1,
-    marginLeft: 10,
-    paddingRight: 5,
-  },
-
-  itemName: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.semiBold,
-    fontSize: 15,
-    lineHeight: 19,
-  },
-
-  itemRestaurant: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 13,
-    marginTop: 3,
-  },
-
-  itemPrice: {
-    color: Colors.gold,
-    fontFamily: Fonts.medium,
-    fontSize: 14,
-    marginTop: 5,
-  },
-
-  itemRight: {
-    alignItems: "flex-end",
-    justifyContent: "center",
-  },
-
-  quantityContainer: {
-    height: 30,
-    minWidth: 76,
-    borderRadius: 7,
-    backgroundColor: Colors.primary,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 4,
-  },
-
-  quantityButton: {
-    width: 24,
-    height: 24,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  quantityText: {
-    color: Colors.white,
-    fontFamily: Fonts.bold,
-    fontSize: 13,
-    minWidth: 15,
-    textAlign: "center",
-  },
-
-  itemTotal: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 15,
-    marginTop: 7,
-  },
-
-  removeButton: {
-    position: "absolute",
-    right: 5,
-    top: 4,
-    width: 20,
-    height: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  // ==========================================================
-  // ADD MORE
-  // ==========================================================
-
-  addMoreButton: {
-    marginHorizontal: 15,
-    marginTop: 10,
-    paddingHorizontal: 13,
-    paddingVertical: 13,
-    backgroundColor: Colors.surface,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  addMoreIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "rgba(255,32,40,0.12)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  addMoreText: {
-    flex: 1,
-    color: Colors.textPrimary,
-    fontFamily: Fonts.medium,
-    fontSize: 11,
-    marginLeft: 9,
-  },
-
-  // ==========================================================
-  // COUPON
-  // ==========================================================
-
-  couponSection: {
-    marginHorizontal: 15,
-    marginTop: 15,
-    padding: 13,
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-
-  couponHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  couponIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "rgba(255,32,40,0.12)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  couponTitle: {
-    color: Colors.primary,
-    fontFamily: Fonts.bold,
-    fontSize: 17,
-    marginLeft: 9,
-  },
-
-  couponSubtitle: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-    marginLeft: 9,
-    marginTop: 2,
-  },
-
-  couponInputRow: {
-    height: 42,
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    overflow: "hidden",
-  },
-
-  couponInput: {
-    flex: 1,
-    height: "100%",
-    paddingHorizontal: 11,
-    color: Colors.textPrimary,
-    fontFamily: Fonts.medium,
-    fontSize: 10,
-  },
-
-  applyButton: {
-    height: "100%",
-    paddingHorizontal: 15,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  appliedButton: {
-    backgroundColor: Colors.success,
-  },
-
-  applyButtonText: {
-    color: Colors.white,
-    fontFamily: Fonts.bold,
-    fontSize: 9,
-  },
-
-  appliedCouponRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-  },
-
-  appliedCouponText: {
-    color: Colors.success,
-    fontFamily: Fonts.medium,
-    fontSize: 9,
-    marginLeft: 5,
-  },
-
-  // ==========================================================
-  // OFFER TIP
-  // ==========================================================
-
-  offerTip: {
-    marginHorizontal: 15,
-    marginTop: 12,
-    padding: 11,
-    borderRadius: 10,
-    backgroundColor: "rgba(255,184,0,0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(255,184,0,0.2)",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  offerTipIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: "rgba(255,184,0,0.12)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  offerTipContent: {
-    marginLeft: 9,
-    flex: 1,
-  },
-
-  offerTipTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.semiBold,
-    fontSize: 10,
-  },
-
-  offerTipText: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 8,
-    marginTop: 2,
-  },
-
-  // ==========================================================
-  // BILL
-  // ==========================================================
-
-  billSection: {
-    marginHorizontal: 15,
-    marginTop: 15,
-    padding: 14,
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-
-  billTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 18,
-    marginBottom: 12,
-  },
-
-  billRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginVertical: 5,
-  },
-
-  billLabel: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 17,
-  },
-
-  billValue: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.medium,
-    fontSize: 15,
-  },
-
-  freeText: {
-    color: Colors.success,
-    fontFamily: Fonts.bold,
-    fontSize: 15,
-  },
-
-  discountLabel: {
-    color: Colors.success,
-    fontFamily: Fonts.regular,
-    fontSize: 15,
-  },
-
-  discountValue: {
-    color: Colors.success,
-    fontFamily: Fonts.semiBold,
-    fontSize: 15,
-  },
-
-  billDivider: {
-    height: 1,
-    backgroundColor: Colors.divider,
-    marginVertical: 10,
-  },
-
-  totalRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-
-  totalLabel: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 15,
-  },
-
-  totalSubtext: {
-    color: Colors.textMuted,
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-    marginTop: 2,
-  },
-
-  totalValue: {
-    color: Colors.primary,
-    fontFamily: Fonts.extraBold,
-    fontSize: 20,
-  },
-
-  // ==========================================================
-  // DELIVERY INFO
-  // ==========================================================
-
-  deliveryInfo: {
-    marginHorizontal: 15,
-    marginTop: 12,
-    padding: 12,
-    backgroundColor: Colors.surface,
-    borderRadius: 10,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  deliveryInfoContent: {
-    flex: 1,
-    marginLeft: 9,
-  },
-
-  deliveryInfoTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.medium,
-    fontSize: 14,
-  },
-
-  deliveryInfoText: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    marginTop: 2,
-  },
-
-  bottomSpace: {
-    height: 20,
-  },
-
-  // ==========================================================
-  // CHECKOUT BAR
-  // ==========================================================
-
-  checkoutBar: {
-    position: "absolute",
-    left: 10,
-    right: 10,
-    bottom: 10,
-    height: 65,
-    paddingHorizontal: 14,
-    borderRadius: 15,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
+const makeStyles = (Colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: Colors.background,
     },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-  },
 
-  checkoutPriceContainer: {
-    paddingLeft: 3,
-  },
+    // ==========================================================
+    // HEADER
+    // ==========================================================
 
-  checkoutLabel: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 15,
-  },
+    header: {
+      height: 64,
+      paddingHorizontal: 14,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: Colors.background,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.divider,
+    },
 
-  checkoutPrice: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.extraBold,
-    fontSize: 19,
-    marginTop: 2,
-  },
+    headerButton: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: Colors.surface,
+    },
 
-  checkoutButton: {
-    height: 44,
-    minWidth: 145,
-    paddingHorizontal: 18,
-    borderRadius: 10,
-    backgroundColor: Colors.primary,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
+    headerCenter: {
+      alignItems: "center",
+    },
 
-  checkoutText: {
-    color: Colors.white,
-    fontFamily: Fonts.extraBold,
-    fontSize: 11,
-  },
+    headerTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.bold,
+      fontSize: 18,
+    },
 
-  // ==========================================================
-  // EMPTY CART
-  // ==========================================================
+    headerSubtitle: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 16,
+      marginTop: 2,
+    },
 
-  emptyContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 35,
-  },
+    // ==========================================================
+    // SCROLL
+    // ==========================================================
 
-  emptyIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "rgba(255,32,40,0.10)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    scrollContent: {
+      paddingBottom: 100,
+    },
 
-  emptyTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.extraBold,
-    fontSize: 22,
-    marginTop: 20,
-  },
+    // ==========================================================
+    // RESTAURANT
+    // ==========================================================
 
-  emptyDescription: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 11,
-    textAlign: "center",
-    lineHeight: 18,
-    marginTop: 7,
-  },
+    restaurantSection: {
+      marginHorizontal: 15,
+      marginTop: 15,
+      padding: 12,
+      backgroundColor: Colors.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      flexDirection: "row",
+      alignItems: "center",
+    },
 
-  startOrderingButton: {
-    marginTop: 22,
-    height: 46,
-    paddingHorizontal: 22,
-    borderRadius: 23,
-    backgroundColor: Colors.primary,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
+    restaurantIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 10,
+      backgroundColor: Colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  startOrderingText: {
-    color: Colors.white,
-    fontFamily: Fonts.bold,
-    fontSize: 11,
-  },
-});
+    restaurantInfo: {
+      flex: 1,
+      marginLeft: 11,
+    },
+
+    restaurantName: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.bold,
+      fontSize: 20,
+    },
+
+    restaurantLocation: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
+      marginTop: 3,
+    },
+
+    // ==========================================================
+    // SECTION HEADER
+    // ==========================================================
+
+    sectionHeader: {
+      marginTop: 20,
+      marginHorizontal: 15,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+
+    sectionTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.extraBold,
+      fontSize: 18,
+    },
+
+    itemCount: {
+      color: Colors.textMuted,
+      fontFamily: Fonts.regular,
+      fontSize: 14,
+    },
+
+    // ==========================================================
+    // ITEMS
+    // ==========================================================
+
+    itemsContainer: {
+      marginHorizontal: 15,
+      marginTop: 8,
+      backgroundColor: Colors.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      overflow: "hidden",
+    },
+
+    cartItem: {
+      minHeight: 105,
+      padding: 10,
+      flexDirection: "row",
+      alignItems: "center",
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.divider,
+      position: "relative",
+    },
+
+    itemImageContainer: {
+      width: 76,
+      height: 76,
+      position: "relative",
+    },
+
+    itemImage: {
+      width: 76,
+      height: 76,
+      borderRadius: 10,
+    },
+
+    itemVegIndicator: {
+      position: "absolute",
+      top: 5,
+      left: 5,
+      width: 14,
+      height: 14,
+      borderRadius: 3,
+      borderWidth: 1,
+      backgroundColor: "rgba(0,0,0,0.7)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    itemVegDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+    },
+
+    itemDetails: {
+      flex: 1,
+      marginLeft: 10,
+      paddingRight: 5,
+    },
+
+    itemName: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 20,
+      lineHeight: 19,
+    },
+
+    itemRestaurant: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 19,
+      marginTop: 3,
+    },
+
+    itemPrice: {
+      color: Colors.gold,
+      fontFamily: Fonts.regular,
+      fontSize: 18,
+      marginTop: 5,
+    },
+
+    itemRight: {
+      alignItems: "flex-end",
+      justifyContent: "center",
+    },
+
+    quantityContainer: {
+      height: 30,
+      minWidth: 76,
+      borderRadius: 7,
+      backgroundColor: Colors.primary,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 4,
+    },
+
+    quantityButton: {
+      width: 24,
+      height: 24,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    quantityText: {
+      color: Colors.white,
+      fontFamily: Fonts.regular,
+      fontSize: 16,
+      minWidth: 15,
+      textAlign: "center",
+    },
+
+    itemTotal: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.bold,
+      fontSize: 15,
+      marginTop: 7,
+    },
+
+    removeButton: {
+      position: "absolute",
+      right: 5,
+      top: 4,
+      width: 20,
+      height: 20,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    // ==========================================================
+    // ADD MORE
+    // ==========================================================
+
+    addMoreButton: {
+      marginHorizontal: 15,
+      marginTop: 10,
+      paddingHorizontal: 13,
+      paddingVertical: 13,
+      backgroundColor: Colors.surface,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    addMoreIcon: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: "rgba(255,32,40,0.12)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    addMoreText: {
+      flex: 1,
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
+      marginLeft: 9,
+    },
+
+    // ==========================================================
+    // COUPON
+    // ==========================================================
+
+    couponSection: {
+      marginHorizontal: 15,
+      marginTop: 15,
+      padding: 13,
+      backgroundColor: Colors.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+
+    couponHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    couponIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: "rgba(255,32,40,0.12)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    couponTitle: {
+      color: Colors.primary,
+      fontFamily: Fonts.regular,
+      fontSize: 20,
+      marginLeft: 9,
+    },
+
+    couponSubtitle: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 16,
+      marginLeft: 9,
+      marginTop: 2,
+    },
+
+    couponInputRow: {
+      height: 42,
+      marginTop: 12,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: 8,
+      flexDirection: "row",
+      alignItems: "center",
+      overflow: "hidden",
+    },
+
+    couponInput: {
+      flex: 1,
+      height: "100%",
+      paddingHorizontal: 11,
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
+    },
+
+    applyButton: {
+      height: "100%",
+      paddingHorizontal: 15,
+      backgroundColor: Colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    appliedButton: {
+      backgroundColor: Colors.success,
+    },
+
+    applyButtonText: {
+      color: Colors.white,
+      fontFamily: Fonts.regular,
+      fontSize: 13,
+    },
+
+    appliedCouponRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 8,
+    },
+
+    appliedCouponText: {
+      color: Colors.success,
+      fontFamily: Fonts.regular,
+      fontSize: 13,
+      marginLeft: 5,
+    },
+
+    // ==========================================================
+    // OFFER TIP
+    // ==========================================================
+
+    offerTip: {
+      marginHorizontal: 15,
+      marginTop: 12,
+      padding: 11,
+      borderRadius: 10,
+      backgroundColor: "rgba(255,184,0,0.08)",
+      borderWidth: 1,
+      borderColor: "rgba(255,184,0,0.2)",
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    offerTipIcon: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      backgroundColor: "rgba(255,184,0,0.12)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    offerTipContent: {
+      marginLeft: 9,
+      flex: 1,
+    },
+
+    offerTipTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
+    },
+
+    offerTipText: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
+      marginTop: 2,
+    },
+
+    // ==========================================================
+    // BILL
+    // ==========================================================
+
+    billSection: {
+      marginHorizontal: 15,
+      marginTop: 15,
+      padding: 14,
+      backgroundColor: Colors.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+
+    billTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 20,
+      marginBottom: 12,
+    },
+
+    billRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginVertical: 5,
+    },
+
+    billLabel: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 19,
+    },
+
+    billValue: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 18,
+    },
+
+    freeText: {
+      color: Colors.success,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
+    },
+
+    discountLabel: {
+      color: Colors.success,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
+    },
+
+    discountValue: {
+      color: Colors.success,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
+    },
+
+    billDivider: {
+      height: 1,
+      backgroundColor: Colors.divider,
+      marginVertical: 10,
+    },
+
+    totalRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+
+    totalLabel: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
+    },
+
+    totalSubtext: {
+      color: Colors.textMuted,
+      fontFamily: Fonts.regular,
+      fontSize: 14,
+      marginTop: 2,
+    },
+
+    totalValue: {
+      color: Colors.primary,
+      fontFamily: Fonts.extraBold,
+      fontSize: 20,
+    },
+
+    // ==========================================================
+    // DELIVERY INFO
+    // ==========================================================
+
+    deliveryInfo: {
+      marginHorizontal: 15,
+      marginTop: 12,
+      padding: 12,
+      backgroundColor: Colors.surface,
+      borderRadius: 10,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    deliveryInfoContent: {
+      flex: 1,
+      marginLeft: 9,
+    },
+
+    deliveryInfoTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.medium,
+      fontSize: 14,
+    },
+
+    deliveryInfoText: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
+      marginTop: 2,
+    },
+
+    bottomSpace: {
+      height: 20,
+    },
+
+    // ==========================================================
+    // CHECKOUT BAR
+    // ==========================================================
+
+    checkoutBar: {
+      position: "absolute",
+      left: 10,
+      right: 10,
+      bottom: 10,
+      height: 65,
+      paddingHorizontal: 14,
+      borderRadius: 15,
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      elevation: 8,
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+      shadowOpacity: 0.4,
+      shadowRadius: 8,
+    },
+
+    checkoutPriceContainer: {
+      paddingLeft: 3,
+    },
+
+    checkoutLabel: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
+    },
+
+    checkoutPrice: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 20,
+      marginTop: 2,
+    },
+
+    checkoutButton: {
+      height: 44,
+      minWidth: 145,
+      paddingHorizontal: 18,
+      borderRadius: 10,
+      backgroundColor: Colors.primary,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+    },
+
+    checkoutText: {
+      color: Colors.white,
+      fontFamily: Fonts.regular,
+      fontSize: 18,
+    },
+
+    // ==========================================================
+    // EMPTY CART
+    // ==========================================================
+
+    emptyContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 35,
+    },
+
+    emptyIconContainer: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: "rgba(255,32,40,0.10)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    emptyTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.extraBold,
+      fontSize: 22,
+      marginTop: 20,
+    },
+
+    emptyDescription: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 11,
+      textAlign: "center",
+      lineHeight: 18,
+      marginTop: 7,
+    },
+
+    startOrderingButton: {
+      marginTop: 22,
+      height: 46,
+      paddingHorizontal: 22,
+      borderRadius: 23,
+      backgroundColor: Colors.primary,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+    },
+
+    startOrderingText: {
+      color: Colors.white,
+      fontFamily: Fonts.bold,
+      fontSize: 11,
+    },
+  });

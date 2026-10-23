@@ -546,441 +546,442 @@ export default Wishlist;
 // STYLES
 // ============================================================
 
-const makeStyles = (Colors) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+const makeStyles = (Colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
 
-  // ==========================================================
-  // HEADER
-  // ==========================================================
+    // ==========================================================
+    // HEADER
+    // ==========================================================
 
-  header: {
-    height: 82,
-    paddingHorizontal: 15,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.divider,
-  },
+    header: {
+      height: 82,
+      paddingHorizontal: 15,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.divider,
+    },
 
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
+    backButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
 
-  headerCenter: {
-    alignItems: "center",
-  },
+    headerCenter: {
+      alignItems: "center",
+    },
 
-  headerTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.extraBold,
-    fontSize: 20,
-  },
+    headerTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 27,
+    },
 
-  headerSubtitle: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 10,
-    marginTop: 3,
-  },
+    headerSubtitle: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 18,
+      marginTop: 3,
+    },
 
-  clearButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 3,
-  },
+    clearButton: {
+      paddingVertical: 8,
+      paddingHorizontal: 3,
+    },
 
-  clearText: {
-    color: Colors.primary,
-    fontFamily: Fonts.bold,
-    fontSize: 10,
-  },
+    clearText: {
+      color: Colors.primary,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
+    },
 
-  // ==========================================================
-  // TABS
-  // ==========================================================
+    // ==========================================================
+    // TABS
+    // ==========================================================
 
-  tabsContainer: {
-    height: 52,
-    marginHorizontal: 15,
-    marginTop: 14,
-    borderRadius: 26,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    flexDirection: "row",
-    overflow: "hidden",
-  },
+    tabsContainer: {
+      height: 52,
+      marginHorizontal: 15,
+      marginTop: 14,
+      borderRadius: 26,
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      flexDirection: "row",
+      overflow: "hidden",
+    },
 
-  tab: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 26,
-  },
+    tab: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: 26,
+    },
 
-  activeTab: {
-    backgroundColor: Colors.primary,
-  },
+    activeTab: {
+      backgroundColor: Colors.primary,
+    },
 
-  tabText: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.semiBold,
-    fontSize: 15,
-  },
+    tabText: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 19,
+    },
 
-  activeTabText: {
-    color: Colors.white,
-    fontFamily: Fonts.bold,
-  },
+    activeTabText: {
+      color: Colors.white,
+      fontFamily: Fonts.bold,
+    },
 
-  // ==========================================================
-  // LIST
-  // ==========================================================
+    // ==========================================================
+    // LIST
+    // ==========================================================
 
-  listContent: {
-    paddingHorizontal: 15,
-    paddingTop: 14,
-    paddingBottom: 30,
-  },
+    listContent: {
+      paddingHorizontal: 15,
+      paddingTop: 14,
+      paddingBottom: 30,
+    },
 
-  // ==========================================================
-  // RESTAURANT CARD
-  // ==========================================================
+    // ==========================================================
+    // RESTAURANT CARD
+    // ==========================================================
 
-  restaurantCard: {
-    minHeight: 190,
-    marginBottom: 12,
-    padding: 10,
-    borderRadius: 14,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    flexDirection: "row",
-    overflow: "hidden",
-  },
+    restaurantCard: {
+      minHeight: 190,
+      marginBottom: 12,
+      padding: 10,
+      borderRadius: 14,
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      flexDirection: "row",
+      overflow: "hidden",
+    },
 
-  restaurantImageContainer: {
-    width: 125,
-    height: 168,
-    borderRadius: 11,
-    overflow: "hidden",
-    position: "relative",
-  },
+    restaurantImageContainer: {
+      width: 125,
+      height: 168,
+      borderRadius: 11,
+      overflow: "hidden",
+      position: "relative",
+    },
 
-  restaurantImage: {
-    width: "100%",
-    height: "100%",
-  },
+    restaurantImage: {
+      width: "100%",
+      height: "100%",
+    },
 
-  offerBadge: {
-    position: "absolute",
-    left: 7,
-    bottom: 7,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 7,
-    backgroundColor: Colors.primary,
-  },
+    offerBadge: {
+      position: "absolute",
+      left: 7,
+      bottom: 7,
+      paddingHorizontal: 8,
+      paddingVertical: 6,
+      borderRadius: 7,
+      backgroundColor: Colors.primary,
+    },
 
-  offerText: {
-    color: Colors.white,
-    fontFamily: Fonts.bold,
-    fontSize: 9,
-  },
+    offerText: {
+      color: Colors.white,
+      fontFamily: Fonts.regular,
+      fontSize: 14,
+    },
 
-  restaurantDetails: {
-    flex: 1,
-    paddingLeft: 11,
-    paddingTop: 4,
-  },
+    restaurantDetails: {
+      flex: 1,
+      paddingLeft: 11,
+      paddingTop: 4,
+    },
 
-  restaurantTopRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+    restaurantTopRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
 
-  restaurantName: {
-    flex: 1,
-    color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 20,
-  },
+    restaurantName: {
+      flex: 1,
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 28,
+    },
 
-  heartButton: {
-    width: 35,
-    height: 35,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    heartButton: {
+      width: 35,
+      height: 35,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  cuisine: {
-    color: Colors.goldDark,
-    fontFamily: Fonts.regular,
-    fontSize: 15,
-    marginTop: 5,
-  },
+    cuisine: {
+      color: Colors.goldDark,
+      fontFamily: Fonts.regular,
+      fontSize: 20,
+      marginTop: 5,
+    },
 
-  ratingTimeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 12,
-  },
+    ratingTimeRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 12,
+    },
 
-  ratingBadge: {
-    minWidth: 48,
-    height: 25,
-    paddingHorizontal: 7,
-    borderRadius: 6,
-    backgroundColor: "#168A3A",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    ratingBadge: {
+      minWidth: 48,
+      height: 25,
+      paddingHorizontal: 7,
+      borderRadius: 6,
+      backgroundColor: "#168A3A",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  ratingText: {
-    color: Colors.white,
-    fontFamily: Fonts.bold,
-    fontSize: 15,
-    marginLeft: 4,
-  },
+    ratingText: {
+      color: Colors.white,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
+      marginLeft: 4,
+    },
 
-  dot: {
-    width: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    dot: {
+      width: 18,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  dotCircle: {
-    width: 3,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: Colors.textMuted,
-  },
+    dotCircle: {
+      width: 3,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: Colors.textMuted,
+    },
 
-  timeText: {
-    color: Colors.success,
-    fontFamily: Fonts.medium,
-    fontSize: 15,
-  },
+    timeText: {
+      color: Colors.success,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
+    },
 
-  locationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 11,
-  },
+    locationRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 11,
+    },
 
-  locationText: {
-    flex: 1,
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 13,
-    marginLeft: 5,
-  },
+    locationText: {
+      flex: 1,
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 16,
+      marginLeft: 5,
+    },
 
-  priceText: {
-    color: Colors.success,
-    fontFamily: Fonts.regular,
-    fontSize: 13,
-    marginTop: 9,
-  },
+    priceText: {
+      color: Colors.success,
+      fontFamily: Fonts.regular,
+      fontSize: 18,
+      marginTop: 9,
+    },
 
-  // ==========================================================
-  // DISH CARD
-  // ==========================================================
+    // ==========================================================
+    // DISH CARD
+    // ==========================================================
 
-  dishCard: {
-    minHeight: 145,
-    marginBottom: 12,
-    padding: 10,
-    borderRadius: 14,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    flexDirection: "row",
-  },
+    dishCard: {
+      minHeight: 145,
+      marginBottom: 12,
+      padding: 10,
+      borderRadius: 14,
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      flexDirection: "row",
+    },
 
-  dishImageContainer: {
-    width: 125,
-    height: 125,
-    borderRadius: 11,
-    overflow: "hidden",
-    position: "relative",
-  },
+    dishImageContainer: {
+      width: 125,
+      height: 125,
+      borderRadius: 11,
+      overflow: "hidden",
+      position: "relative",
+    },
 
-  dishImage: {
-    width: "100%",
-    height: "100%",
-  },
+    dishImage: {
+      width: "100%",
+      height: "100%",
+    },
 
-  vegIndicator: {
-    position: "absolute",
-    left: 7,
-    top: 7,
-    width: 17,
-    height: 17,
-    borderRadius: 4,
-    borderWidth: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    vegIndicator: {
+      position: "absolute",
+      left: 7,
+      top: 7,
+      width: 17,
+      height: 17,
+      borderRadius: 4,
+      borderWidth: 1,
+      backgroundColor: "rgba(0,0,0,0.7)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  vegDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-  },
+    vegDot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+    },
 
-  dishDetails: {
-    flex: 1,
-    paddingLeft: 11,
-  },
+    dishDetails: {
+      flex: 1,
+      paddingLeft: 11,
+    },
 
-  dishTopRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+    dishTopRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
 
-  dishName: {
-    flex: 1,
-    color: Colors.goldDark,
-    fontFamily: Fonts.bold,
-    fontSize: 16,
-  },
+    dishName: {
+      flex: 1,
+      color: Colors.goldDark,
+      fontFamily: Fonts.regular,
+      fontSize: 25,
+    },
 
-  dishRestaurant: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 13,
-    marginTop: 4,
-  },
+    dishRestaurant: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
+      marginTop: 4,
+    },
 
-  dishInfoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 9,
-  },
+    dishInfoRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 9,
+    },
 
-  dishTime: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 9,
-    marginLeft: 7,
-  },
+    dishTime: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
+      marginLeft: 7,
+    },
 
-  dishBottomRow: {
-    flex: 1,
-    marginTop: 10,
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-  },
+    dishBottomRow: {
+      flex: 1,
+      marginTop: 10,
+      flexDirection: "row",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+    },
 
-  priceContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+    priceContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
 
-  dishPrice: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 14,
-  },
+    dishPrice: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 18,
+    },
 
-  dishOldPrice: {
-    color: Colors.textMuted,
-    fontFamily: Fonts.regular,
-    fontSize: 9,
-    textDecorationLine: "line-through",
-    marginLeft: 6,
-  },
+    dishOldPrice: {
+      color: Colors.textMuted,
+      fontFamily: Fonts.regular,
+      fontSize: 13,
+      textDecorationLine: "line-through",
+      marginLeft: 6,
+    },
 
-  addButton: {
-    height: 32,
-    minWidth: 62,
-    paddingHorizontal: 9,
-    borderRadius: 7,
-    backgroundColor: Colors.primary,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    addButton: {
+      height: 32,
+      minWidth: 62,
+      paddingHorizontal: 9,
+      borderRadius: 7,
+      backgroundColor: Colors.primary,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  addText: {
-    color: Colors.white,
-    fontFamily: Fonts.bold,
-    fontSize: 9,
-    marginLeft: 3,
-  },
+    addText: {
+      color: Colors.white,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
+      marginLeft: 3,
+    },
 
-  // ==========================================================
-  // EMPTY
-  // ==========================================================
+    // ==========================================================
+    // EMPTY
+    // ==========================================================
 
-  emptyListContent: {
-    flexGrow: 1,
-  },
+    emptyListContent: {
+      flexGrow: 1,
+    },
 
-  emptyContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 35,
-    paddingBottom: 80,
-  },
+    emptyContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 35,
+      paddingBottom: 80,
+    },
 
-  emptyIcon: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    backgroundColor: "rgba(255,32,40,0.10)",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255,32,40,0.18)",
-  },
+    emptyIcon: {
+      width: 110,
+      height: 110,
+      borderRadius: 55,
+      backgroundColor: "rgba(255,32,40,0.10)",
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: "rgba(255,32,40,0.18)",
+    },
 
-  emptyTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.extraBold,
-    fontSize: 20,
-    marginTop: 18,
-  },
+    emptyTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.extraBold,
+      fontSize: 20,
+      marginTop: 18,
+    },
 
-  emptyDescription: {
-    color: Colors.textMuted,
-    fontFamily: Fonts.regular,
-    fontSize: 10,
-    lineHeight: 17,
-    textAlign: "center",
-    marginTop: 7,
-  },
+    emptyDescription: {
+      color: Colors.textMuted,
+      fontFamily: Fonts.regular,
+      fontSize: 10,
+      lineHeight: 17,
+      textAlign: "center",
+      marginTop: 7,
+    },
 
-  exploreButton: {
-    height: 45,
-    marginTop: 20,
-    paddingHorizontal: 20,
-    borderRadius: 23,
-    backgroundColor: Colors.primary,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    exploreButton: {
+      height: 45,
+      marginTop: 20,
+      paddingHorizontal: 20,
+      borderRadius: 23,
+      backgroundColor: Colors.primary,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  exploreButtonText: {
-    color: Colors.white,
-    fontFamily: Fonts.bold,
-    fontSize: 10,
-    marginRight: 7,
-  },
-});
+    exploreButtonText: {
+      color: Colors.white,
+      fontFamily: Fonts.bold,
+      fontSize: 10,
+      marginRight: 7,
+    },
+  });

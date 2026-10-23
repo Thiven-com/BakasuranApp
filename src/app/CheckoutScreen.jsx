@@ -12,8 +12,8 @@ import {
   View,
 } from "react-native";
 
-import { useTheme } from "../hooks/use-theme";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 const CheckoutScreen = () => {
   const { colors: Colors } = useTheme();
@@ -492,523 +492,524 @@ export default CheckoutScreen;
 // STYLES
 // ============================================================
 
-const createStyles = (Colors) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-
-  // ==========================================================
-  // HEADER
-  // ==========================================================
-
-  header: {
-    height: 64,
-    paddingHorizontal: 15,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.divider,
-  },
-
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-
-  headerTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.extraBold,
-    fontSize: 20,
-  },
-
-  headerRightSpace: {
-    width: 40,
-  },
-
-  // ==========================================================
-  // SCROLL
-  // ==========================================================
-
-  scrollContent: {
-    paddingHorizontal: 15,
-    paddingTop: 14,
-    paddingBottom: 105,
-  },
-
-  // ==========================================================
-  // STEPS
-  // ==========================================================
-
-  stepsContainer: {
-    height: 48,
-    borderRadius: 25,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    flexDirection: "row",
-    alignItems: "center",
-    overflow: "hidden",
-  },
-
-  stepActive: {
-    height: 44,
-    paddingHorizontal: 17,
-    borderRadius: 23,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  stepActiveText: {
-    color: Colors.white,
-    fontFamily: Fonts.bold,
-    fontSize: 15,
-  },
-
-  stepInactive: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  stepInactiveText: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.medium,
-    fontSize: 10,
-  },
-
-  stepLineActive: {
-    width: 25,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: Colors.primary,
-  },
-
-  stepLine: {
-    width: 25,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: Colors.divider,
-  },
-
-  // ==========================================================
-  // ADDRESS
-  // ==========================================================
-
-  addressCard: {
-    marginTop: 15,
-    padding: 15,
-    minHeight: 110,
-    borderRadius: 14,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  addressIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  addressContent: {
-    flex: 1,
-    marginLeft: 13,
-    paddingRight: 8,
-  },
-
-  addressType: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 19,
-  },
-
-  addressLine1: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.medium,
-    fontSize: 17,
-    marginTop: 4,
-  },
-
-  addressLine2: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 19,
-    marginTop: 2,
-  },
-
-  changeButton: {
-    paddingHorizontal: 4,
-    paddingVertical: 8,
-    backgroundColor: Colors.primaryDark,
-  },
-
-  changeText: {
-    color: "#ffffff",
-    fontFamily: Fonts.bold,
-    fontSize: 14,
-    textTransform: "uppercase",
-  },
-
-  // ==========================================================
-  // SECTION
-  // ==========================================================
-
-  section: {
-    marginTop: 17,
-  },
-
-  sectionTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 19,
-    marginBottom: 9,
-  },
-
-  optionalText: {
-    color: Colors.textMuted,
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-  },
-
-  // ==========================================================
-  // INSTRUCTIONS
-  // ==========================================================
-
-  instructionInputContainer: {
-    height: 52,
-    paddingHorizontal: 13,
-    borderRadius: 10,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  instructionInput: {
-    flex: 1,
-    height: "100%",
-    marginLeft: 10,
-    color: Colors.textPrimary,
-    fontFamily: Fonts.regular,
-    fontSize: 18,
-  },
-
-  // ==========================================================
-  // PAYMENT
-  // ==========================================================
-
-  paymentContainer: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 14,
-    overflow: "hidden",
-  },
-
-  paymentRow: {
-    minHeight: 78,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.divider,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  paymentRowSelected: {
-    backgroundColor: "rgba(255,32,40,0.06)",
-  },
-
-  paymentRowLast: {
-    borderBottomWidth: 0,
-  },
-
-  // ==========================================================
-  // RADIO
-  // ==========================================================
-
-  radioOuter: {
-    width: 23,
-    height: 23,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: Colors.textSecondary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  radioOuterSelected: {
-    borderColor: Colors.primary,
-  },
-
-  radioInner: {
-    width: 11,
-    height: 11,
-    borderRadius: 6,
-    backgroundColor: Colors.primary,
-  },
-
-  // ==========================================================
-  // PAYMENT ICON
-  // ==========================================================
-
-  paymentIcon: {
-    width: 42,
-    height: 42,
-    marginLeft: 12,
-    borderRadius: 9,
-    backgroundColor: Colors.backgroundSecondary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  cashIcon: {
-    width: 42,
-    height: 42,
-    marginLeft: 12,
-    borderRadius: 9,
-    backgroundColor: "rgba(34,197,94,0.10)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  upiIcon: {
-    width: 42,
-    height: 42,
-    marginLeft: 12,
-    borderRadius: 9,
-    backgroundColor: Colors.backgroundSecondary,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-  },
-
-  upiShapeOne: {
-    width: 8,
-    height: 26,
-    backgroundColor: "#FF8A00",
-    transform: [
-      {
-        skewY: "-18deg",
-      },
-    ],
-  },
-
-  upiShapeTwo: {
-    width: 8,
-    height: 26,
-    marginLeft: 2,
-    backgroundColor: "#00A86B",
-    transform: [
-      {
-        skewY: "18deg",
-      },
-    ],
-  },
-
-  paymentContent: {
-    flex: 1,
-    marginLeft: 10,
-  },
-
-  paymentTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.semiBold,
-    fontSize: 17,
-  },
-
-  paymentSubtitle: {
-    color: Colors.textMuted,
-    fontFamily: Fonts.regular,
-    fontSize: 16,
-    marginTop: 4,
-  },
-
-  // ==========================================================
-  // SUMMARY
-  // ==========================================================
-
-  summaryCard: {
-    marginTop: 17,
-    padding: 15,
-    borderRadius: 14,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-
-  summaryHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 13,
-  },
-
-  summaryTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 19,
-  },
-
-  itemCount: {
-    color: Colors.primary,
-    fontFamily: Fonts.bold,
-    fontSize: 17,
-  },
-
-  summaryRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginVertical: 5,
-  },
-
-  summaryLabel: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 16,
-  },
-
-  summaryValue: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.medium,
-    fontSize: 16,
-  },
-
-  discountLabel: {
-    color: Colors.success,
-    fontFamily: Fonts.medium,
-    fontSize: 16,
-  },
-
-  discountValue: {
-    color: Colors.success,
-    fontFamily: Fonts.bold,
-    fontSize: 16,
-  },
-
-  summaryDivider: {
-    height: 1,
-    borderTopWidth: 1,
-    borderTopColor: Colors.textMuted,
-    borderStyle: "dashed",
-    marginTop: 12,
-    marginBottom: 13,
-  },
-
-  toPayRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-
-  toPayLabel: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.extraBold,
-    fontSize: 18,
-  },
-
-  toPayValue: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.extraBold,
-    fontSize: 22,
-  },
-
-  // ==========================================================
-  // SECURITY
-  // ==========================================================
-
-  securityContainer: {
-    marginTop: 12,
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: Colors.surface,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  securityIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "rgba(34,197,94,0.10)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  securityContent: {
-    flex: 1,
-    marginLeft: 9,
-  },
-
-  securityTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.medium,
-    fontSize: 15,
-  },
-
-  securityText: {
-    color: Colors.textMuted,
-    fontFamily: Fonts.regular,
-    fontSize: 15,
-    marginTop: 2,
-  },
-
-  bottomSpace: {
-    height: 20,
-  },
-
-  // ==========================================================
-  // BOTTOM BAR
-  // ==========================================================
-
-  bottomBar: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: 15,
-    paddingTop: 10,
-    paddingBottom: 15,
-    backgroundColor: Colors.background,
-    borderTopWidth: 1,
-    borderTopColor: Colors.divider,
-  },
-
-  placeOrderButton: {
-    height: 52,
-    borderRadius: 9,
-    backgroundColor: Colors.primary,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  placeOrderText: {
-    color: Colors.white,
-    fontFamily: Fonts.extraBold,
-    fontSize: 15,
-  },
-
-  placeOrderAmount: {
-    color: Colors.white,
-    fontFamily: Fonts.extraBold,
-    fontSize: 15,
-    marginLeft: 5,
-    marginRight: 10,
-  },
-});
+const createStyles = (Colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
+
+    // ==========================================================
+    // HEADER
+    // ==========================================================
+
+    header: {
+      height: 64,
+      paddingHorizontal: 15,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.divider,
+    },
+
+    backButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+
+    headerTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 25,
+    },
+
+    headerRightSpace: {
+      width: 40,
+    },
+
+    // ==========================================================
+    // SCROLL
+    // ==========================================================
+
+    scrollContent: {
+      paddingHorizontal: 15,
+      paddingTop: 14,
+      paddingBottom: 105,
+    },
+
+    // ==========================================================
+    // STEPS
+    // ==========================================================
+
+    stepsContainer: {
+      height: 48,
+      borderRadius: 25,
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      flexDirection: "row",
+      alignItems: "center",
+      overflow: "hidden",
+    },
+
+    stepActive: {
+      height: 44,
+      paddingHorizontal: 17,
+      borderRadius: 23,
+      backgroundColor: Colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    stepActiveText: {
+      color: Colors.white,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
+    },
+
+    stepInactive: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    stepInactiveText: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
+    },
+
+    stepLineActive: {
+      width: 25,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: Colors.primary,
+    },
+
+    stepLine: {
+      width: 25,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: Colors.divider,
+    },
+
+    // ==========================================================
+    // ADDRESS
+    // ==========================================================
+
+    addressCard: {
+      marginTop: 15,
+      padding: 15,
+      minHeight: 110,
+      borderRadius: 14,
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    addressIcon: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      backgroundColor: Colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    addressContent: {
+      flex: 1,
+      marginLeft: 13,
+      paddingRight: 8,
+    },
+
+    addressType: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 19,
+    },
+
+    addressLine1: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.medium,
+      fontSize: 17,
+      marginTop: 4,
+    },
+
+    addressLine2: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 19,
+      marginTop: 2,
+    },
+
+    changeButton: {
+      paddingHorizontal: 4,
+      paddingVertical: 8,
+      backgroundColor: Colors.primaryDark,
+    },
+
+    changeText: {
+      color: "#ffffff",
+      fontFamily: Fonts.bold,
+      fontSize: 14,
+      textTransform: "uppercase",
+    },
+
+    // ==========================================================
+    // SECTION
+    // ==========================================================
+
+    section: {
+      marginTop: 17,
+    },
+
+    sectionTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 20,
+      marginBottom: 9,
+    },
+
+    optionalText: {
+      color: Colors.textMuted,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
+    },
+
+    // ==========================================================
+    // INSTRUCTIONS
+    // ==========================================================
+
+    instructionInputContainer: {
+      height: 52,
+      paddingHorizontal: 13,
+      borderRadius: 10,
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    instructionInput: {
+      flex: 1,
+      height: "100%",
+      marginLeft: 10,
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 19,
+    },
+
+    // ==========================================================
+    // PAYMENT
+    // ==========================================================
+
+    paymentContainer: {
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: 14,
+      overflow: "hidden",
+    },
+
+    paymentRow: {
+      minHeight: 78,
+      paddingHorizontal: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.divider,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    paymentRowSelected: {
+      backgroundColor: "rgba(255,32,40,0.06)",
+    },
+
+    paymentRowLast: {
+      borderBottomWidth: 0,
+    },
+
+    // ==========================================================
+    // RADIO
+    // ==========================================================
+
+    radioOuter: {
+      width: 23,
+      height: 23,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: Colors.textSecondary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    radioOuterSelected: {
+      borderColor: Colors.primary,
+    },
+
+    radioInner: {
+      width: 11,
+      height: 11,
+      borderRadius: 6,
+      backgroundColor: Colors.primary,
+    },
+
+    // ==========================================================
+    // PAYMENT ICON
+    // ==========================================================
+
+    paymentIcon: {
+      width: 42,
+      height: 42,
+      marginLeft: 12,
+      borderRadius: 9,
+      backgroundColor: Colors.backgroundSecondary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    cashIcon: {
+      width: 42,
+      height: 42,
+      marginLeft: 12,
+      borderRadius: 9,
+      backgroundColor: "rgba(34,197,94,0.10)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    upiIcon: {
+      width: 42,
+      height: 42,
+      marginLeft: 12,
+      borderRadius: 9,
+      backgroundColor: Colors.backgroundSecondary,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+    },
+
+    upiShapeOne: {
+      width: 8,
+      height: 26,
+      backgroundColor: "#FF8A00",
+      transform: [
+        {
+          skewY: "-18deg",
+        },
+      ],
+    },
+
+    upiShapeTwo: {
+      width: 8,
+      height: 26,
+      marginLeft: 2,
+      backgroundColor: "#00A86B",
+      transform: [
+        {
+          skewY: "18deg",
+        },
+      ],
+    },
+
+    paymentContent: {
+      flex: 1,
+      marginLeft: 10,
+    },
+
+    paymentTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
+    },
+
+    paymentSubtitle: {
+      color: Colors.textMuted,
+      fontFamily: Fonts.regular,
+      fontSize: 18,
+      marginTop: 4,
+    },
+
+    // ==========================================================
+    // SUMMARY
+    // ==========================================================
+
+    summaryCard: {
+      marginTop: 17,
+      padding: 15,
+      borderRadius: 14,
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+
+    summaryHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 13,
+    },
+
+    summaryTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 19,
+    },
+
+    itemCount: {
+      color: Colors.primary,
+      fontFamily: Fonts.regular,
+      fontSize: 19,
+    },
+
+    summaryRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginVertical: 5,
+    },
+
+    summaryLabel: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 16,
+    },
+
+    summaryValue: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.medium,
+      fontSize: 16,
+    },
+
+    discountLabel: {
+      color: Colors.success,
+      fontFamily: Fonts.medium,
+      fontSize: 16,
+    },
+
+    discountValue: {
+      color: Colors.success,
+      fontFamily: Fonts.bold,
+      fontSize: 16,
+    },
+
+    summaryDivider: {
+      height: 1,
+      borderTopWidth: 1,
+      borderTopColor: Colors.textMuted,
+      borderStyle: "dashed",
+      marginTop: 12,
+      marginBottom: 13,
+    },
+
+    toPayRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+
+    toPayLabel: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 18,
+    },
+
+    toPayValue: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 22,
+    },
+
+    // ==========================================================
+    // SECURITY
+    // ==========================================================
+
+    securityContainer: {
+      marginTop: 12,
+      padding: 12,
+      borderRadius: 10,
+      backgroundColor: Colors.surface,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    securityIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: "rgba(34,197,94,0.10)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    securityContent: {
+      flex: 1,
+      marginLeft: 9,
+    },
+
+    securityTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
+    },
+
+    securityText: {
+      color: Colors.textMuted,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
+      marginTop: 2,
+    },
+
+    bottomSpace: {
+      height: 20,
+    },
+
+    // ==========================================================
+    // BOTTOM BAR
+    // ==========================================================
+
+    bottomBar: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      paddingHorizontal: 15,
+      paddingTop: 10,
+      paddingBottom: 15,
+      backgroundColor: Colors.background,
+      borderTopWidth: 1,
+      borderTopColor: Colors.divider,
+    },
+
+    placeOrderButton: {
+      height: 52,
+      borderRadius: 9,
+      backgroundColor: Colors.primary,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    placeOrderText: {
+      color: Colors.white,
+      fontFamily: Fonts.regular,
+      fontSize: 20,
+    },
+
+    placeOrderAmount: {
+      color: Colors.white,
+      fontFamily: Fonts.regular,
+      fontSize: 19,
+      marginLeft: 5,
+      marginRight: 10,
+    },
+  });
