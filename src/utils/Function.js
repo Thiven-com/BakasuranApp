@@ -444,6 +444,8 @@ export async function getNotifications() {
   }
 }
 
+export const postNotifications = getNotifications;
+
 // =========================================================
 // GET PROFILE API
 // GET: /api/customer/profile
@@ -626,6 +628,175 @@ export const getCart = async () => {
       error.response?.data?.message ??
         error.message ??
         "Unable to load your cart.",
+    );
+  }
+};
+
+// ============================================================
+// GET LOCATIONS API
+// GET: /api/customer/locations
+// ============================================================
+export const getLocations = async () => {
+  try {
+    const token = await AsyncStorage.getItem(TOKEN_KEY);
+    const response = await axios.get(`${APP_URL}locations`, {
+      headers: {
+        Accept: "application/json",
+        ...(token ? { Authorization: "Bearer ".concat(token) } : {}),
+      },
+      timeout: 20000,
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "GET LOCATIONS API ERROR:",
+      error?.response?.data ?? error?.message,
+    );
+
+    throw new Error(
+      error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Unable to load locations.",
+    );
+  }
+};
+
+// ============================================================
+// DELETE LOCATION API
+// GET: /api/customer/location/{id}/delete
+// ============================================================
+export const deleteLocation = async (locationId) => {
+  if (
+    locationId === undefined ||
+    locationId === null ||
+    String(locationId).trim() === ""
+  ) {
+    throw new Error("A location ID is required to delete a location.");
+  }
+
+  try {
+    const token = await AsyncStorage.getItem(TOKEN_KEY);
+    const response = await axios.get(
+      `${APP_URL}location/${encodeURIComponent(String(locationId))}/delete`,
+      {
+        headers: {
+          Accept: "application/json",
+          ...(token ? { Authorization: "Bearer ".concat(token) } : {}),
+        },
+        timeout: 20000,
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "DELETE LOCATION API ERROR:",
+      error?.response?.data ?? error?.message,
+    );
+
+    throw new Error(
+      error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Unable to delete the location.",
+    );
+  }
+};
+
+// ============================================================
+// STORE LOCATION API
+// POST: /api/customer/location/store
+// ============================================================
+export const storeLocation = async (payload) => {
+  try {
+    const token = await AsyncStorage.getItem(TOKEN_KEY);
+    const response = await axios.post(`${APP_URL}location/store`, payload, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: "Bearer ".concat(token) } : {}),
+      },
+      timeout: 20000,
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "STORE LOCATION API ERROR:",
+      error?.response?.data ?? error?.message,
+    );
+
+    throw new Error(
+      error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Unable to save your address.",
+    );
+  }
+};
+
+// ============================================================
+// CHECKOUT API
+// POST: /api/customer/checkout
+// ============================================================
+export const checkoutOrder = async (payload) => {
+  try {
+    const token = await AsyncStorage.getItem(TOKEN_KEY);
+    const response = await axios.post(`${APP_URL}checkout`, payload, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: "Bearer ".concat(token) } : {}),
+      },
+      timeout: 30000,
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "CHECKOUT API ERROR:",
+      error?.response?.data ?? error?.message,
+    );
+
+    throw new Error(
+      error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Unable to place your order.",
+    );
+  }
+};
+
+// ============================================================
+// CHECKOUT PREVIEW API
+// POST: /api/customer/checkout/preview
+// ============================================================
+export const checkoutPreview = async (payload) => {
+  try {
+    const token = await AsyncStorage.getItem(TOKEN_KEY);
+    const response = await axios.post(`${APP_URL}checkout/preview`, payload, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: "Bearer ".concat(token) } : {}),
+      },
+      timeout: 30000,
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "CHECKOUT PREVIEW API ERROR:",
+      error?.response?.data ?? error?.message,
+    );
+
+    throw new Error(
+      error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Unable to preview your checkout.",
     );
   }
 };
@@ -918,7 +1089,10 @@ export const getOrders = async () => {
 
     return response.data;
   } catch (error) {
-    console.error("GET ORDERS API ERROR:", error?.response?.data ?? error?.message);
+    console.error(
+      "GET ORDERS API ERROR:",
+      error?.response?.data ?? error?.message,
+    );
     return orderApiError(error, "Unable to load your orders.");
   }
 };
@@ -928,7 +1102,11 @@ export const getOrders = async () => {
 // GET: /api/customer/order/{order}
 // =========================================================
 export const getOrderDetails = async (orderId) => {
-  if (orderId === undefined || orderId === null || String(orderId).trim() === "") {
+  if (
+    orderId === undefined ||
+    orderId === null ||
+    String(orderId).trim() === ""
+  ) {
     return { success: 0, message: "An order ID is required." };
   }
 
@@ -948,7 +1126,10 @@ export const getOrderDetails = async (orderId) => {
 
     return response.data;
   } catch (error) {
-    console.error("GET ORDER DETAILS API ERROR:", error?.response?.data ?? error?.message);
+    console.error(
+      "GET ORDER DETAILS API ERROR:",
+      error?.response?.data ?? error?.message,
+    );
     return orderApiError(error, "Unable to load order details.");
   }
 };
@@ -958,7 +1139,11 @@ export const getOrderDetails = async (orderId) => {
 // PATCH: /api/customer/orders/{order}/cancel
 // =========================================================
 export const cancelOrder = async (orderId) => {
-  if (orderId === undefined || orderId === null || String(orderId).trim() === "") {
+  if (
+    orderId === undefined ||
+    orderId === null ||
+    String(orderId).trim() === ""
+  ) {
     return { success: 0, message: "An order ID is required." };
   }
 
@@ -979,7 +1164,10 @@ export const cancelOrder = async (orderId) => {
 
     return response.data;
   } catch (error) {
-    console.error("CANCEL ORDER API ERROR:", error?.response?.data ?? error?.message);
+    console.error(
+      "CANCEL ORDER API ERROR:",
+      error?.response?.data ?? error?.message,
+    );
     return orderApiError(error, "Unable to cancel this order.");
   }
 };

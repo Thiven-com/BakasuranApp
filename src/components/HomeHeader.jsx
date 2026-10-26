@@ -26,12 +26,6 @@ const HomeHeader = () => {
 
             <View style={styles.locationNameRow}>
               <Text style={styles.locationName}>Jakkasandra</Text>
-
-              <Ionicons
-                name="chevron-down"
-                size={14}
-                color={colors.textPrimary}
-              />
             </View>
           </View>
         </TouchableOpacity>

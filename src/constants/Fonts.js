@@ -1,9 +1,11 @@
+import { Fonts as ThemeFonts } from "./theme";
+
 const Fonts = {
-  regular: "Poppins-Regular",
-  medium: "Poppins-Medium",
-  semiBold: "Poppins-SemiBold",
-  bold: "Poppins-Bold",
-  extraBold: "Poppins-ExtraBold",
+  regular: ThemeFonts.sans,
+  medium: ThemeFonts.sans,
+  semiBold: ThemeFonts.sans,
+  bold: ThemeFonts.sans,
+  extraBold: ThemeFonts.sans,
 
   size: {
     xs: 14,

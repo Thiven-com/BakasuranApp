@@ -2,44 +2,165 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
-    Alert,
-    ActivityIndicator,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
 } from "react-native";
 
-import { useTheme } from "../hooks/use-theme";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 import { cancelOrder, getOrderDetails } from "../utils/Function";
 
+/* ------------------------------------------------------------------ */
+/* Helpers                                                             */
+/* ------------------------------------------------------------------ */
+
+const GOLD_FALLBACK = "#F5B323";
+const GOLD_BG = "rgba(245,179,35,0.15)";
+const GREEN_BG = "rgba(34,197,94,0.15)";
+const RED_BG = "rgba(242,13,32,0.12)";
+const GREY_BG = "rgba(160,160,160,0.16)";
+
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
 const formatMoney = (amount) =>
-  `₹${Number(amount || 0).toLocaleString("en-IN")}`;
+  `₹${Number(amount || 0).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+
+// "28 Oct 2024, 09:28 AM"
+const formatDate = (value) => {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return String(value);
+
+  const hours = date.getHours();
+  const hour12 = String(hours % 12 || 12).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${String(date.getDate()).padStart(2, "0")} ${
+    MONTHS[date.getMonth()]
+  } ${date.getFullYear()}, ${hour12}:${minutes} ${hours >= 12 ? "PM" : "AM"}`;
+};
+
+const capitalize = (value) => {
+  const text = String(value ?? "").trim();
+
+  return text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
+};
+
+const getShipping = (order, params) => {
+  const raw =
+    order?.shipping_address ?? order?.delivery_address ?? order?.address;
+
+  if (raw && typeof raw === "object") {
+    const base = [raw.address, raw.address_2, raw.landmark, raw.city, raw.state]
+      .filter(Boolean)
+      .join(", ");
+
+    const full = raw.pincode
+      ? base
+        ? `${base} - ${raw.pincode}`
+        : String(raw.pincode)
+      : base;
+
+    return {
+      name: raw.name ?? "",
+      mobile: raw.mobile ?? raw.phone ?? "",
+      address: full || "Address unavailable",
+    };
+  }
+
+  return {
+    name: "",
+    mobile: "",
+    address:
+      typeof raw === "string" && raw
+        ? raw
+        : (params.address ?? "Address unavailable"),
+  };
+};
+
+// Notifications that also work on web (Alert.alert is a no-op there)
+const notify = (title, message) => {
+  if (Platform.OS === "web") {
+    window.alert(`${title}\n\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+};
+
+const confirmAction = (title, message, confirmText, onConfirm) => {
+  if (Platform.OS === "web") {
+    if (window.confirm(`${title}\n\n${message}`)) {
+      onConfirm();
+    }
+  } else {
+    Alert.alert(title, message, [
+      { text: "Keep Order", style: "cancel" },
+      { text: confirmText, style: "destructive", onPress: onConfirm },
+    ]);
+  }
+};
+
+/* ------------------------------------------------------------------ */
+/* Screen                                                              */
+/* ------------------------------------------------------------------ */
 
 export default function OrderDetailsScreen() {
   const { colors: Colors, isDark } = useTheme();
   const styles = useMemo(() => createStyles(Colors), [Colors]);
+
   const RED = Colors.primary;
   const WHITE = Colors.textPrimary;
   const GREY = Colors.textSecondary;
   const GREEN = Colors.success;
-  const params = useLocalSearchParams();
+  const GOLD = Colors.gold ?? GOLD_FALLBACK;
 
+  const params = useLocalSearchParams();
   const orderId = params.orderId;
+
+  // On narrow screens the date moves to its own row instead of being squeezed
+  const { width: screenWidth } = useWindowDimensions();
+  const compact = screenWidth < 430;
+
   const [orderData, setOrderData] = useState(null);
   const [loading, setLoading] = useState(Boolean(orderId));
   const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId) return undefined;
+
     let active = true;
 
     const loadOrder = async () => {
       const response = await getOrderDetails(orderId);
+
       if (!active) return;
 
       if (response?.success === 9) {
@@ -51,25 +172,37 @@ export default function OrderDetailsScreen() {
         response?.success != null &&
         ![1, true, "1"].includes(response.success)
       ) {
-        Alert.alert("Order", response?.message || "Unable to load order.");
+        notify("Order", response?.message || "Unable to load order.");
         setLoading(false);
         return;
       }
 
-      const detail =
+      console.log("ORDER DETAILS RESPONSE:", JSON.stringify(response));
+
+      let detail =
         response?.data?.order ??
         response?.data?.data ??
         response?.data ??
         response?.order ??
         response;
+
+      // The API can return the order inside an array
+      if (Array.isArray(detail)) {
+        detail =
+          detail.find((entry) => String(entry?.id) === String(orderId)) ??
+          detail[0] ??
+          null;
+      }
+
       setOrderData(detail);
       setLoading(false);
     };
 
     loadOrder().catch((error) => {
       if (!active) return;
+
       setLoading(false);
-      Alert.alert("Order", error?.message || "Unable to load order.");
+      notify("Order", error?.message || "Unable to load order.");
     });
 
     return () => {
@@ -77,42 +210,71 @@ export default function OrderDetailsScreen() {
     };
   }, [orderId]);
 
+  /* ---------- derived data ---------- */
+
   const order = orderData ?? {};
-  const status = String(
+
+  const status = capitalize(
     order?.status ??
       order?.order_status ??
       order?.delivery_status ??
       params.status ??
       "Pending",
   );
-  const paymentMethod = String(
-    order?.payment_method ?? order?.payment?.method ?? params.paymentMethod ?? "—",
+  const statusLower = status.toLowerCase();
+
+  const isDelivered = statusLower === "delivered";
+  const isCancelled = statusLower.includes("cancel");
+
+  const orderNumber = String(
+    order?.invoice_id ??
+      order?.order_number ??
+      order?.order_id ??
+      order?.id ??
+      orderId ??
+      "",
+  ).replace(/^#/, "");
+
+  const dateText = formatDate(order?.created_at ?? order?.order_date);
+
+  const paymentMethod = capitalize(
+    order?.payment_method ??
+      order?.payment?.method ??
+      params.paymentMethod ??
+      "—",
   );
-  const address = String(
-    order?.delivery_address?.address ??
-      order?.address?.address ??
-      order?.delivery_address ??
-      order?.address ??
-      params.address ??
-      "Address unavailable",
+
+  const paymentStatus = capitalize(
+    order?.payment_status ??
+      order?.payment?.status ??
+      (isDelivered ? "Paid" : "Pending"),
   );
+  const paymentPaid = ["paid", "success", "completed"].includes(
+    paymentStatus.toLowerCase(),
+  );
+
+  const shipping = getShipping(order, params);
+
   const rawItems = order?.items ?? order?.order_items ?? order?.details;
+
   const items = Array.isArray(rawItems)
     ? rawItems.map((entry, index) => {
         const product =
-          entry?.product ??
-          entry?.variant?.product ??
-          entry?.food ??
-          entry;
+          entry?.product ?? entry?.variant?.product ?? entry?.food ?? entry;
+
         const quantity = Number(entry?.quantity ?? entry?.qty ?? 1) || 1;
+
+        const image =
+          entry?.image ??
+          product?.image ??
+          product?.image_url ??
+          product?.thumbnail ??
+          product?.photo ??
+          null;
+
         return {
           id: String(entry?.id ?? index),
           name: product?.name ?? product?.title ?? entry?.name ?? "Order item",
-          description:
-            entry?.variant?.sku ??
-            entry?.variant_name ??
-            entry?.description ??
-            "",
           price: Number(
             entry?.unit_price ??
               entry?.price ??
@@ -121,19 +283,34 @@ export default function OrderDetailsScreen() {
               0,
           ),
           quantity,
-          icon: "fast-food-outline",
+          imageUri:
+            typeof image === "string" && /^https?:\/\//i.test(image)
+              ? image
+              : null,
         };
       })
     : [];
 
-  const itemTotal = items.reduce(
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const itemsSum = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
 
-  const deliveryFee = Number(order?.delivery_fee ?? order?.delivery_charge ?? 0);
-  const gst = Number(order?.tax ?? order?.gst ?? 0);
-  const couponDiscount = Number(order?.discount ?? order?.coupon_discount ?? 0);
+  const itemTotal = Number(order?.subtotal ?? itemsSum);
+
+  const deliveryFee = Number(
+    order?.delivery_total ??
+      order?.shipping_total ??
+      order?.delivery_fee ??
+      order?.delivery_charge ??
+      0,
+  );
+  const gst = Number(order?.tax_total ?? order?.tax ?? order?.gst ?? 0);
+  const couponDiscount = Number(
+    order?.discount_total ?? order?.discount ?? order?.coupon_discount ?? 0,
+  );
   const calculatedTotal = itemTotal + deliveryFee + gst - couponDiscount;
 
   const grandTotal = Number(
@@ -144,8 +321,46 @@ export default function OrderDetailsScreen() {
       calculatedTotal,
   );
 
-  const isDelivered = status.toLowerCase() === "delivered";
-  const isCancelled = status.toLowerCase().includes("cancel");
+  /* ---------- tracking steps ---------- */
+
+  let completedSteps = 1;
+
+  if (isDelivered) {
+    completedSteps = 4;
+  } else if (/(ship|dispatch|out for)/.test(statusLower)) {
+    completedSteps = 3;
+  } else if (/(confirm|accept|prepar|process)/.test(statusLower)) {
+    completedSteps = 2;
+  }
+
+  const stepState = (index) => {
+    if (index < completedSteps) return "completed";
+    if (index === completedSteps && !isCancelled) return "in_progress";
+    return "pending";
+  };
+
+  const steps = ["Order Placed", "Order Confirmed", "Shipped", "Delivered"].map(
+    (title, index) => {
+      const state = stepState(index);
+
+      let subtitle = "Awaiting update";
+
+      if (state === "completed") {
+        subtitle = index === 0 && dateText ? dateText : "Completed";
+      } else if (state === "in_progress") {
+        subtitle = "In progress";
+      }
+
+      return { title, state, subtitle };
+    },
+  );
+
+  const statusTone = isDelivered ? "green" : isCancelled ? "red" : "gold";
+
+  const toneColor = { green: GREEN, red: RED, gold: GOLD };
+  const toneBackground = { green: GREEN_BG, red: RED_BG, gold: GOLD_BG };
+
+  /* ---------- actions ---------- */
 
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -155,51 +370,6 @@ export default function OrderDetailsScreen() {
     }
   };
 
-  const handleReorder = () => {
-    Alert.alert("Reorder", "Would you like to order these items again?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Continue",
-        onPress: () => {
-          // Connect this action to your cart logic when available.
-          router.push("/(tabs)/cart");
-        },
-      },
-    ]);
-  };
-
-  const handleHelp = () => {
-    Alert.alert("Order Help", `How can we help you with order #${orderId}?`, [
-      { text: "Close", style: "cancel" },
-      {
-        text: "Contact Support",
-        onPress: () => {
-          Alert.alert(
-            "Support",
-            "Connect your customer support screen or API here.",
-          );
-        },
-      },
-    ]);
-  };
-
-  const handleRateOrder = () => {
-    Alert.alert("Rate Your Order", "How was your BAKASURAN experience?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "⭐ 1", onPress: () => submitRating(1) },
-      { text: "⭐⭐⭐ 3", onPress: () => submitRating(3) },
-      { text: "⭐⭐⭐⭐⭐ 5", onPress: () => submitRating(5) },
-    ]);
-  };
-
-  const submitRating = (rating) => {
-    Alert.alert("Thank You!", `You rated your order ${rating} out of 5 stars.`);
-  };
-
-  const handleViewMap = () => {
-    Alert.alert("Delivery Address", address, [{ text: "OK" }]);
-  };
-
   const handleTrackOrder = () => {
     router.push({
       pathname: "/track-order",
@@ -207,43 +377,82 @@ export default function OrderDetailsScreen() {
     });
   };
 
-  const handleCancelOrder = () => {
-    Alert.alert("Cancel Order", "Are you sure you want to cancel this order?", [
-      { text: "Keep Order", style: "cancel" },
-      {
-        text: "Cancel Order",
-        style: "destructive",
-        onPress: async () => {
-          setCancelling(true);
-          const response = await cancelOrder(orderId);
-          setCancelling(false);
-
-          if (response?.success === 9) {
-            router.replace("/login");
-            return;
-          }
-
-          if (
-            response?.success != null &&
-            ![1, true, "1"].includes(response.success)
-          ) {
-            Alert.alert(
-              "Cancel Order",
-              response?.message || "Unable to cancel this order.",
-            );
-            return;
-          }
-
-          setOrderData((previous) => ({
-            ...(previous ?? {}),
-            ...(response?.data?.order ?? response?.data ?? {}),
-            status: "Cancelled",
-          }));
-          Alert.alert("Order", response?.message || "Order cancelled.");
-        },
-      },
-    ]);
+  const handleChangeAddress = () => {
+    notify("Shipping Address", "Connect your change address flow here.");
   };
+
+  const handlePrintInvoice = () => {
+    if (Platform.OS === "web") {
+      window.print();
+    } else {
+      notify("Print Invoice", "Connect your invoice API here.");
+    }
+  };
+
+  const handleDownloadInvoice = () => {
+    notify("Download Invoice", "Connect your invoice API here.");
+  };
+
+  const runCancel = async () => {
+    setCancelling(true);
+
+    try {
+      const response = await cancelOrder(orderId);
+
+      if (response?.success === 9) {
+        router.replace("/login");
+        return;
+      }
+
+      if (
+        response?.success != null &&
+        ![1, true, "1"].includes(response.success)
+      ) {
+        notify(
+          "Cancel Order",
+          response?.message || "Unable to cancel this order.",
+        );
+        return;
+      }
+
+      setOrderData((previous) => ({
+        ...(previous ?? {}),
+        ...(response?.data?.order ?? response?.data ?? {}),
+        status: "Cancelled",
+      }));
+
+      notify("Order", response?.message || "Order cancelled.");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const handleCancelOrder = () => {
+    confirmAction(
+      "Cancel Order",
+      "Are you sure you want to cancel this order?",
+      "Cancel Order",
+      runCancel,
+    );
+  };
+
+  const dateBlock = (
+    <View style={compact ? styles.dateCompact : styles.topMiddle}>
+      <Text style={styles.eyebrow}>ORDER DATE</Text>
+
+      <View style={styles.dateRow}>
+        <Ionicons name="calendar" size={17} color={GOLD} />
+
+        <Text style={styles.dateText}>{dateText || "—"}</Text>
+      </View>
+    </View>
+  );
+
+  const bannerText = isDelivered
+    ? "Your order has been delivered. Enjoy your meal!"
+    : isCancelled
+      ? "This order has been cancelled."
+      : null;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -252,176 +461,93 @@ export default function OrderDetailsScreen() {
         backgroundColor={Colors.background}
       />
 
+      {/* HEADER */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          activeOpacity={0.75}
+          onPress={handleBack}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <Ionicons name="chevron-back" size={28} color={WHITE} />
+        </TouchableOpacity>
+
+        <Text style={styles.headerTitle}>Order Details</Text>
+
+        <View style={styles.headerSpacer} />
+      </View>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         {loading && (
           <ActivityIndicator
-            style={{ marginTop: 24 }}
+            style={{ marginVertical: 24 }}
             size="large"
             color={RED}
           />
         )}
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            activeOpacity={0.75}
-            onPress={handleBack}
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-          >
-            <Ionicons name="chevron-back" size={26} color={Colors.textPrimary} />
-          </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>Order Details</Text>
+        {/* ORDER SUMMARY HEADER CARD */}
+        <View style={styles.card}>
+          <View style={styles.topRow}>
+            <View style={styles.topLeft}>
+              <Text style={styles.eyebrow}>ORDER ID</Text>
 
-          <View style={styles.headerSpacer} />
-        </View>
+              <Text style={styles.orderNumber} numberOfLines={1}>
+                #{orderNumber}
+              </Text>
 
-        {/* Order information */}
-        <View style={styles.orderInfo}>
-          <View style={styles.orderInfoLeft}>
-            <Text style={styles.orderNumber}>
-              Order <Text style={styles.redText}>#{String(orderId)}</Text>
-            </Text>
-
-            <Text style={styles.orderDate}>
-              {order?.created_at ?? order?.order_date ?? ""}
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.statusBadge,
-              isDelivered ? styles.deliveredBadge : styles.activeBadge,
-            ]}
-          >
-            <Ionicons
-              name={isDelivered ? "checkmark-circle" : "time-outline"}
-              size={18}
-              color={isDelivered ? GREEN : RED}
-            />
-            <Text
-              style={[styles.statusText, { color: isDelivered ? GREEN : RED }]}
-            >
-              {status}
-            </Text>
-          </View>
-        </View>
-
-        {/* Order progress timeline */}
-        <View style={styles.timeline}>
-          {[
-            {
-              icon: "receipt-outline",
-              title: "Order Placed",
-              time: "12:32 PM",
-              completed: true,
-            },
-            {
-              icon: "restaurant-outline",
-              title: "Preparing",
-              time: "12:40 PM",
-              completed: true,
-            },
-            {
-              icon: "bicycle-outline",
-              title: "Out for Delivery",
-              time: "01:05 PM",
-              completed: true,
-            },
-            {
-              icon: "home-outline",
-              title: "Delivered",
-              time: "01:20 PM",
-              completed: isDelivered,
-            },
-          ].map((step, index, array) => (
-            <View style={styles.timelineStep} key={step.title}>
               <View
                 style={[
-                  styles.timelineCircle,
-                  step.completed
-                    ? styles.timelineCircleCompleted
-                    : styles.timelineCirclePending,
+                  styles.statusPill,
+                  { backgroundColor: toneBackground[statusTone] },
                 ]}
               >
                 <Ionicons
-                  name={step.icon}
-                  size={23}
-                  color={step.completed ? WHITE : GREY}
+                  name={
+                    isDelivered
+                      ? "checkmark-circle"
+                      : isCancelled
+                        ? "close-circle"
+                        : "time"
+                  }
+                  size={15}
+                  color={toneColor[statusTone]}
                 />
-              </View>
 
-              <Text style={styles.timelineTitle}>{step.title}</Text>
-              <Text style={styles.timelineTime}>{step.time}</Text>
-
-              {index < array.length - 1 && (
-                <View
+                <Text
                   style={[
-                    styles.timelineLine,
-                    step.completed
-                      ? styles.timelineLineCompleted
-                      : styles.timelineLinePending,
+                    styles.statusPillText,
+                    { color: toneColor[statusTone] },
                   ]}
-                />
-              )}
+                >
+                  {status}
+                </Text>
+              </View>
             </View>
-          ))}
-        </View>
 
-        {/* Address */}
-        <View style={styles.card}>
-          <View style={styles.cardIcon}>
-            <Ionicons name="location" size={26} color={RED} />
-          </View>
+            {!compact && dateBlock}
 
-          <View style={styles.addressContent}>
-            <Text style={styles.sectionTitle}>Delivery Address</Text>
-            <Text style={styles.secondaryText}>{address}</Text>
-          </View>
+            <View style={[styles.topRight, compact && styles.topRightCompact]}>
+              <Text style={styles.eyebrow}>TOTAL AMOUNT</Text>
 
-          <TouchableOpacity
-            style={styles.mapButton}
-            activeOpacity={0.75}
-            onPress={handleViewMap}
-          >
-            <Ionicons name="map-outline" size={19} color={RED} />
-            <Text style={styles.mapButtonText}>Map</Text>
-          </TouchableOpacity>
-        </View>
+              <Text style={styles.topTotal}>{formatMoney(grandTotal)}</Text>
 
-        {/* Payment details */}
-        <View style={styles.card}>
-          <View style={styles.cardIcon}>
-            <Ionicons name="wallet-outline" size={25} color={RED} />
-          </View>
-
-          <View style={styles.paymentContent}>
-            <Text style={styles.sectionTitle}>Payment Details</Text>
-            <Text style={styles.secondaryText}>Paid via {paymentMethod}</Text>
-
-            <View style={styles.paidBadge}>
-              <Ionicons name="checkmark-circle" size={14} color={GREEN} />
-              <Text style={styles.paidText}>
-                {isDelivered ? "Paid Successfully" : "Payment Status"}
+              <Text style={styles.itemCountText}>
+                {itemCount} {itemCount === 1 ? "item" : "items"}
               </Text>
             </View>
           </View>
 
-          <Text style={styles.paymentAmount}>{formatMoney(grandTotal)}</Text>
+          {compact && dateBlock}
         </View>
 
-        {/* Order items */}
-        <View style={styles.itemsCard}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="restaurant" size={22} color={RED} />
-            <Text style={styles.sectionTitle}>
-              Order Items ({items.length})
-            </Text>
-          </View>
+        {/* ORDER ITEMS */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Order Items</Text>
 
           {items.map((item, index) => (
             <View
@@ -431,118 +557,267 @@ export default function OrderDetailsScreen() {
                 index === items.length - 1 && styles.lastItemRow,
               ]}
             >
-              <View style={styles.foodPlaceholder}>
-                <Ionicons name={item.icon} size={30} color={RED} />
-              </View>
+              {item.imageUri ? (
+                <Image
+                  source={{ uri: item.imageUri }}
+                  style={styles.itemImage}
+                />
+              ) : (
+                <View style={[styles.itemImage, styles.itemImagePlaceholder]}>
+                  <Ionicons name="fast-food-outline" size={28} color={RED} />
+                </View>
+              )}
 
               <View style={styles.itemDetails}>
                 <Text style={styles.itemName}>{item.name}</Text>
-                <Text style={styles.itemDescription}>{item.description}</Text>
-              </View>
 
-              <Text style={styles.quantityText}>Qty: {item.quantity}</Text>
+                <Text style={styles.itemMeta}>Quantity: {item.quantity}</Text>
+
+                <Text style={styles.itemMeta}>
+                  Unit Price: {formatMoney(item.price)}
+                </Text>
+              </View>
 
               <Text style={styles.itemPrice}>
                 {formatMoney(item.price * item.quantity)}
               </Text>
             </View>
           ))}
+
+          {/* BILL BOX */}
+          <View style={styles.billBox}>
+            <View style={styles.billRow}>
+              <Text style={styles.billLabel}>Subtotal</Text>
+              <Text style={styles.billValue}>{formatMoney(itemTotal)}</Text>
+            </View>
+
+            <View style={styles.billRow}>
+              <Text style={styles.billLabel}>Shipping</Text>
+              <Text style={styles.billValue}>
+                {deliveryFee > 0 ? formatMoney(deliveryFee) : "Free"}
+              </Text>
+            </View>
+
+            {gst > 0 && (
+              <View style={styles.billRow}>
+                <Text style={styles.billLabel}>GST</Text>
+                <Text style={styles.billValue}>{formatMoney(gst)}</Text>
+              </View>
+            )}
+
+            <View style={styles.billRow}>
+              <Text style={styles.billLabel}>Discount</Text>
+              <Text style={[styles.billValue, { color: GOLD }]}>
+                - {formatMoney(couponDiscount)}
+              </Text>
+            </View>
+
+            <View style={styles.dashedDivider} />
+
+            <View style={styles.billTotalRow}>
+              <Text style={styles.billTotalLabel}>Total Amount</Text>
+              <Text style={styles.billTotalValue}>
+                {formatMoney(grandTotal)}
+              </Text>
+            </View>
+          </View>
+
+          {/* INFO BANNER */}
+          <View style={styles.banner}>
+            <Ionicons name="information-circle" size={22} color={GOLD} />
+
+            <Text style={styles.bannerText}>
+              {bannerText ?? (
+                <>
+                  Your order is currently{" "}
+                  <Text style={styles.bannerHighlight}>{status}</Text>. You will
+                  receive an update as your order progresses.
+                </>
+              )}
+            </Text>
+          </View>
+
+          {/* INVOICE BUTTONS */}
+          <View style={styles.invoiceRow}>
+            <TouchableOpacity
+              style={styles.printButton}
+              activeOpacity={0.8}
+              onPress={handlePrintInvoice}
+            >
+              <Ionicons name="print" size={20} color={RED} />
+
+              <Text style={styles.printButtonText}>Print Invoice</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.downloadButton}
+              activeOpacity={0.85}
+              onPress={handleDownloadInvoice}
+            >
+              <Ionicons name="download-outline" size={20} color="#FFFFFF" />
+
+              <Text style={styles.downloadButtonText}>
+                Download / Save Invoice
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Bill summary */}
-        <View style={styles.summaryCard}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="receipt" size={22} color={RED} />
-            <Text style={styles.sectionTitle}>Order Summary</Text>
-          </View>
+        {/* ORDER TRACKING */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Order Tracking</Text>
 
-          <View style={styles.billRow}>
-            <Text style={styles.billLabel}>Item Total</Text>
-            <Text style={styles.billValue}>{formatMoney(itemTotal)}</Text>
-          </View>
+          {steps.map((step, index) => {
+            const isLast = index === steps.length - 1;
 
-          <View style={styles.billRow}>
-            <Text style={styles.billLabel}>Delivery Fee</Text>
-            <Text style={styles.billValue}>{formatMoney(deliveryFee)}</Text>
-          </View>
+            const circleColor =
+              step.state === "completed"
+                ? RED
+                : step.state === "in_progress"
+                  ? GOLD
+                  : "#7A7A7A";
 
-          <View style={styles.billRow}>
-            <Text style={styles.billLabel}>GST (5%)</Text>
-            <Text style={styles.billValue}>{formatMoney(gst)}</Text>
-          </View>
+            const lineColor =
+              step.state === "completed"
+                ? RED
+                : step.state === "in_progress"
+                  ? GOLD
+                  : "#4A4A4A";
 
-          <View style={styles.billRow}>
-            <Text style={styles.billLabel}>Coupon Discount</Text>
-            <Text style={styles.discountValue}>
-              -{formatMoney(couponDiscount)}
-            </Text>
-          </View>
+            const pillTone =
+              step.state === "completed"
+                ? { bg: GREEN_BG, color: GREEN, label: "Completed" }
+                : step.state === "in_progress"
+                  ? { bg: GOLD_BG, color: GOLD, label: "In Progress" }
+                  : { bg: GREY_BG, color: GREY, label: "Pending" };
 
-          <View style={styles.summaryDivider} />
+            return (
+              <View style={styles.stepRow} key={step.title}>
+                <View style={styles.stepLeft}>
+                  <View
+                    style={[
+                      styles.stepCircle,
+                      { backgroundColor: circleColor },
+                    ]}
+                  >
+                    {step.state === "completed" ? (
+                      <Ionicons name="checkmark" size={22} color="#FFFFFF" />
+                    ) : step.state === "in_progress" ? (
+                      <Ionicons name="time-outline" size={22} color="#FFFFFF" />
+                    ) : (
+                      <Text style={styles.stepNumber}>{index + 1}</Text>
+                    )}
+                  </View>
 
-          <View style={styles.grandTotalRow}>
-            <Text style={styles.grandTotalLabel}>Grand Total</Text>
-            <Text style={styles.grandTotalAmount}>
-              {formatMoney(grandTotal)}
-            </Text>
-          </View>
-        </View>
+                  {!isLast && (
+                    <View
+                      style={[styles.stepLine, { backgroundColor: lineColor }]}
+                    />
+                  )}
+                </View>
 
-        {/* Actions */}
-        <TouchableOpacity
-          style={styles.reorderButton}
-          activeOpacity={0.8}
-          onPress={handleReorder}
-          accessibilityRole="button"
-        >
-          <Ionicons name="refresh-outline" size={24} color={WHITE} />
+                <View style={styles.stepContent}>
+                  <View style={styles.stepTextBlock}>
+                    <Text style={styles.stepTitle}>{step.title}</Text>
+                    <Text style={styles.stepSubtitle}>{step.subtitle}</Text>
+                  </View>
 
-          <View style={styles.actionTextContainer}>
-            <Text style={styles.reorderTitle}>Reorder</Text>
-            <Text style={styles.reorderSubtitle}>Order these items again</Text>
-          </View>
+                  <View
+                    style={[styles.stepPill, { backgroundColor: pillTone.bg }]}
+                  >
+                    <Text
+                      style={[styles.stepPillText, { color: pillTone.color }]}
+                    >
+                      {pillTone.label}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            );
+          })}
 
-          <Ionicons name="chevron-forward" size={23} color={WHITE} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.outlineAction}
-          activeOpacity={0.75}
-          onPress={handleHelp}
-          accessibilityRole="button"
-        >
-          <Ionicons name="headset-outline" size={25} color={RED} />
-
-          <View style={styles.actionTextContainer}>
-            <Text style={styles.actionTitle}>Get Help</Text>
-            <Text style={styles.actionSubtitle}>
-              Need help with this order?
-            </Text>
-          </View>
-
-          <Ionicons name="chevron-forward" size={23} color={RED} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.outlineAction}
-          activeOpacity={0.75}
-          onPress={handleRateOrder}
-          accessibilityRole="button"
-        >
-          <Ionicons name="star" size={25} color={RED} />
-
-          <View style={styles.actionTextContainer}>
-            <Text style={styles.actionTitle}>Rate Your Order</Text>
-            <Text style={styles.actionSubtitle}>Share your experience</Text>
-          </View>
-
-          <Ionicons name="chevron-forward" size={23} color={RED} />
-        </TouchableOpacity>
-
-        {!isDelivered && !isCancelled && orderId ? (
           <TouchableOpacity
-            style={styles.outlineAction}
-            activeOpacity={0.75}
+            style={styles.deliveryRow}
+            activeOpacity={0.8}
+            onPress={handleTrackOrder}
+            disabled={!orderId}
+          >
+            <Ionicons name="bicycle" size={22} color={GOLD} />
+
+            <Text style={styles.deliveryText}>
+              <Text style={styles.deliveryLabel}>Delivery Status: </Text>
+              {status}
+            </Text>
+
+            <Ionicons name="chevron-forward" size={20} color={GREY} />
+          </TouchableOpacity>
+        </View>
+
+        {/* SHIPPING ADDRESS */}
+        <View style={[styles.card, styles.infoCard]}>
+          <View style={styles.infoIcon}>
+            <Ionicons name="location" size={26} color={RED} />
+          </View>
+
+          <View style={styles.infoContent}>
+            <Text style={styles.infoTitle}>Shipping Address</Text>
+
+            {Boolean(shipping.name) && (
+              <Text style={styles.addressName}>{shipping.name}</Text>
+            )}
+
+            <Text style={styles.infoText}>{shipping.address}</Text>
+
+            {Boolean(shipping.mobile) && (
+              <Text style={styles.infoText}>Mobile: {shipping.mobile}</Text>
+            )}
+          </View>
+
+          {!isDelivered && !isCancelled && (
+            <TouchableOpacity
+              style={styles.changeButton}
+              activeOpacity={0.8}
+              onPress={handleChangeAddress}
+            >
+              <Text style={styles.changeButtonText}>Change</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* PAYMENT METHOD */}
+        <View style={[styles.card, styles.infoCard]}>
+          <View style={styles.infoIcon}>
+            <Ionicons name="card" size={26} color={RED} />
+          </View>
+
+          <View style={styles.infoContent}>
+            <Text style={styles.infoTitle}>Payment Method</Text>
+
+            <Text style={styles.addressName}>{paymentMethod}</Text>
+          </View>
+
+          <View
+            style={[
+              styles.stepPill,
+              { backgroundColor: paymentPaid ? GREEN_BG : GOLD_BG },
+            ]}
+          >
+            <Text
+              style={[
+                styles.stepPillText,
+                { color: paymentPaid ? GREEN : GOLD },
+              ]}
+            >
+              {paymentStatus}
+            </Text>
+          </View>
+        </View>
+
+        {/* CANCEL ORDER */}
+        {!isDelivered && !isCancelled && Boolean(orderId) && (
+          <TouchableOpacity
+            style={styles.cancelButton}
+            activeOpacity={0.8}
             onPress={handleCancelOrder}
             disabled={cancelling}
             accessibilityRole="button"
@@ -550,42 +825,20 @@ export default function OrderDetailsScreen() {
             {cancelling ? (
               <ActivityIndicator color={RED} />
             ) : (
-              <Ionicons name="close-circle-outline" size={25} color={RED} />
+              <Ionicons name="close-circle-outline" size={22} color={RED} />
             )}
-            <View style={styles.actionTextContainer}>
-              <Text style={styles.actionTitle}>Cancel Order</Text>
-              <Text style={styles.actionSubtitle}>
-                Request cancellation for this order
-              </Text>
-            </View>
-          </TouchableOpacity>
-        ) : null}
 
-        {!isDelivered && !isCancelled && (
-          <TouchableOpacity
-            style={styles.trackButton}
-            activeOpacity={0.8}
-            onPress={handleTrackOrder}
-          >
-            <Ionicons name="bicycle-outline" size={21} color={WHITE} />
-            <Text style={styles.trackButtonText}>Track Order</Text>
+            <Text style={styles.cancelButtonText}>Cancel Order</Text>
           </TouchableOpacity>
         )}
-
-        <TouchableOpacity
-          style={styles.homeButton}
-          activeOpacity={0.8}
-          onPress={() => router.replace("/(tabs)")}
-        >
-          <Ionicons name="home-outline" size={20} color={RED} />
-          <Text style={styles.homeButtonText}>Back to Home</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.footerText}>FEAST LIKE A BAKASURAN</Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Styles                                                              */
+/* ------------------------------------------------------------------ */
 
 const createStyles = (Colors) => {
   const RED = Colors.primary;
@@ -594,467 +847,500 @@ const createStyles = (Colors) => {
   const BORDER = Colors.border;
   const WHITE = Colors.textPrimary;
   const GREY = Colors.textSecondary;
-  const GREEN = Colors.success;
+  const GOLD = Colors.gold ?? GOLD_FALLBACK;
+
   return StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: BG,
-  },
-
-  scrollContent: {
-    paddingHorizontal: 18,
-    paddingTop: 12,
-    paddingBottom: 35,
-  },
-
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-
-  headerTitle: {
-    flex: 1,
-    color: WHITE,
-    fontFamily: Fonts.bold,
-    fontSize: 25,
-  },
-
-  headerSpacer: {
-    width: 8,
-  },
-
-  orderInfo: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 28,
-  },
-
-  orderInfoLeft: {
-    flex: 1,
-  },
-
-  orderNumber: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 22,
-    color: WHITE,
-    marginBottom: 7,
-  },
-
-  redText: {
-    color: RED,
-  },
-
-  orderDate: {
-    color: GREY,
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-  },
-
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 9,
-    borderRadius: 22,
-  },
-
-  deliveredBadge: {
-    backgroundColor: "rgba(34,197,94,0.10)",
-    borderColor: GREEN,
-    borderWidth: 1,
-  },
-
-  activeBadge: {
-    backgroundColor: "rgba(255,32,40,0.10)",
-    borderColor: RED,
-    borderWidth: 1,
-  },
-
-  statusText: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 13,
-  },
-
-  timeline: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 26,
-    paddingHorizontal: 1,
-  },
-
-  timelineStep: {
-    width: "25%",
-    alignItems: "center",
-    position: "relative",
-  },
-
-  timelineCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 10,
-    borderWidth: 2,
-  },
-
-  timelineCircleCompleted: {
-    backgroundColor: RED,
-    borderColor: RED,
-  },
-
-  timelineCirclePending: {
-    backgroundColor: Colors.backgroundElement,
-    borderColor: Colors.border,
-  },
-
-  timelineTitle: {
-    fontFamily: Fonts.semiBold,
-    color: Colors.goldDark,
-    fontSize: 14,
-    textAlign: "center",
-    minHeight: 28,
-  },
-
-  timelineTime: {
-    fontFamily: Fonts.regular,
-    color: GREY,
-    fontSize: 13,
-    marginTop: 3,
-  },
-
-  timelineLine: {
-    position: "absolute",
-    height: 3,
-    width: "43%",
-    left: "78%",
-    top: 25,
-    borderRadius: 2,
-  },
-
-  timelineLineCompleted: {
-    backgroundColor: RED,
-  },
-
-  timelineLinePending: {
-    backgroundColor: Colors.divider,
-  },
-
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: CARD,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: BORDER,
-    padding: 15,
-    marginBottom: 13,
-    gap: 12,
-  },
-
-  cardIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.backgroundElement,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  addressContent: {
-    flex: 1,
-  },
-
-  paymentContent: {
-    flex: 1,
-  },
-
-  sectionTitle: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 18,
-    color: WHITE,
-    marginBottom: 6,
-  },
-
-  secondaryText: {
-    fontFamily: Fonts.regular,
-    fontSize: 16,
-    color: GREY,
-    lineHeight: 19,
-  },
-
-  mapButton: {
-    borderWidth: 1.5,
-    borderColor: RED,
-    borderRadius: 25,
-    paddingHorizontal: 10,
-    paddingVertical: 9,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-  },
-
-  mapButtonText: {
-    color: RED,
-    fontFamily: Fonts.semiBold,
-    fontSize: 13,
-  },
-
-  paidBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    alignSelf: "flex-start",
-    marginTop: 7,
-  },
-
-  paidText: {
-    color: GREEN,
-    fontFamily: Fonts.medium,
-    fontSize: 12,
-  },
-
-  paymentAmount: {
-    fontFamily: Fonts.bold,
-    color: WHITE,
-    fontSize: 23,
-  },
-
-  itemsCard: {
-    backgroundColor: CARD,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: BORDER,
-    padding: 15,
-    marginBottom: 13,
-  },
-
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 11,
-    marginBottom: 14,
-  },
-
-  itemRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.divider,
-    gap: 9,
-  },
-
-  lastItemRow: {
-    borderBottomWidth: 0,
-    paddingBottom: 2,
-  },
-
-  foodPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: Colors.backgroundElement,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  itemDetails: {
-    flex: 1,
-  },
-
-  itemName: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 14,
-    color: WHITE,
-    marginBottom: 5,
-  },
-
-  itemDescription: {
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-    color: Colors.goldDark,
-  },
-
-  quantityText: {
-    color: GREY,
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-  },
-
-  itemPrice: {
-    color: Colors.goldDark,
-    fontFamily: Fonts.semiBold,
-    fontSize: 14,
-    minWidth: 48,
-    textAlign: "right",
-  },
-
-  summaryCard: {
-    backgroundColor: CARD,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: BORDER,
-    padding: 17,
-    marginBottom: 15,
-  },
-
-  billRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 13,
-  },
-
-  billLabel: {
-    fontFamily: Fonts.regular,
-    fontSize: 17,
-    color: GREY,
-  },
-
-  billValue: {
-    fontFamily: Fonts.medium,
-    fontSize: 15,
-    color: WHITE,
-  },
-
-  discountValue: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 15,
-    color: GREEN,
-  },
-
-  summaryDivider: {
-    height: 1,
-    backgroundColor: Colors.divider,
-    marginVertical: 6,
-  },
-
-  grandTotalRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingTop: 7,
-  },
-
-  grandTotalLabel: {
-    fontFamily: Fonts.bold,
-    fontSize: 18,
-    color: WHITE,
-  },
-
-  grandTotalAmount: {
-    fontFamily: Fonts.bold,
-    fontSize: 24,
-    color: RED,
-  },
-
-  reorderButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: RED,
-    minHeight: 76,
-    borderRadius: 17,
-    paddingHorizontal: 18,
-    gap: 14,
-    marginBottom: 12,
-  },
-
-  actionTextContainer: {
-    flex: 1,
-  },
-
-  reorderTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 18,
-    color: WHITE,
-    marginBottom: 4,
-  },
-
-  reorderSubtitle: {
-    fontFamily: Fonts.regular,
-    fontSize: 16,
-    color: WHITE,
-  },
-
-  outlineAction: {
-    flexDirection: "row",
-    alignItems: "center",
-    minHeight: 72,
-    borderWidth: 1.5,
-    borderColor: RED,
-    borderRadius: 17,
-    paddingHorizontal: 18,
-    gap: 14,
-    marginBottom: 12,
-    backgroundColor: Colors.surface,
-  },
-
-  actionTitle: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 16,
-    color: WHITE,
-    marginBottom: 4,
-  },
-
-  actionSubtitle: {
-    fontFamily: Fonts.regular,
-    fontSize: 13,
-    color: GREY,
-  },
-
-  trackButton: {
-    backgroundColor: RED,
-    borderRadius: 14,
-    minHeight: 52,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 10,
-    marginTop: 4,
-    marginBottom: 10,
-  },
-
-  trackButtonText: {
-    color: WHITE,
-    fontFamily: Fonts.semiBold,
-    fontSize: 16,
-  },
-
-  homeButton: {
-    minHeight: 50,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 9,
-  },
-
-  homeButtonText: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 16,
-    color: RED,
-  },
-
-  footerText: {
-    textAlign: "center",
-    fontFamily: Fonts.semiBold,
-    fontSize: 14,
-    letterSpacing: 2,
-    color: "#777777",
-    marginTop: 15,
-  },
+    safeArea: {
+      flex: 1,
+      backgroundColor: BG,
+    },
+
+    // HEADER
+    header: {
+      height: 58,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: BORDER,
+    },
+
+    backButton: {
+      width: 40,
+      height: 42,
+      alignItems: "flex-start",
+      justifyContent: "center",
+    },
+
+    headerTitle: {
+      flex: 1,
+      textAlign: "center",
+      color: WHITE,
+      fontFamily: Fonts.semiBold,
+      fontSize: 18,
+    },
+
+    headerSpacer: {
+      width: 40,
+    },
+
+    scrollContent: {
+      paddingHorizontal: 14,
+      paddingTop: 14,
+      paddingBottom: 36,
+    },
+
+    // CARD
+    card: {
+      backgroundColor: CARD,
+      borderWidth: 1,
+      borderColor: BORDER,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 14,
+    },
+
+    cardTitle: {
+      color: WHITE,
+      fontFamily: Fonts.bold,
+      fontSize: 21,
+      marginBottom: 14,
+    },
+
+    eyebrow: {
+      color: GREY,
+      fontFamily: Fonts.medium,
+      fontSize: 11,
+      letterSpacing: 1.2,
+    },
+
+    // TOP CARD
+    topRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+    },
+
+    topLeft: {
+      flexShrink: 0,
+    },
+
+    orderNumber: {
+      color: WHITE,
+      fontFamily: Fonts.bold,
+      fontSize: 25,
+      marginTop: 6,
+      marginBottom: 10,
+    },
+
+    statusPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      alignSelf: "flex-start",
+      gap: 5,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 14,
+    },
+
+    statusPillText: {
+      fontFamily: Fonts.semiBold,
+      fontSize: 12,
+    },
+
+    topMiddle: {
+      flex: 1,
+      marginLeft: 22,
+    },
+
+    dateRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 7,
+      marginTop: 12,
+    },
+
+    dateText: {
+      flex: 1,
+      color: WHITE,
+      fontFamily: Fonts.regular,
+      fontSize: 13,
+    },
+
+    topRight: {
+      alignItems: "flex-end",
+      marginLeft: 10,
+    },
+
+    // Compact layout: order ID on the left, total pushed to the right
+    topRightCompact: {
+      flex: 1,
+    },
+
+    dateCompact: {
+      marginTop: 14,
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: BORDER,
+    },
+
+    topTotal: {
+      color: RED,
+      fontFamily: Fonts.bold,
+      fontSize: 25,
+      marginTop: 8,
+    },
+
+    itemCountText: {
+      color: GREY,
+      fontFamily: Fonts.regular,
+      fontSize: 13,
+      marginTop: 6,
+    },
+
+    // ITEMS
+    itemRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 11,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.divider ?? BORDER,
+    },
+
+    lastItemRow: {
+      marginBottom: 12,
+    },
+
+    itemImage: {
+      width: 62,
+      height: 56,
+      borderRadius: 10,
+    },
+
+    itemImagePlaceholder: {
+      backgroundColor: Colors.backgroundElement ?? BG,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    itemDetails: {
+      flex: 1,
+      marginLeft: 14,
+    },
+
+    itemName: {
+      color: WHITE,
+      fontFamily: Fonts.semiBold,
+      fontSize: 15,
+      marginBottom: 4,
+    },
+
+    itemMeta: {
+      color: GREY,
+      fontFamily: Fonts.regular,
+      fontSize: 12,
+      lineHeight: 18,
+    },
+
+    itemPrice: {
+      color: RED,
+      fontFamily: Fonts.bold,
+      fontSize: 16,
+      marginLeft: 8,
+    },
+
+    // BILL BOX
+    billBox: {
+      borderWidth: 1,
+      borderColor: BORDER,
+      borderRadius: 12,
+      paddingHorizontal: 14,
+      paddingTop: 12,
+      paddingBottom: 6,
+      marginBottom: 10,
+    },
+
+    billRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 10,
+    },
+
+    billLabel: {
+      color: WHITE,
+      fontFamily: Fonts.regular,
+      fontSize: 14,
+    },
+
+    billValue: {
+      color: WHITE,
+      fontFamily: Fonts.medium,
+      fontSize: 14,
+    },
+
+    dashedDivider: {
+      borderTopWidth: 1,
+      borderStyle: "dashed",
+      borderColor: GREY,
+      marginTop: 2,
+      marginBottom: 10,
+      opacity: 0.6,
+    },
+
+    billTotalRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingBottom: 8,
+    },
+
+    billTotalLabel: {
+      color: WHITE,
+      fontFamily: Fonts.bold,
+      fontSize: 16,
+    },
+
+    billTotalValue: {
+      color: RED,
+      fontFamily: Fonts.bold,
+      fontSize: 24,
+    },
+
+    // BANNER
+    banner: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      backgroundColor: "rgba(245,179,35,0.08)",
+      borderWidth: 1,
+      borderColor: "rgba(245,179,35,0.55)",
+      borderRadius: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+      marginBottom: 14,
+    },
+
+    bannerText: {
+      flex: 1,
+      color: WHITE,
+      fontFamily: Fonts.regular,
+      fontSize: 13,
+      lineHeight: 19,
+    },
+
+    bannerHighlight: {
+      color: GOLD,
+      fontFamily: Fonts.semiBold,
+    },
+
+    // INVOICE BUTTONS
+    invoiceRow: {
+      flexDirection: "row",
+      gap: 10,
+    },
+
+    printButton: {
+      flex: 1,
+      height: 52,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      borderWidth: 1.5,
+      borderColor: RED,
+      borderRadius: 10,
+    },
+
+    printButtonText: {
+      color: RED,
+      fontFamily: Fonts.semiBold,
+      fontSize: 14,
+    },
+
+    downloadButton: {
+      flex: 1.25,
+      height: 52,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      backgroundColor: RED,
+      borderRadius: 10,
+    },
+
+    downloadButtonText: {
+      color: "#FFFFFF",
+      fontFamily: Fonts.semiBold,
+      fontSize: 14,
+    },
+
+    // TRACKING
+    stepRow: {
+      flexDirection: "row",
+    },
+
+    stepLeft: {
+      width: 44,
+      alignItems: "center",
+    },
+
+    stepCircle: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    stepNumber: {
+      color: "#FFFFFF",
+      fontFamily: Fonts.semiBold,
+      fontSize: 15,
+    },
+
+    stepLine: {
+      width: 2,
+      flex: 1,
+      minHeight: 22,
+    },
+
+    stepContent: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      marginLeft: 14,
+      paddingBottom: 18,
+    },
+
+    stepTextBlock: {
+      flex: 1,
+      paddingTop: 3,
+    },
+
+    stepTitle: {
+      color: WHITE,
+      fontFamily: Fonts.semiBold,
+      fontSize: 16,
+      marginBottom: 3,
+    },
+
+    stepSubtitle: {
+      color: GREY,
+      fontFamily: Fonts.regular,
+      fontSize: 13,
+    },
+
+    stepPill: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 14,
+      marginLeft: 8,
+    },
+
+    stepPillText: {
+      fontFamily: Fonts.semiBold,
+      fontSize: 12,
+    },
+
+    deliveryRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      borderWidth: 1,
+      borderColor: BORDER,
+      borderRadius: 10,
+      paddingHorizontal: 12,
+      height: 52,
+      marginTop: 2,
+    },
+
+    deliveryText: {
+      flex: 1,
+      color: GREY,
+      fontFamily: Fonts.regular,
+      fontSize: 14,
+    },
+
+    deliveryLabel: {
+      color: WHITE,
+      fontFamily: Fonts.semiBold,
+    },
+
+    // SHIPPING / PAYMENT
+    infoCard: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    infoIcon: {
+      width: 60,
+      height: 60,
+      borderRadius: 16,
+      backgroundColor: RED_BG,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 16,
+    },
+
+    infoContent: {
+      flex: 1,
+    },
+
+    infoTitle: {
+      color: WHITE,
+      fontFamily: Fonts.bold,
+      fontSize: 19,
+      marginBottom: 6,
+    },
+
+    addressName: {
+      color: WHITE,
+      fontFamily: Fonts.semiBold,
+      fontSize: 14,
+      marginBottom: 4,
+    },
+
+    infoText: {
+      color: GREY,
+      fontFamily: Fonts.regular,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+
+    changeButton: {
+      borderWidth: 1.5,
+      borderColor: RED,
+      borderRadius: 8,
+      paddingHorizontal: 22,
+      paddingVertical: 11,
+      marginLeft: 10,
+    },
+
+    changeButtonText: {
+      color: RED,
+      fontFamily: Fonts.semiBold,
+      fontSize: 14,
+    },
+
+    // CANCEL
+    cancelButton: {
+      height: 52,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 9,
+      borderWidth: 1.5,
+      borderColor: RED,
+      borderRadius: 12,
+      marginTop: 2,
+    },
+
+    cancelButtonText: {
+      color: RED,
+      fontFamily: Fonts.semiBold,
+      fontSize: 15,
+    },
   });
 };

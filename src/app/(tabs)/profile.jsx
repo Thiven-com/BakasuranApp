@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -17,6 +18,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Fonts from "../../constants/Fonts";
 import { useTheme } from "../../hooks/use-theme";
 import { getProfile, logout } from "../../utils/Function";
+
+const showMessage = (title, message) => {
+  if (Platform.OS === "web") {
+    window.alert(`${title}\n\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+};
 
 export default function ProfileScreen() {
   const { isDark, toggleTheme, colors } = useTheme();
@@ -116,58 +125,52 @@ export default function ProfileScreen() {
   const handleLogout = useCallback(() => {
     if (loggingOut) return;
 
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: async () => {
-            if (loggingOut) return;
+    const performLogout = async () => {
+      if (loggingOut) return;
 
-            setLoggingOut(true);
+      setLoggingOut(true);
 
-            try {
-              const result = await logout();
+      try {
+        const result = await logout();
 
-              console.log(
-                "LOGOUT API RESULT:",
-                JSON.stringify(result, null, 2),
-              );
+        console.log("LOGOUT API RESULT:", JSON.stringify(result, null, 2));
 
-              if (result?.localLogout) {
-                router.replace("/Loginscreen");
-              } else {
-                Alert.alert(
-                  "Logout Failed",
-                  result?.message || "Unable to logout. Please try again.",
-                );
-              }
-            } catch (error) {
-              console.log(
-                "LOGOUT API ERROR:",
-                error?.response?.data || error?.message,
-              );
+        if (result?.localLogout) {
+          router.replace("/(auth)/Loginscreen");
+        } else {
+          showMessage(
+            "Logout Failed",
+            result?.message || "Unable to logout. Please try again.",
+          );
+        }
+      } catch (error) {
+        console.log(
+          "LOGOUT API ERROR:",
+          error?.response?.data || error?.message,
+        );
 
-              Alert.alert(
-                "Logout Failed",
-                error?.response?.data?.message ||
-                  error?.message ||
-                  "Unable to logout. Please try again.",
-              );
-            } finally {
-              setLoggingOut(false);
-            }
-          },
-        },
-      ],
-      { cancelable: true },
-    );
+        showMessage(
+          "Logout Failed",
+          error?.response?.data?.message ||
+            error?.message ||
+            "Unable to logout. Please try again.",
+        );
+      } finally {
+        setLoggingOut(false);
+      }
+    };
+
+    if (Platform.OS === "web") {
+      if (window.confirm("Are you sure you want to logout?")) {
+        performLogout();
+      }
+      return;
+    }
+
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Logout", style: "destructive", onPress: performLogout },
+    ]);
   }, [loggingOut]);
 
   // =========================================
