@@ -475,7 +475,7 @@ export default function CheckoutScreen() {
 
         <TouchableOpacity
           style={styles.headerButton}
-          onPress={() => notify("Cart", "Connect your cart screen.")}
+          onPress={() => router.push("/CartScreen")}
           activeOpacity={0.8}
         >
           <Ionicons name="cart-outline" size={23} color={colors.textPrimary} />
@@ -1497,7 +1497,7 @@ const makeStyles = (colors, isDark) => {
     foodPrice: {
       color: colors.primary,
       fontFamily: Fonts.bold,
-      fontSize: 15,
+      fontSize: 1,
       marginLeft: 5,
       marginTop: 5,
     },

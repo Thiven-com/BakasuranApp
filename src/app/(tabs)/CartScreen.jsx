@@ -1448,7 +1448,7 @@ export default function CartScreen() {
           >
             <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
 
-            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+            <Ionicons name="arrow-forward" size={15} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       ) : null}
@@ -1656,13 +1656,13 @@ const styles = StyleSheet.create({
   },
 
   itemName: {
-    fontSize: 15,
+    fontSize: 17,
     lineHeight: 20,
     fontFamily: Fonts?.semiBold || undefined,
   },
 
   restaurantText: {
-    fontSize: 11,
+    fontSize: 15,
     marginTop: 4,
     fontFamily: Fonts?.regular || undefined,
   },
@@ -1829,7 +1829,7 @@ const styles = StyleSheet.create({
   checkoutButton: {
     flex: 1,
     minHeight: 52,
-    borderRadius: 13,
+    borderRadius: 11,
     paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
