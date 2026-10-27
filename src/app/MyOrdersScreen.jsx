@@ -20,17 +20,42 @@ import { getOrders } from "../utils/Function";
 
 const FALLBACK_IMAGE = require("../../assets/images/chicken_biryani.jpg");
 
+// Serif is used ONLY for the big "My Orders" hero title
 const SERIF = Platform.select({
   ios: "Georgia",
   android: "serif",
   default: "Georgia, 'Times New Roman', serif",
 });
 
-const GOLD_TEXT_FALLBACK = "#B7791F";
-const GOLD_BG = "rgba(229,168,42,0.16)";
-const GOLD_BORDER = "#E5A82A";
-const GREEN_BG = "rgba(34,197,94,0.15)";
+// Self-contained font weights. Works even if Fonts.text does not exist,
+// because every weight shares one family and only fontWeight changes.
+const SANS = Fonts.regular;
+const font = (weight) => ({ fontFamily: SANS, fontWeight: weight });
+const W = {
+  regular: font("400"),
+  medium: font("500"),
+  semiBold: font("600"),
+  bold: font("700"),
+};
+
+const GOLD_FALLBACK = "#F5B914";
+const GOLD_BG = "rgba(245,185,20,0.16)";
+const GOLD_SOFT_BG = "rgba(245,185,20,0.12)";
+const GOLD_EDGE = "rgba(245,185,20,0.35)";
+const GREEN_BG = "rgba(34,197,94,0.16)";
 const GREY_BG = "rgba(139,149,167,0.18)";
+
+// red -> orange -> gold strip along the top of every card
+const ACCENT_STEPS = [
+  "#E5202A",
+  "#E8402A",
+  "#EB5F29",
+  "#EE7D26",
+  "#F09A22",
+  "#F2AE1C",
+  "#F4B617",
+  "#F5B914",
+];
 
 const MONTHS = [
   "Jan",
@@ -148,7 +173,9 @@ const formatOrder = (order) => {
           normalizedStatus.includes(status),
         )
       ? "delivered"
-      : "preparing";
+      : normalizedStatus.includes("confirm")
+        ? "confirmed"
+        : "preparing";
 
   const grandTotal = Number(
     order?.grand_total ??
@@ -188,7 +215,7 @@ const formatOrder = (order) => {
     discount: Number(order?.discount_total ?? order?.discount ?? 0),
     total: grandTotal,
     paymentMethod: capitalize(
-      order?.payment_method ?? order?.payment?.method ?? "—",
+      order?.payment_method ?? order?.payment?.method ?? "",
     ),
     paymentStatus,
     paymentPaid: ["paid", "success", "completed"].includes(
@@ -206,6 +233,10 @@ const getBannerText = (order) => {
     return "This order was cancelled.";
   }
 
+  if (order.statusType === "confirmed") {
+    return "Your order is confirmed and will be prepared shortly.";
+  }
+
   if (order.status.toLowerCase() === "pending") {
     return "Your order has been received and is awaiting confirmation.";
   }
@@ -221,7 +252,7 @@ const OrdersScreen = () => {
   const { colors: Colors } = useTheme();
   const styles = useMemo(() => createStyles(Colors), [Colors]);
 
-  const GOLD = Colors.goldDark ?? GOLD_TEXT_FALLBACK;
+  const GOLD = Colors.gold ?? GOLD_FALLBACK;
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -282,7 +313,7 @@ const OrdersScreen = () => {
   };
 
   const statusStyle = (order) => {
-    if (order.statusType === "delivered") {
+    if (order.statusType === "delivered" || order.statusType === "confirmed") {
       return { bg: GREEN_BG, color: Colors.success, icon: "checkmark-circle" };
     }
 
@@ -303,7 +334,9 @@ const OrdersScreen = () => {
         <View style={styles.eyebrowLine} />
       </View>
 
-      <Text style={styles.heroTitle}>My Orders</Text>
+      <Text style={styles.heroTitle}>
+        My <Text style={styles.heroTitleAccent}>Orders</Text>
+      </Text>
 
       <Text style={styles.heroSubtitle}>
         View your recent food orders and track your deliveries, all in one
@@ -314,20 +347,18 @@ const OrdersScreen = () => {
 
   const renderOrder = ({ item }) => {
     const tone = statusStyle(item);
+    const hasPaymentMethod = Boolean(item.paymentMethod);
 
     return (
       <View style={styles.orderCard}>
-        {/* TOP ACCENT BAR */}
+        {/* TOP ACCENT STRIP (red -> gold) */}
         <View style={styles.accentBar}>
-          <View
-            style={[styles.accentSegment, { backgroundColor: Colors.primary }]}
-          />
-          <View
-            style={[styles.accentSegment, { backgroundColor: "#B8791B" }]}
-          />
-          <View
-            style={[styles.accentSegment, { backgroundColor: GOLD_BORDER }]}
-          />
+          {ACCENT_STEPS.map((color) => (
+            <View
+              key={color}
+              style={[styles.accentSegment, { backgroundColor: color }]}
+            />
+          ))}
         </View>
 
         <View style={styles.cardBody}>
@@ -341,7 +372,7 @@ const OrdersScreen = () => {
               </Text>
 
               <View style={[styles.statusPill, { backgroundColor: tone.bg }]}>
-                <Ionicons name={tone.icon} size={15} color={tone.color} />
+                <Ionicons name={tone.icon} size={18} color={tone.color} />
 
                 <Text style={[styles.statusPillText, { color: tone.color }]}>
                   {item.status}
@@ -365,7 +396,7 @@ const OrdersScreen = () => {
           {/* DATE */}
           <View style={styles.dateRow}>
             <View style={styles.dateIcon}>
-              <Ionicons name="calendar" size={17} color={GOLD} />
+              <Ionicons name="calendar" size={18} color={GOLD} />
             </View>
 
             <Text style={styles.dateText}>{item.date || "—"}</Text>
@@ -439,17 +470,25 @@ const OrdersScreen = () => {
 
           {/* BANNER */}
           <View style={styles.banner}>
-            <Ionicons name="alert-circle" size={22} color={GOLD} />
+            <Ionicons name="information-circle" size={24} color={GOLD} />
 
             <Text style={styles.bannerText}>{getBannerText(item)}</Text>
           </View>
 
           {/* PAYMENT */}
           <View style={styles.paymentRow}>
-            <View>
+            <View style={styles.paymentLeft}>
               <Text style={styles.eyebrowSmall}>PAYMENT METHOD</Text>
 
-              <Text style={styles.paymentMethod}>{item.paymentMethod}</Text>
+              <Text
+                style={[
+                  styles.paymentMethod,
+                  !hasPaymentMethod && styles.paymentMethodEmpty,
+                ]}
+                numberOfLines={1}
+              >
+                {hasPaymentMethod ? item.paymentMethod : "Not available"}
+              </Text>
             </View>
 
             <View style={styles.paymentRight}>
@@ -479,9 +518,16 @@ const OrdersScreen = () => {
             activeOpacity={0.85}
             onPress={() => openOrder(item)}
           >
-            <Ionicons name="eye" size={22} color="#FFFFFF" />
+            <Ionicons name="eye" size={24} color="#FFFFFF" />
 
             <Text style={styles.viewButtonText}>View Order Details</Text>
+
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color="#FFFFFF"
+              style={styles.viewButtonChevron}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -564,8 +610,9 @@ export default OrdersScreen;
 /* ------------------------------------------------------------------ */
 
 const createStyles = (Colors) => {
-  const GOLD = Colors.goldDark ?? GOLD_TEXT_FALLBACK;
+  const GOLD = Colors.gold ?? GOLD_FALLBACK;
   const DIVIDER = Colors.divider ?? Colors.border;
+  const MUTED = Colors.textMuted ?? Colors.textSecondary;
 
   return StyleSheet.create({
     container: {
@@ -592,8 +639,8 @@ const createStyles = (Colors) => {
     headerTitle: {
       flex: 1,
       textAlign: "center",
-      color: Colors.primary,
-      fontFamily: Fonts.semiBold,
+      color: Colors.textPrimary,
+      ...W.semiBold,
       fontSize: 18,
     },
 
@@ -622,26 +669,32 @@ const createStyles = (Colors) => {
 
     eyebrow: {
       color: GOLD,
-      fontFamily: Fonts.semiBold,
-      fontSize: 12,
-      letterSpacing: 3,
+      ...W.medium,
+      fontSize: 13,
+      letterSpacing: 3.5,
     },
 
     heroTitle: {
+      color: Colors.textPrimary,
+      fontFamily: SERIF,
+      fontWeight: "700",
+      fontSize: 44,
+      marginTop: 4,
+    },
+
+    heroTitleAccent: {
       color: Colors.primary,
       fontFamily: SERIF,
       fontWeight: "700",
-      fontSize: 40,
-      marginTop: 6,
     },
 
     heroSubtitle: {
       color: Colors.textSecondary,
-      fontFamily: Fonts.regular,
-      fontSize: 14,
-      lineHeight: 21,
+      ...W.regular,
+      fontSize: 15,
+      lineHeight: 22,
       textAlign: "center",
-      marginTop: 10,
+      marginTop: 8,
       paddingHorizontal: 14,
     },
 
@@ -654,9 +707,9 @@ const createStyles = (Colors) => {
     // CARD
     orderCard: {
       backgroundColor: Colors.surface,
-      borderRadius: 20,
+      borderRadius: 22,
       borderWidth: 1,
-      borderColor: Colors.border,
+      borderColor: GOLD_EDGE,
       marginBottom: 18,
       overflow: "hidden",
     },
@@ -675,9 +728,9 @@ const createStyles = (Colors) => {
     },
 
     eyebrowSmall: {
-      color: Colors.textMuted ?? Colors.textSecondary,
-      fontFamily: Fonts.medium,
-      fontSize: 11,
+      color: MUTED,
+      ...W.medium,
+      fontSize: 12,
       letterSpacing: 1.5,
     },
 
@@ -692,9 +745,8 @@ const createStyles = (Colors) => {
     },
 
     orderNumber: {
-      color: Colors.primary,
-      fontFamily: SERIF,
-      fontWeight: "700",
+      color: Colors.textPrimary,
+      ...W.bold,
       fontSize: 28,
       marginTop: 4,
       marginBottom: 10,
@@ -704,15 +756,15 @@ const createStyles = (Colors) => {
       flexDirection: "row",
       alignItems: "center",
       alignSelf: "flex-start",
-      gap: 6,
+      gap: 7,
       paddingHorizontal: 12,
-      paddingVertical: 7,
-      borderRadius: 16,
+      paddingVertical: 8,
+      borderRadius: 18,
     },
 
     statusPillText: {
-      fontFamily: Fonts.semiBold,
-      fontSize: 13,
+      ...W.semiBold,
+      fontSize: 15,
     },
 
     topRight: {
@@ -722,17 +774,16 @@ const createStyles = (Colors) => {
 
     topTotal: {
       color: Colors.primary,
-      fontFamily: SERIF,
-      fontWeight: "700",
+      ...W.bold,
       fontSize: 28,
-      marginTop: 8,
+      marginTop: 6,
     },
 
     itemCount: {
       color: Colors.textSecondary,
-      fontFamily: Fonts.regular,
-      fontSize: 14,
-      marginTop: 6,
+      ...W.regular,
+      fontSize: 15,
+      marginTop: 10,
     },
 
     divider: {
@@ -745,14 +796,14 @@ const createStyles = (Colors) => {
     dateRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 12,
+      gap: 14,
       marginBottom: 16,
     },
 
     dateIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 42,
+      height: 42,
+      borderRadius: 21,
       backgroundColor: GOLD_BG,
       alignItems: "center",
       justifyContent: "center",
@@ -760,9 +811,9 @@ const createStyles = (Colors) => {
 
     dateText: {
       flex: 1,
-      color: Colors.textSecondary,
-      fontFamily: Fonts.regular,
-      fontSize: 14,
+      color: Colors.textPrimary,
+      ...W.regular,
+      fontSize: 16,
     },
 
     // ITEMS
@@ -779,34 +830,36 @@ const createStyles = (Colors) => {
     },
 
     itemImage: {
-      width: 38,
-      height: 38,
-      borderRadius: 10,
+      width: 46,
+      height: 46,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: GOLD_EDGE,
       backgroundColor: Colors.card ?? Colors.background,
     },
 
     itemTextBlock: {
       flex: 1,
-      marginLeft: 7,
+      marginLeft: 8,
     },
 
     itemName: {
       color: Colors.textPrimary,
-      fontFamily: Fonts.semiBold,
-      fontSize: 10.5,
-      lineHeight: 14,
+      ...W.semiBold,
+      fontSize: 12,
+      lineHeight: 16,
     },
 
     itemQty: {
       color: Colors.textSecondary,
-      fontFamily: Fonts.regular,
-      fontSize: 10.5,
+      ...W.regular,
+      fontSize: 12,
       marginTop: 2,
     },
 
     moreItems: {
       color: Colors.textSecondary,
-      fontFamily: Fonts.medium,
+      ...W.medium,
       fontSize: 12,
       marginTop: -6,
       marginBottom: 14,
@@ -832,20 +885,20 @@ const createStyles = (Colors) => {
 
     billLabel: {
       color: Colors.textSecondary,
-      fontFamily: Fonts.regular,
-      fontSize: 14,
+      ...W.regular,
+      fontSize: 15,
     },
 
     billValue: {
-      color: Colors.textSecondary,
-      fontFamily: Fonts.regular,
-      fontSize: 14,
+      color: Colors.textPrimary,
+      ...W.regular,
+      fontSize: 15,
     },
 
     dashedDivider: {
       borderTopWidth: 1,
       borderStyle: "dashed",
-      borderColor: Colors.textMuted ?? Colors.border,
+      borderColor: MUTED,
       opacity: 0.6,
       marginTop: 2,
       marginBottom: 12,
@@ -859,26 +912,26 @@ const createStyles = (Colors) => {
     },
 
     billTotalLabel: {
-      color: Colors.primary,
-      fontFamily: Fonts.bold,
-      fontSize: 16,
+      color: Colors.textPrimary,
+      ...W.bold,
+      fontSize: 18,
     },
 
     billTotalValue: {
       color: Colors.primary,
-      fontFamily: Fonts.bold,
-      fontSize: 20,
+      ...W.bold,
+      fontSize: 22,
     },
 
     // BANNER
     banner: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 10,
-      backgroundColor: "rgba(229,168,42,0.12)",
+      gap: 12,
+      backgroundColor: GOLD_SOFT_BG,
       borderLeftWidth: 3,
-      borderLeftColor: GOLD_BORDER,
-      borderRadius: 6,
+      borderLeftColor: GOLD,
+      borderRadius: 8,
       paddingHorizontal: 14,
       paddingVertical: 14,
       marginBottom: 16,
@@ -887,9 +940,9 @@ const createStyles = (Colors) => {
     bannerText: {
       flex: 1,
       color: GOLD,
-      fontFamily: Fonts.regular,
-      fontSize: 13,
-      lineHeight: 19,
+      ...W.regular,
+      fontSize: 14,
+      lineHeight: 20,
     },
 
     // PAYMENT
@@ -900,11 +953,23 @@ const createStyles = (Colors) => {
       marginBottom: 14,
     },
 
+    paymentLeft: {
+      flexShrink: 1,
+      marginRight: 12,
+    },
+
     paymentMethod: {
-      color: Colors.primary,
-      fontFamily: Fonts.bold,
-      fontSize: 18,
+      color: Colors.textPrimary,
+      ...W.medium,
+      fontSize: 20,
       marginTop: 6,
+    },
+
+    paymentMethodEmpty: {
+      color: MUTED,
+      ...W.medium,
+      fontSize: 15,
+      marginTop: 9,
     },
 
     paymentRight: {
@@ -912,32 +977,37 @@ const createStyles = (Colors) => {
     },
 
     paymentPill: {
-      paddingHorizontal: 18,
-      paddingVertical: 8,
-      borderRadius: 16,
+      paddingHorizontal: 22,
+      paddingVertical: 9,
+      borderRadius: 18,
       marginTop: 6,
     },
 
     paymentPillText: {
-      fontFamily: Fonts.semiBold,
-      fontSize: 14,
+      ...W.semiBold,
+      fontSize: 16,
     },
 
     // BUTTON
     viewButton: {
-      height: 54,
+      height: 56,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      gap: 10,
+      gap: 12,
       backgroundColor: Colors.primary,
-      borderRadius: 10,
+      borderRadius: 12,
     },
 
     viewButtonText: {
       color: "#FFFFFF",
-      fontFamily: Fonts.semiBold,
-      fontSize: 16,
+      ...W.semiBold,
+      fontSize: 17,
+    },
+
+    viewButtonChevron: {
+      position: "absolute",
+      right: 16,
     },
 
     // EMPTY STATE
@@ -961,14 +1031,14 @@ const createStyles = (Colors) => {
     emptyTitle: {
       marginTop: 20,
       color: Colors.textPrimary,
-      fontFamily: Fonts.bold,
+      ...W.bold,
       fontSize: Fonts.size.xl,
     },
 
     emptyText: {
       marginTop: 8,
       color: Colors.textSecondary,
-      fontFamily: Fonts.regular,
+      ...W.regular,
       fontSize: Fonts.size.sm,
       textAlign: "center",
     },
@@ -983,7 +1053,7 @@ const createStyles = (Colors) => {
 
     exploreButtonText: {
       color: "#FFFFFF",
-      fontFamily: Fonts.semiBold,
+      ...W.semiBold,
       fontSize: Fonts.size.sm,
     },
   });

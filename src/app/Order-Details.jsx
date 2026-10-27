@@ -24,6 +24,17 @@ import { cancelOrder, getOrderDetails } from "../utils/Function";
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
 
+// Self-contained font weights. Every weight shares one family and only
+// fontWeight changes, so it works with the current Fonts.js.
+const SANS = Fonts.regular;
+const font = (weight) => ({ fontFamily: SANS, fontWeight: weight });
+const W = {
+  regular: font("400"),
+  medium: font("500"),
+  semiBold: font("600"),
+  bold: font("700"),
+};
+
 const GOLD_FALLBACK = "#F5B323";
 const GOLD_BG = "rgba(245,179,35,0.15)";
 const GREEN_BG = "rgba(34,197,94,0.15)";
@@ -454,6 +465,8 @@ export default function OrderDetailsScreen() {
       ? "This order has been cancelled."
       : null;
 
+  const canChangeAddress = !isDelivered && !isCancelled;
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
@@ -572,10 +585,6 @@ export default function OrderDetailsScreen() {
                 <Text style={styles.itemName}>{item.name}</Text>
 
                 <Text style={styles.itemMeta}>Quantity: {item.quantity}</Text>
-
-                <Text style={styles.itemMeta}>
-                  Unit Price: {formatMoney(item.price)}
-                </Text>
               </View>
 
               <Text style={styles.itemPrice}>
@@ -754,14 +763,31 @@ export default function OrderDetailsScreen() {
         </View>
 
         {/* SHIPPING ADDRESS */}
-        <View style={[styles.card, styles.infoCard]}>
-          <View style={styles.infoIcon}>
-            <Ionicons name="location" size={26} color={RED} />
+        <View style={styles.card}>
+          <View style={styles.addressHeader}>
+            <View style={styles.infoIconSmall}>
+              <Ionicons name="location" size={24} color={RED} />
+            </View>
+
+            <Text
+              style={[styles.infoTitle, styles.addressTitle]}
+              numberOfLines={1}
+            >
+              Shipping Address
+            </Text>
+
+            {canChangeAddress && (
+              <TouchableOpacity
+                style={styles.changeButton}
+                activeOpacity={0.8}
+                onPress={handleChangeAddress}
+              >
+                <Text style={styles.changeButtonText}>Change</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
-          <View style={styles.infoContent}>
-            <Text style={styles.infoTitle}>Shipping Address</Text>
-
+          <View style={styles.addressBody}>
             {Boolean(shipping.name) && (
               <Text style={styles.addressName}>{shipping.name}</Text>
             )}
@@ -769,19 +795,13 @@ export default function OrderDetailsScreen() {
             <Text style={styles.infoText}>{shipping.address}</Text>
 
             {Boolean(shipping.mobile) && (
-              <Text style={styles.infoText}>Mobile: {shipping.mobile}</Text>
+              <View style={styles.mobileRow}>
+                <Ionicons name="call-outline" size={16} color={GREY} />
+
+                <Text style={styles.infoText}>{shipping.mobile}</Text>
+              </View>
             )}
           </View>
-
-          {!isDelivered && !isCancelled && (
-            <TouchableOpacity
-              style={styles.changeButton}
-              activeOpacity={0.8}
-              onPress={handleChangeAddress}
-            >
-              <Text style={styles.changeButtonText}>Change</Text>
-            </TouchableOpacity>
-          )}
         </View>
 
         {/* PAYMENT METHOD */}
@@ -877,7 +897,7 @@ const createStyles = (Colors) => {
       flex: 1,
       textAlign: "center",
       color: WHITE,
-      fontFamily: Fonts.semiBold,
+      ...W.semiBold,
       fontSize: 18,
     },
 
@@ -903,15 +923,15 @@ const createStyles = (Colors) => {
 
     cardTitle: {
       color: WHITE,
-      fontFamily: Fonts.bold,
-      fontSize: 21,
+      ...W.bold,
+      fontSize: 20,
       marginBottom: 14,
     },
 
     eyebrow: {
       color: GREY,
-      fontFamily: Fonts.medium,
-      fontSize: 11,
+      ...W.medium,
+      fontSize: 13,
       letterSpacing: 1.2,
     },
 
@@ -927,8 +947,8 @@ const createStyles = (Colors) => {
 
     orderNumber: {
       color: WHITE,
-      fontFamily: Fonts.bold,
-      fontSize: 25,
+      ...W.bold,
+      fontSize: 16,
       marginTop: 6,
       marginBottom: 10,
     },
@@ -944,8 +964,8 @@ const createStyles = (Colors) => {
     },
 
     statusPillText: {
-      fontFamily: Fonts.semiBold,
-      fontSize: 12,
+      ...W.semiBold,
+      fontSize: 10,
     },
 
     topMiddle: {
@@ -963,8 +983,8 @@ const createStyles = (Colors) => {
     dateText: {
       flex: 1,
       color: WHITE,
-      fontFamily: Fonts.regular,
-      fontSize: 13,
+      ...W.regular,
+      fontSize: 15,
     },
 
     topRight: {
@@ -986,14 +1006,14 @@ const createStyles = (Colors) => {
 
     topTotal: {
       color: RED,
-      fontFamily: Fonts.bold,
-      fontSize: 25,
+      ...W.bold,
+      fontSize: 18,
       marginTop: 8,
     },
 
     itemCountText: {
       color: GREY,
-      fontFamily: Fonts.regular,
+      ...W.regular,
       fontSize: 13,
       marginTop: 6,
     },
@@ -1030,22 +1050,22 @@ const createStyles = (Colors) => {
 
     itemName: {
       color: WHITE,
-      fontFamily: Fonts.semiBold,
-      fontSize: 15,
+      ...W.semiBold,
+      fontSize: 17,
       marginBottom: 4,
     },
 
     itemMeta: {
       color: GREY,
-      fontFamily: Fonts.regular,
-      fontSize: 12,
+      ...W.regular,
+      fontSize: 15,
       lineHeight: 18,
     },
 
     itemPrice: {
       color: RED,
-      fontFamily: Fonts.bold,
-      fontSize: 16,
+      ...W.bold,
+      fontSize: 18,
       marginLeft: 8,
     },
 
@@ -1069,14 +1089,14 @@ const createStyles = (Colors) => {
 
     billLabel: {
       color: WHITE,
-      fontFamily: Fonts.regular,
-      fontSize: 14,
+      ...W.regular,
+      fontSize: 16,
     },
 
     billValue: {
       color: WHITE,
-      fontFamily: Fonts.medium,
-      fontSize: 14,
+      ...W.medium,
+      fontSize: 16,
     },
 
     dashedDivider: {
@@ -1097,14 +1117,14 @@ const createStyles = (Colors) => {
 
     billTotalLabel: {
       color: WHITE,
-      fontFamily: Fonts.bold,
+      ...W.bold,
       fontSize: 16,
     },
 
     billTotalValue: {
       color: RED,
-      fontFamily: Fonts.bold,
-      fontSize: 24,
+      ...W.bold,
+      fontSize: 18,
     },
 
     // BANNER
@@ -1124,14 +1144,14 @@ const createStyles = (Colors) => {
     bannerText: {
       flex: 1,
       color: WHITE,
-      fontFamily: Fonts.regular,
-      fontSize: 13,
+      ...W.regular,
+      fontSize: 15,
       lineHeight: 19,
     },
 
     bannerHighlight: {
       color: GOLD,
-      fontFamily: Fonts.semiBold,
+      ...W.semiBold,
     },
 
     // INVOICE BUTTONS
@@ -1154,8 +1174,8 @@ const createStyles = (Colors) => {
 
     printButtonText: {
       color: RED,
-      fontFamily: Fonts.semiBold,
-      fontSize: 14,
+      ...W.semiBold,
+      fontSize: 16,
     },
 
     downloadButton: {
@@ -1171,7 +1191,7 @@ const createStyles = (Colors) => {
 
     downloadButtonText: {
       color: "#FFFFFF",
-      fontFamily: Fonts.semiBold,
+      ...W.semiBold,
       fontSize: 14,
     },
 
@@ -1195,7 +1215,7 @@ const createStyles = (Colors) => {
 
     stepNumber: {
       color: "#FFFFFF",
-      fontFamily: Fonts.semiBold,
+      ...W.semiBold,
       fontSize: 15,
     },
 
@@ -1221,15 +1241,15 @@ const createStyles = (Colors) => {
 
     stepTitle: {
       color: WHITE,
-      fontFamily: Fonts.semiBold,
+      ...W.semiBold,
       fontSize: 16,
       marginBottom: 3,
     },
 
     stepSubtitle: {
       color: GREY,
-      fontFamily: Fonts.regular,
-      fontSize: 13,
+      ...W.regular,
+      fontSize: 16,
     },
 
     stepPill: {
@@ -1240,8 +1260,8 @@ const createStyles = (Colors) => {
     },
 
     stepPillText: {
-      fontFamily: Fonts.semiBold,
-      fontSize: 12,
+      ...W.semiBold,
+      fontSize: 15,
     },
 
     deliveryRow: {
@@ -1259,16 +1279,51 @@ const createStyles = (Colors) => {
     deliveryText: {
       flex: 1,
       color: GREY,
-      fontFamily: Fonts.regular,
-      fontSize: 14,
+      ...W.regular,
+      fontSize: 16,
     },
 
     deliveryLabel: {
       color: WHITE,
-      fontFamily: Fonts.semiBold,
+      ...W.semiBold,
     },
 
-    // SHIPPING / PAYMENT
+    // SHIPPING ADDRESS (header row + full-width body)
+    addressHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+
+    infoIconSmall: {
+      width: 46,
+      height: 46,
+      borderRadius: 14,
+      backgroundColor: RED_BG,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    addressTitle: {
+      flex: 1,
+      marginBottom: 0,
+    },
+
+    addressBody: {
+      marginTop: 14,
+      paddingTop: 14,
+      borderTopWidth: 1,
+      borderTopColor: Colors.divider ?? BORDER,
+    },
+
+    mobileRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 7,
+      marginTop: 8,
+    },
+
+    // PAYMENT
     infoCard: {
       flexDirection: "row",
       alignItems: "center",
@@ -1290,37 +1345,36 @@ const createStyles = (Colors) => {
 
     infoTitle: {
       color: WHITE,
-      fontFamily: Fonts.bold,
-      fontSize: 19,
+      ...W.bold,
+      fontSize: 20,
       marginBottom: 6,
     },
 
     addressName: {
       color: WHITE,
-      fontFamily: Fonts.semiBold,
-      fontSize: 14,
+      ...W.semiBold,
+      fontSize: 16,
       marginBottom: 4,
     },
 
     infoText: {
       color: GREY,
-      fontFamily: Fonts.regular,
-      fontSize: 14,
-      lineHeight: 20,
+      ...W.regular,
+      fontSize: 16,
+      lineHeight: 22,
     },
 
     changeButton: {
       borderWidth: 1.5,
       borderColor: RED,
       borderRadius: 8,
-      paddingHorizontal: 22,
-      paddingVertical: 11,
-      marginLeft: 10,
+      paddingHorizontal: 18,
+      paddingVertical: 9,
     },
 
     changeButtonText: {
       color: RED,
-      fontFamily: Fonts.semiBold,
+      ...W.semiBold,
       fontSize: 14,
     },
 
@@ -1339,7 +1393,7 @@ const createStyles = (Colors) => {
 
     cancelButtonText: {
       color: RED,
-      fontFamily: Fonts.semiBold,
+      ...W.semiBold,
       fontSize: 15,
     },
   });

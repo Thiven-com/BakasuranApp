@@ -772,14 +772,14 @@ const makeStyles = (colors, isDark) => {
 
     sectionTitle: {
       color: colors.textPrimary,
-      fontSize: 17,
+      fontSize: 19,
       fontFamily: Fonts.semiBold,
     },
 
     sectionSubtitle: {
       color: colors.textSecondary,
       fontFamily: Fonts.medium,
-      fontSize: 11,
+      fontSize: 15,
       marginTop: 5,
     },
 
@@ -822,7 +822,7 @@ const makeStyles = (colors, isDark) => {
     addressTypeText: {
       color: colors.textSecondary,
       fontFamily: Fonts.semiBold,
-      fontSize: 12,
+      fontSize: 15,
       marginTop: 8,
     },
 
@@ -837,7 +837,7 @@ const makeStyles = (colors, isDark) => {
 
     label: {
       color: colors.textSecondary,
-      fontSize: 12,
+      fontSize: 15,
       fontFamily: Fonts.medium,
       marginBottom: 8,
     },
@@ -871,7 +871,7 @@ const makeStyles = (colors, isDark) => {
       flex: 1,
       minHeight: 49,
       color: colors.textPrimary,
-      fontSize: 13,
+      fontSize: 15,
       marginLeft: 12,
       paddingVertical: 10,
     },
@@ -913,13 +913,13 @@ const makeStyles = (colors, isDark) => {
     locationSuggestionText: {
       color: colors.textPrimary,
       fontFamily: Fonts.medium,
-      fontSize: 13,
+      fontSize: 15,
     },
 
     locationHint: {
       color: colors.textSecondary,
       fontFamily: Fonts.medium,
-      fontSize: 11,
+      fontSize: 13,
       marginTop: 6,
     },
 
@@ -959,13 +959,13 @@ const makeStyles = (colors, isDark) => {
     defaultAddressTitle: {
       color: colors.textPrimary,
       fontFamily: Fonts.bold,
-      fontSize: 13,
+      fontSize: 15,
     },
 
     defaultAddressSubtitle: {
       color: colors.textSecondary,
       fontFamily: Fonts.medium,
-      fontSize: 11,
+      fontSize: 13,
       marginTop: 5,
     },
 
@@ -993,7 +993,7 @@ const makeStyles = (colors, isDark) => {
       flex: 1,
       color: colors.textPrimary,
       fontFamily: Fonts.medium,
-      fontSize: 12,
+      fontSize: 15,
       marginLeft: 9,
     },
 
@@ -1029,7 +1029,7 @@ const makeStyles = (colors, isDark) => {
     secureText: {
       color: colors.textSecondary,
       fontFamily: Fonts.medium,
-      fontSize: 10,
+      fontSize: 15,
       marginLeft: 6,
     },
   });

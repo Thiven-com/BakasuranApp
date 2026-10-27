@@ -59,11 +59,6 @@ const normalizeImageUri = (image) => {
   return `${BASE_URL.replace(/\/+$/, "")}/${uri.replace(/^\/+/, "")}`;
 };
 
-const toImageSource = (image) => {
-  const uri = normalizeImageUri(image);
-  return uri ? { uri } : FALLBACK_IMAGE;
-};
-
 const formatPrice = (value) =>
   value === undefined || value === null || value === ""
     ? ""
@@ -189,28 +184,14 @@ const mapDish = (entry, products = []) => {
   };
 };
 
-const mapRestaurant = (r) => ({
-  id: String(r?.id ?? r?.restaurant_id),
-  name: r?.name ?? "",
-  image: toImageSource(r?.image ?? r?.logo),
-  cuisine: r?.cuisine ?? r?.cuisines ?? "",
-  rating: String(r?.rating ?? "0.0"),
-  time: r?.time ?? r?.delivery_time ?? "",
-  location: r?.location ?? r?.address ?? "",
-  offer: r?.offer ?? "",
-  price: r?.price ?? r?.cost_for_two ?? "",
-});
-
 // ============================================================
-// WISHLIST SCREEN
+// WISHLIST SCREEN (dishes only)
 // ============================================================
 
 const Wishlist = () => {
   const { colors: Colors } = useTheme();
   const styles = useMemo(() => makeStyles(Colors), [Colors]);
 
-  const [activeTab, setActiveTab] = useState("dishes");
-  const [restaurants, setRestaurants] = useState([]);
   const [dishes, setDishes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -260,9 +241,6 @@ const Wishlist = () => {
             (entry) => mapDish(entry, products),
           ),
         );
-
-        // only present if the backend ever returns saved restaurants
-        setRestaurants(extractList(res, ["restaurants"]).map(mapRestaurant));
       } else {
         Alert.alert("Wishlist", res?.message || "Unable to load wishlist.");
       }
@@ -280,25 +258,6 @@ const Wishlist = () => {
       loadWishlist();
     }, [loadWishlist]),
   );
-
-  // ==========================================================
-  // OPEN RESTAURANT
-  // ==========================================================
-
-  const openRestaurant = (id) => {
-    router.push({
-      pathname: "/Restaurant/[id]",
-      params: { id },
-    });
-  };
-
-  // ==========================================================
-  // REMOVE RESTAURANT (local only, no backend endpoint yet)
-  // ==========================================================
-
-  const removeRestaurant = (id) => {
-    setRestaurants((prev) => prev.filter((item) => item.id !== id));
-  };
 
   // ==========================================================
   // REMOVE DISH (DELETE /api/customer/wishlist/{item})
@@ -328,135 +287,34 @@ const Wishlist = () => {
   // ==========================================================
 
   const clearAll = () => {
-    const isRestaurantTab = activeTab === "restaurants";
-    const count = isRestaurantTab ? restaurants.length : dishes.length;
-
-    if (count === 0) {
+    if (dishes.length === 0) {
       return;
     }
 
-    Alert.alert(
-      "Clear Wishlist",
-      `Remove all saved ${isRestaurantTab ? "restaurants" : "dishes"}?`,
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
+    Alert.alert("Clear Wishlist", "Remove all saved dishes?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Clear All",
+        style: "destructive",
+        onPress: async () => {
+          const results = await Promise.all(
+            dishes.map((item) => removeFromWishlist(item.id)),
+          );
+
+          const failed = results.filter((r) => r?.success !== 1).length;
+
+          if (failed > 0) {
+            Alert.alert("Wishlist", `${failed} item(s) could not be removed.`);
+          }
+
+          // reload so the screen matches the backend
+          loadWishlist();
         },
-        {
-          text: "Clear All",
-          style: "destructive",
-          onPress: async () => {
-            if (isRestaurantTab) {
-              setRestaurants([]);
-              return;
-            }
-
-            const results = await Promise.all(
-              dishes.map((item) => removeFromWishlist(item.id)),
-            );
-
-            const failed = results.filter((r) => r?.success !== 1).length;
-
-            if (failed > 0) {
-              Alert.alert(
-                "Wishlist",
-                `${failed} item(s) could not be removed.`,
-              );
-            }
-
-            // reload so the screen matches the backend
-            loadWishlist();
-          },
-        },
-      ],
-    );
-  };
-
-  // ==========================================================
-  // RESTAURANT CARD
-  // ==========================================================
-
-  const renderRestaurant = ({ item }) => {
-    return (
-      <TouchableOpacity
-        style={styles.restaurantCard}
-        activeOpacity={0.9}
-        onPress={() => openRestaurant(item.id)}
-      >
-        {/* IMAGE */}
-
-        <View style={styles.restaurantImageContainer}>
-          <Image
-            source={item.image}
-            style={styles.restaurantImage}
-            resizeMode="cover"
-          />
-
-          {/* OFFER */}
-
-          {!!item.offer && (
-            <View style={styles.offerBadge}>
-              <Text style={styles.offerText}>{item.offer}</Text>
-            </View>
-          )}
-        </View>
-
-        {/* DETAILS */}
-
-        <View style={styles.restaurantDetails}>
-          <View style={styles.restaurantTopRow}>
-            <Text style={styles.restaurantName} numberOfLines={1}>
-              {item.name}
-            </Text>
-
-            <TouchableOpacity
-              style={styles.heartButton}
-              onPress={(event) => {
-                event.stopPropagation();
-                removeRestaurant(item.id);
-              }}
-            >
-              <Ionicons name="heart" size={23} color={Colors.primary} />
-            </TouchableOpacity>
-          </View>
-
-          <Text style={styles.cuisine} numberOfLines={1}>
-            {item.cuisine}
-          </Text>
-
-          {/* RATING + TIME */}
-
-          <View style={styles.ratingTimeRow}>
-            <View style={styles.ratingBadge}>
-              <Ionicons name="star" size={12} color={Colors.white} />
-
-              <Text style={styles.ratingText}>{item.rating}</Text>
-            </View>
-
-            <View style={styles.dot}>
-              <View style={styles.dotCircle} />
-            </View>
-
-            <Text style={styles.timeText}>{item.time}</Text>
-          </View>
-
-          {/* LOCATION */}
-
-          <View style={styles.locationRow}>
-            <Ionicons name="location" size={14} color={Colors.textSecondary} />
-
-            <Text style={styles.locationText} numberOfLines={1}>
-              {item.location}
-            </Text>
-          </View>
-
-          {/* PRICE */}
-
-          <Text style={styles.priceText}>{item.price}</Text>
-        </View>
-      </TouchableOpacity>
-    );
+      },
+    ]);
   };
 
   // ==========================================================
@@ -564,26 +422,16 @@ const Wishlist = () => {
       );
     }
 
-    const isRestaurant = activeTab === "restaurants";
-
     return (
       <View style={styles.emptyContainer}>
         <View style={styles.emptyIcon}>
-          <Ionicons
-            name={isRestaurant ? "heart-outline" : "fast-food-outline"}
-            size={55}
-            color={Colors.primary}
-          />
+          <Ionicons name="fast-food-outline" size={55} color={Colors.primary} />
         </View>
 
-        <Text style={styles.emptyTitle}>
-          {isRestaurant ? "No saved restaurants" : "No saved dishes"}
-        </Text>
+        <Text style={styles.emptyTitle}>No saved dishes</Text>
 
         <Text style={styles.emptyDescription}>
-          {isRestaurant
-            ? "Save your favorite restaurants here and find them quickly whenever you are hungry."
-            : "Save delicious dishes here and order them whenever your cravings hit."}
+          Save delicious dishes here and order them whenever your cravings hit.
         </Text>
 
         <TouchableOpacity
@@ -598,26 +446,6 @@ const Wishlist = () => {
       </View>
     );
   };
-
-  // ==========================================================
-  // PULL TO REFRESH
-  // ==========================================================
-
-  const refreshControl = (
-    <RefreshControl
-      refreshing={refreshing}
-      onRefresh={() => loadWishlist(true)}
-      tintColor={Colors.primary}
-      colors={[Colors.primary]}
-    />
-  );
-
-  // ==========================================================
-  // CURRENT COUNT
-  // ==========================================================
-
-  const currentCount =
-    activeTab === "restaurants" ? restaurants.length : dishes.length;
 
   // ==========================================================
   // MAIN UI
@@ -642,7 +470,7 @@ const Wishlist = () => {
           <Text style={styles.headerTitle}>My Wishlist</Text>
 
           <Text style={styles.headerSubtitle}>
-            {currentCount} saved {currentCount === 1 ? "item" : "items"}
+            {dishes.length} saved {dishes.length === 1 ? "dish" : "dishes"}
           </Text>
         </View>
 
@@ -656,72 +484,28 @@ const Wishlist = () => {
       </View>
 
       {/* ====================================================
-          TABS
-      ==================================================== */}
-
-      <View style={styles.tabsContainer}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "restaurants" && styles.activeTab]}
-          onPress={() => setActiveTab("restaurants")}
-          activeOpacity={0.8}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "restaurants" && styles.activeTabText,
-            ]}
-          >
-            Restaurants
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "dishes" && styles.activeTab]}
-          onPress={() => setActiveTab("dishes")}
-          activeOpacity={0.8}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "dishes" && styles.activeTabText,
-            ]}
-          >
-            Dishes
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* ====================================================
           LIST
       ==================================================== */}
 
-      {activeTab === "restaurants" ? (
-        <FlatList
-          data={restaurants}
-          keyExtractor={(item) => item.id}
-          renderItem={renderRestaurant}
-          ListEmptyComponent={renderEmpty}
-          refreshControl={refreshControl}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.listContent,
-            restaurants.length === 0 && styles.emptyListContent,
-          ]}
-        />
-      ) : (
-        <FlatList
-          data={dishes}
-          keyExtractor={(item) => item.id}
-          renderItem={renderDish}
-          ListEmptyComponent={renderEmpty}
-          refreshControl={refreshControl}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.listContent,
-            dishes.length === 0 && styles.emptyListContent,
-          ]}
-        />
-      )}
+      <FlatList
+        data={dishes}
+        keyExtractor={(item) => item.id}
+        renderItem={renderDish}
+        ListEmptyComponent={renderEmpty}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadWishlist(true)}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.listContent,
+          dishes.length === 0 && styles.emptyListContent,
+        ]}
+      />
     </View>
   );
 };
@@ -793,44 +577,6 @@ const makeStyles = (Colors) =>
     },
 
     // ==========================================================
-    // TABS
-    // ==========================================================
-
-    tabsContainer: {
-      height: 52,
-      marginHorizontal: 15,
-      marginTop: 14,
-      borderRadius: 26,
-      backgroundColor: Colors.surface,
-      borderWidth: 1,
-      borderColor: Colors.border,
-      flexDirection: "row",
-      overflow: "hidden",
-    },
-
-    tab: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      borderRadius: 26,
-    },
-
-    activeTab: {
-      backgroundColor: Colors.primary,
-    },
-
-    tabText: {
-      color: Colors.textSecondary,
-      fontFamily: Fonts.regular,
-      fontSize: 19,
-    },
-
-    activeTabText: {
-      color: Colors.white,
-      fontFamily: Fonts.bold,
-    },
-
-    // ==========================================================
     // LIST
     // ==========================================================
 
@@ -840,87 +586,11 @@ const makeStyles = (Colors) =>
       paddingBottom: 30,
     },
 
-    // ==========================================================
-    // RESTAURANT CARD
-    // ==========================================================
-
-    restaurantCard: {
-      minHeight: 190,
-      marginBottom: 12,
-      padding: 10,
-      borderRadius: 14,
-      backgroundColor: Colors.surface,
-      borderWidth: 1,
-      borderColor: Colors.border,
-      flexDirection: "row",
-      overflow: "hidden",
-    },
-
-    restaurantImageContainer: {
-      width: 125,
-      height: 168,
-      borderRadius: 11,
-      overflow: "hidden",
-      position: "relative",
-    },
-
-    restaurantImage: {
-      width: "100%",
-      height: "100%",
-    },
-
-    offerBadge: {
-      position: "absolute",
-      left: 7,
-      bottom: 7,
-      paddingHorizontal: 8,
-      paddingVertical: 6,
-      borderRadius: 7,
-      backgroundColor: Colors.primary,
-    },
-
-    offerText: {
-      color: Colors.white,
-      fontFamily: Fonts.regular,
-      fontSize: 14,
-    },
-
-    restaurantDetails: {
-      flex: 1,
-      paddingLeft: 11,
-      paddingTop: 4,
-    },
-
-    restaurantTopRow: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
-
-    restaurantName: {
-      flex: 1,
-      color: Colors.textPrimary,
-      fontFamily: Fonts.regular,
-      fontSize: 28,
-    },
-
     heartButton: {
       width: 35,
       height: 35,
       alignItems: "center",
       justifyContent: "center",
-    },
-
-    cuisine: {
-      color: Colors.goldDark,
-      fontFamily: Fonts.regular,
-      fontSize: 20,
-      marginTop: 5,
-    },
-
-    ratingTimeRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginTop: 12,
     },
 
     ratingBadge: {
@@ -939,46 +609,6 @@ const makeStyles = (Colors) =>
       fontFamily: Fonts.regular,
       fontSize: 15,
       marginLeft: 4,
-    },
-
-    dot: {
-      width: 18,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    dotCircle: {
-      width: 3,
-      height: 3,
-      borderRadius: 2,
-      backgroundColor: Colors.textMuted,
-    },
-
-    timeText: {
-      color: Colors.success,
-      fontFamily: Fonts.regular,
-      fontSize: 15,
-    },
-
-    locationRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginTop: 11,
-    },
-
-    locationText: {
-      flex: 1,
-      color: Colors.textSecondary,
-      fontFamily: Fonts.regular,
-      fontSize: 16,
-      marginLeft: 5,
-    },
-
-    priceText: {
-      color: Colors.success,
-      fontFamily: Fonts.regular,
-      fontSize: 18,
-      marginTop: 9,
     },
 
     // ==========================================================

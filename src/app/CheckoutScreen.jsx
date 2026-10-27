@@ -1262,7 +1262,7 @@ const makeStyles = (colors, isDark) => {
     label: {
       color: colors.textSecondary,
       fontFamily: Fonts.medium,
-      fontSize: 12,
+      fontSize: 17,
       marginBottom: 8,
     },
 
@@ -1281,7 +1281,7 @@ const makeStyles = (colors, isDark) => {
     input: {
       flex: 1,
       color: colors.textPrimary,
-      fontSize: 13,
+      fontSize: 15,
       marginLeft: 11,
     },
 
@@ -1311,21 +1311,21 @@ const makeStyles = (colors, isDark) => {
     addressTitle: {
       color: colors.textPrimary,
       fontFamily: Fonts.bold,
-      fontSize: 14,
+      fontSize: 15,
       marginBottom: 5,
     },
 
     addressText: {
       color: colors.textSecondary,
       fontFamily: Fonts.medium,
-      fontSize: 12,
+      fontSize: 15,
       lineHeight: 18,
     },
 
     changeText: {
       color: colors.primary,
       fontFamily: Fonts.bold,
-      fontSize: 13,
+      fontSize: 15,
       paddingLeft: 8,
     },
 
@@ -1339,7 +1339,7 @@ const makeStyles = (colors, isDark) => {
       flex: 1,
       color: colors.textSecondary,
       fontFamily: Fonts.medium,
-      fontSize: 12,
+      fontSize: 15,
       lineHeight: 19,
       marginLeft: 12,
     },
@@ -1357,7 +1357,7 @@ const makeStyles = (colors, isDark) => {
     addAddressText: {
       color: colors.primary,
       fontFamily: Fonts.bold,
-      fontSize: 13,
+      fontSize: 15,
       marginLeft: 6,
     },
 
@@ -1393,13 +1393,13 @@ const makeStyles = (colors, isDark) => {
     paymentTitle: {
       color: colors.textPrimary,
       fontFamily: Fonts.bold,
-      fontSize: 13,
+      fontSize: 15,
     },
 
     paymentDescription: {
       color: colors.textSecondary,
       fontFamily: Fonts.medium,
-      fontSize: 10,
+      fontSize: 15,
       lineHeight: 15,
       marginTop: 4,
     },
@@ -1407,7 +1407,7 @@ const makeStyles = (colors, isDark) => {
     // ORDER SUMMARY
     summaryEyebrow: {
       color: colors.warning,
-      fontSize: 10,
+      fontSize: 15,
       fontWeight: "900",
       letterSpacing: 2,
     },
@@ -1423,13 +1423,13 @@ const makeStyles = (colors, isDark) => {
     summaryTitle: {
       color: colors.textPrimary,
       fontFamily: Fonts.bold,
-      fontSize: 23,
+      fontSize: 15,
     },
 
     itemCountText: {
       color: colors.textSecondary,
       fontFamily: Fonts.medium,
-      fontSize: 12,
+      fontSize: 15,
     },
 
     foodItem: {
@@ -1459,7 +1459,7 @@ const makeStyles = (colors, isDark) => {
     foodName: {
       color: colors.textPrimary,
       fontFamily: Fonts.bold,
-      fontSize: 13,
+      fontSize: 15,
     },
 
     foodTypeRow: {
@@ -1476,28 +1476,28 @@ const makeStyles = (colors, isDark) => {
     },
 
     foodType: {
-      fontSize: 10,
+      fontSize: 15,
       fontWeight: "600",
     },
 
     foodDescription: {
       color: colors.textSecondary,
       fontFamily: Fonts.medium,
-      fontSize: 10,
+      fontSize: 15,
       marginTop: 5,
     },
 
     foodUnitPrice: {
       color: colors.textSecondary,
       fontFamily: Fonts.medium,
-      fontSize: 10,
+      fontSize: 13,
       marginTop: 4,
     },
 
     foodPrice: {
       color: colors.primary,
       fontFamily: Fonts.bold,
-      fontSize: 13,
+      fontSize: 15,
       marginLeft: 5,
       marginTop: 5,
     },
@@ -1526,7 +1526,7 @@ const makeStyles = (colors, isDark) => {
       textAlign: "center",
       color: colors.textPrimary,
       fontFamily: Fonts.bold,
-      fontSize: 12,
+      fontSize: 14,
     },
 
     // DISCOUNT
@@ -1551,7 +1551,7 @@ const makeStyles = (colors, isDark) => {
     discountInput: {
       flex: 1,
       color: colors.textPrimary,
-      fontSize: 12,
+      fontSize: 14,
       marginLeft: 8,
     },
 
@@ -1566,7 +1566,7 @@ const makeStyles = (colors, isDark) => {
 
     applyButtonText: {
       color: "#FFFFFF",
-      fontSize: 12,
+      fontSize: 14,
       fontWeight: "900",
     },
 
@@ -1581,13 +1581,13 @@ const makeStyles = (colors, isDark) => {
     priceLabel: {
       color: colors.textSecondary,
       fontFamily: Fonts.medium,
-      fontSize: 13,
+      fontSize: 15,
     },
 
     priceValue: {
       color: colors.textPrimary,
       fontFamily: Fonts.semiBold,
-      fontSize: 13,
+      fontSize: 15,
     },
 
     discountValue: {
@@ -1597,14 +1597,14 @@ const makeStyles = (colors, isDark) => {
     previewNote: {
       color: colors.textSecondary,
       fontFamily: Fonts.medium,
-      fontSize: 11,
+      fontSize: 13,
       marginBottom: 6,
     },
 
     previewError: {
       color: colors.primary,
       fontFamily: Fonts.medium,
-      fontSize: 11,
+      fontSize: 13,
       marginBottom: 6,
     },
 
@@ -1623,7 +1623,7 @@ const makeStyles = (colors, isDark) => {
     totalLabel: {
       color: colors.textPrimary,
       fontFamily: Fonts.bold,
-      fontSize: 16,
+      fontSize: 18,
     },
 
     totalValue: {
