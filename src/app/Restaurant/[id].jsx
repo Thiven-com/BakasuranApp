@@ -1,1546 +1,3246 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
-import { useMemo, useState } from "react";
 import {
+  router,
+  useLocalSearchParams,
+} from "expo-router";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import {
+  ActivityIndicator,
+  Alert,
   Image,
   Linking,
+  Modal,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
+import BASE_URL from "../../constants/AppUrls";
 import Fonts from "../../constants/Fonts";
 import { useTheme } from "../../hooks/use-theme";
 
-// ============================================================
-// RESTAURANT DATA
-// ============================================================
+import {
+  getProductById,
+  getRestaurantById,
+} from "../../utils/Function";
 
-export const restaurants = {
-  1: {
+// =========================================================
+// FALLBACK IMAGES
+// =========================================================
+
+const FALLBACK_RESTAURANT_IMAGE =
+  "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80";
+
+const FALLBACK_FOOD_IMAGE =
+  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80";
+
+// =========================================================
+// FALLBACK RESTAURANTS
+// =========================================================
+
+const restaurants = {
+  "1": {
     id: "1",
     name: "Spice House",
-    image: require("../../../assets/images/Restaurant1.png"),
+    image: FALLBACK_RESTAURANT_IMAGE,
     rating: "4.5",
-    reviews: "2.1K",
-    time: "35-45 mins",
-    price: "₹200 for two",
-    cuisine: "Biryani • North Indian • Mughlai",
+    reviews: "120",
+    time: "30-40 mins",
+    price: "₹400 for two",
+    cuisine: "South Indian, Biryani",
     address: "Hitech City, Hyderabad",
-    phone: "+919876543210",
-    offer: "30% OFF",
-    offerText: "30% OFF up to ₹100",
-    offerCode: "BAKA30",
-
+    phone: "",
+    offer: "50% OFF",
+    offerText: "50% off up to ₹100",
+    offerCode: "BAKA50",
     menu: {
       Recommended: [
         {
-          id: "1-1",
+          id: "1",
           name: "Chicken Biryani",
-          description:
-            "Fragrant basmati rice cooked with tender chicken and aromatic spices.",
+          description: "Authentic Hyderabadi chicken biryani",
           price: 249,
-          image: require("../../../assets/images/chicken_biryani.jpg"),
-          isVeg: false,
+          image: FALLBACK_FOOD_IMAGE,
+          rating: "4.5",
         },
         {
-          id: "1-2",
+          id: "2",
           name: "Paneer Special",
-          description:
-            "Soft paneer cooked in a rich Indian masala with aromatic spices.",
+          description: "Soft paneer cooked with special spices",
           price: 199,
-          image: require("../../../assets/images/paneer.jpg"),
-          isVeg: true,
-        },
-        {
-          id: "1-3",
-          name: "Fried Chicken",
-          description:
-            "Crispy golden chicken pieces seasoned with our signature spices.",
-          price: 279,
-          image: require("../../../assets/images/fried_chicken.jpg"),
-          isVeg: false,
+          image: FALLBACK_FOOD_IMAGE,
+          rating: "4.4",
         },
       ],
-
       Biryani: [
         {
-          id: "1-4",
+          id: "3",
           name: "Chicken Biryani",
-          description:
-            "Classic Hyderabadi chicken biryani with long-grain basmati rice.",
+          description: "Traditional Hyderabadi chicken biryani",
           price: 249,
-          image: require("../../../assets/images/chicken_biryani.jpg"),
-          isVeg: false,
+          image: FALLBACK_FOOD_IMAGE,
+          rating: "4.5",
         },
         {
-          id: "1-5",
-          name: "Paneer Biryani",
-          description:
-            "Aromatic basmati rice layered with spicy paneer and herbs.",
-          price: 219,
-          image: require("../../../assets/images/paneer.jpg"),
-          isVeg: true,
+          id: "4",
+          name: "Mutton Biryani",
+          description: "Slow cooked mutton biryani",
+          price: 299,
+          image: FALLBACK_FOOD_IMAGE,
+          rating: "4.6",
         },
       ],
-
       Starters: [
         {
-          id: "1-6",
-          name: "Crispy Chicken",
-          description:
-            "Crunchy chicken strips served with our special spicy dip.",
-          price: 229,
-          image: require("../../../assets/images/fried_chicken.jpg"),
-          isVeg: false,
+          id: "5",
+          name: "Chicken 65",
+          description: "Crispy spicy chicken starter",
+          price: 219,
+          image: FALLBACK_FOOD_IMAGE,
+          rating: "4.3",
         },
         {
-          id: "1-7",
-          name: "Paneer Starter",
-          description: "Spicy grilled paneer cubes with onions and capsicum.",
+          id: "6",
+          name: "Paneer Tikka",
+          description: "Grilled paneer with Indian spices",
           price: 189,
-          image: require("../../../assets/images/paneer.jpg"),
-          isVeg: true,
-        },
-      ],
-
-      "Main Course": [
-        {
-          id: "1-8",
-          name: "Chicken Special",
-          description:
-            "Tender chicken cooked in a rich traditional Indian gravy.",
-          price: 269,
-          image: require("../../../assets/images/chicken_biryani.jpg"),
-          isVeg: false,
-        },
-        {
-          id: "1-9",
-          name: "Veg Special",
-          description:
-            "Delicious mixed vegetable curry prepared with fresh ingredients.",
-          price: 179,
-          image: require("../../../assets/images/veg_specials.jpg"),
-          isVeg: true,
+          image: FALLBACK_FOOD_IMAGE,
+          rating: "4.4",
         },
       ],
     },
   },
 
-  // ==========================================================
-  // PIZZA PLANET
-  // ==========================================================
-
-  2: {
+  "2": {
     id: "2",
     name: "Pizza Planet",
-    image: require("../../../assets/images/Restaurant3.png"),
-    rating: "4.3",
-    reviews: "1.8K",
+    image: FALLBACK_RESTAURANT_IMAGE,
+    rating: "4.4",
+    reviews: "98",
     time: "25-35 mins",
-    price: "₹300 for two",
-    cuisine: "Pizza • Italian • Fast Food",
+    price: "₹500 for two",
+    cuisine: "Pizza, Italian",
     address: "Madhapur, Hyderabad",
-    phone: "+919876543211",
-    offer: "20% OFF",
-    offerText: "20% OFF up to ₹150",
-    offerCode: "PIZZA20",
-
+    phone: "",
+    offer: "30% OFF",
+    offerText: "30% off up to ₹150",
+    offerCode: "BAKA30",
     menu: {
       Recommended: [
         {
-          id: "2-1",
-          name: "Classic Veg Pizza",
-          description:
-            "Loaded with fresh vegetables, mozzarella and Italian herbs.",
-          price: 249,
-          image: require("../../../assets/images/pizza.png"),
-          isVeg: true,
-        },
-        {
-          id: "2-2",
+          id: "10",
           name: "Chicken Pizza",
-          description:
-            "Cheesy pizza topped with juicy chicken and signature sauce.",
+          description: "Loaded chicken pizza",
           price: 299,
-          image: require("../../../assets/images/pizza_planet.jpg"),
-          isVeg: false,
-        },
-        {
-          id: "2-3",
-          name: "Paneer Pizza",
-          description: "Spicy paneer chunks with capsicum, onion and cheese.",
-          price: 279,
-          image: require("../../../assets/images/paneer.jpg"),
-          isVeg: true,
-        },
-      ],
-
-      Biryani: [
-        {
-          id: "2-4",
-          name: "Pizza Biryani Combo",
-          description: "A delicious combo of mini biryani and personal pizza.",
-          price: 329,
-          image: require("../../../assets/images/pizza_planet.jpg"),
-          isVeg: false,
-        },
-      ],
-
-      Starters: [
-        {
-          id: "2-5",
-          name: "Cheesy Garlic Bread",
-          description: "Toasted garlic bread loaded with mozzarella cheese.",
-          price: 149,
-          image: require("../../../assets/images/pizza.png"),
-          isVeg: true,
-        },
-        {
-          id: "2-6",
-          name: "Chicken Wings",
-          description: "Crispy chicken wings tossed in a spicy sauce.",
-          price: 229,
-          image: require("../../../assets/images/fried_chicken.jpg"),
-          isVeg: false,
-        },
-      ],
-
-      "Main Course": [
-        {
-          id: "2-7",
-          name: "Chicken Supreme Pizza",
-          description: "Premium pizza loaded with chicken, peppers and cheese.",
-          price: 399,
-          image: require("../../../assets/images/pizza_planet.jpg"),
-          isVeg: false,
-        },
-        {
-          id: "2-8",
-          name: "Veg Supreme Pizza",
-          description: "Fresh vegetables, olives, peppers and extra cheese.",
-          price: 349,
-          image: require("../../../assets/images/pizza.png"),
-          isVeg: true,
+          image: FALLBACK_FOOD_IMAGE,
+          rating: "4.5",
         },
       ],
     },
   },
 
-  // ==========================================================
-  // BURGER MANIA
-  // ==========================================================
-
-  3: {
+  "3": {
     id: "3",
     name: "Burger Mania",
-    image: require("../../../assets/images/Restaurant2.png"),
-    rating: "4.2",
-    reviews: "1.5K",
+    image: FALLBACK_RESTAURANT_IMAGE,
+    rating: "4.3",
+    reviews: "87",
     time: "20-30 mins",
-    price: "₹250 for two",
-    cuisine: "Burgers • Fast Food • Snacks",
+    price: "₹350 for two",
+    cuisine: "Burgers, Fast Food",
     address: "Kondapur, Hyderabad",
-    phone: "+919876543212",
-    offer: "40% OFF",
-    offerText: "40% OFF up to ₹120",
-    offerCode: "BURGER40",
-
+    phone: "",
+    offer: "20% OFF",
+    offerText: "20% off up to ₹100",
+    offerCode: "BAKASURAN",
     menu: {
       Recommended: [
         {
-          id: "3-1",
-          name: "Classic Chicken Burger",
-          description:
-            "Juicy crispy chicken patty with lettuce, cheese and sauce.",
+          id: "20",
+          name: "Chicken Burger",
+          description: "Juicy chicken burger",
           price: 199,
-          image: require("../../../assets/images/burger_mania.jpg"),
-          isVeg: false,
-        },
-        {
-          id: "3-2",
-          name: "Veg Cheese Burger",
-          description:
-            "Crispy vegetarian patty with cheese and fresh vegetables.",
-          price: 169,
-          image: require("../../../assets/images/veg_specials.jpg"),
-          isVeg: true,
-        },
-        {
-          id: "3-3",
-          name: "Fried Chicken",
-          description: "Crunchy fried chicken pieces with signature seasoning.",
-          price: 249,
-          image: require("../../../assets/images/fried_chicken.jpg"),
-          isVeg: false,
-        },
-      ],
-
-      Biryani: [
-        {
-          id: "3-4",
-          name: "Burger Biryani Combo",
-          description: "A filling combo with chicken burger and mini biryani.",
-          price: 299,
-          image: require("../../../assets/images/burger_mania.jpg"),
-          isVeg: false,
-        },
-      ],
-
-      Starters: [
-        {
-          id: "3-5",
-          name: "Chicken Nuggets",
-          description: "Golden crispy chicken nuggets served with dip.",
-          price: 159,
-          image: require("../../../assets/images/fried_chicken.jpg"),
-          isVeg: false,
-        },
-        {
-          id: "3-6",
-          name: "Veg Nuggets",
-          description: "Crispy vegetable nuggets with a delicious dip.",
-          price: 139,
-          image: require("../../../assets/images/veg_specials.jpg"),
-          isVeg: true,
-        },
-      ],
-
-      "Main Course": [
-        {
-          id: "3-7",
-          name: "Double Chicken Burger",
-          description: "Two juicy chicken patties with double cheese.",
-          price: 299,
-          image: require("../../../assets/images/burger_mania.jpg"),
-          isVeg: false,
-        },
-        {
-          id: "3-8",
-          name: "Double Veg Burger",
-          description:
-            "Double vegetarian patties with fresh vegetables and cheese.",
-          price: 249,
-          image: require("../../../assets/images/veg_specials.jpg"),
-          isVeg: true,
+          image: FALLBACK_FOOD_IMAGE,
+          rating: "4.4",
         },
       ],
     },
   },
 
-  // ==========================================================
-  // CRISPY BOWL
-  // ==========================================================
-
-  4: {
+  "4": {
     id: "4",
     name: "Crispy Bowl",
-    image: require("../../../assets/images/Restaurant4.png"),
-    rating: "4.1",
-    reviews: "1.2K",
-    time: "30-40 mins",
-    price: "₹200 for two",
-    cuisine: "Chinese • Asian • Momos",
+    image: FALLBACK_RESTAURANT_IMAGE,
+    rating: "4.2",
+    reviews: "72",
+    time: "25-35 mins",
+    price: "₹300 for two",
+    cuisine: "Chinese, Fast Food",
     address: "Gachibowli, Hyderabad",
-    phone: "+919876543213",
-    offer: "15% OFF",
-    offerText: "15% OFF up to ₹100",
-    offerCode: "CRISPY15",
-
+    phone: "",
+    offer: "",
+    offerText: "",
+    offerCode: "",
     menu: {
       Recommended: [
         {
-          id: "4-1",
-          name: "Chicken Rice Bowl",
-          description:
-            "Steamed rice topped with spicy chicken and Asian sauce.",
-          price: 249,
-          image: require("../../../assets/images/crispy_bowl.jpg"),
-          isVeg: false,
-        },
-        {
-          id: "4-2",
-          name: "Veg Rice Bowl",
-          description: "Fresh vegetables tossed with rice and Asian seasoning.",
-          price: 199,
-          image: require("../../../assets/images/veg_specials.jpg"),
-          isVeg: true,
-        },
-        {
-          id: "4-3",
-          name: "Crispy Chicken",
-          description: "Crispy chicken tossed in our signature Asian sauce.",
-          price: 259,
-          image: require("../../../assets/images/fried_chicken.jpg"),
-          isVeg: false,
-        },
-      ],
-
-      Biryani: [
-        {
-          id: "4-4",
-          name: "Asian Chicken Rice",
-          description: "Aromatic rice with chicken and Asian spices.",
-          price: 239,
-          image: require("../../../assets/images/crispy_bowl.jpg"),
-          isVeg: false,
-        },
-      ],
-
-      Starters: [
-        {
-          id: "4-5",
-          name: "Chicken Momos",
-          description: "Steamed chicken momos served with spicy chutney.",
-          price: 169,
-          image: require("../../../assets/images/crispy_bowl.jpg"),
-          isVeg: false,
-        },
-        {
-          id: "4-6",
-          name: "Veg Momos",
-          description: "Fresh vegetable momos with spicy Asian chutney.",
-          price: 139,
-          image: require("../../../assets/images/veg_specials.jpg"),
-          isVeg: true,
-        },
-      ],
-
-      "Main Course": [
-        {
-          id: "4-7",
-          name: "Chicken Noodles",
-          description: "Wok-tossed noodles with chicken and fresh vegetables.",
-          price: 229,
-          image: require("../../../assets/images/crispy_bowl.jpg"),
-          isVeg: false,
-        },
-        {
-          id: "4-8",
-          name: "Veg Noodles",
-          description: "Classic Chinese noodles tossed with fresh vegetables.",
+          id: "30",
+          name: "Chicken Fried Rice",
+          description: "Chinese style chicken fried rice",
           price: 189,
-          image: require("../../../assets/images/veg_specials.jpg"),
-          isVeg: true,
+          image: FALLBACK_FOOD_IMAGE,
+          rating: "4.3",
         },
       ],
     },
   },
 };
 
-// ============================================================
-// COMPONENT
-// ============================================================
+// =========================================================
+// HELPERS
+// =========================================================
 
-const RestaurantDetails = () => {
-  const { colors: Colors } = useTheme();
-  const styles = useMemo(() => createStyles(Colors), [Colors]);
-  const { id } = useLocalSearchParams();
-
-  const restaurant = restaurants[String(id)];
-
-  // ==========================================================
-  // STATE
-  // ==========================================================
-
-  const [selectedCategory, setSelectedCategory] = useState("Recommended");
-
-  const [quantities, setQuantities] = useState({});
-
-  const [isFavorite, setIsFavorite] = useState(false);
-
-  // ==========================================================
-  // SAFETY
-  // ==========================================================
-
-  if (!restaurant) {
-    return (
-      <View style={styles.errorContainer}>
-        <Ionicons
-          name="restaurant-outline"
-          size={60}
-          color={Colors.textMuted}
-        />
-
-        <Text style={styles.errorTitle}>Restaurant not found</Text>
-
-        <TouchableOpacity
-          style={styles.backHomeButton}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.backHomeText}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
-    );
+const isSuccessResponse = (response) => {
+  if (!response) {
+    return false;
   }
 
-  // ==========================================================
-  // MENU CATEGORIES
-  // ==========================================================
+  if (response.success === undefined) {
+    return true;
+  }
 
-  const menuCategories = Object.keys(restaurant.menu);
+  return [1, true, "1"].includes(response.success);
+};
 
-  // ==========================================================
-  // CURRENT MENU
-  // ==========================================================
+const getFirstValue = (...values) => {
+  for (const value of values) {
+    if (
+      value !== undefined &&
+      value !== null &&
+      value !== ""
+    ) {
+      return value;
+    }
+  }
 
-  const currentItems = restaurant.menu[selectedCategory] || [];
+  return "";
+};
 
-  // ==========================================================
-  // QUANTITY
-  // ==========================================================
+// =========================================================
+// IMAGE HELPER
+// =========================================================
 
-  const increaseQuantity = (itemId) => {
-    setQuantities((prev) => ({
-      ...prev,
-      [itemId]: (prev[itemId] || 0) + 1,
-    }));
+const getImageSource = (image) => {
+  if (!image) {
+    return {
+      uri: FALLBACK_RESTAURANT_IMAGE,
+    };
+  }
+
+  if (typeof image === "object") {
+    if (image.uri) {
+      return image;
+    }
+
+    if (image.url) {
+      image = image.url;
+    }
+  }
+
+  if (typeof image !== "string") {
+    return {
+      uri: FALLBACK_RESTAURANT_IMAGE,
+    };
+  }
+
+  const cleanImage = image.trim();
+
+  if (!cleanImage) {
+    return {
+      uri: FALLBACK_RESTAURANT_IMAGE,
+    };
+  }
+
+  if (/^https?:\/\//i.test(cleanImage)) {
+    return {
+      uri: cleanImage,
+    };
+  }
+
+  return {
+    uri: `${BASE_URL}/${cleanImage.replace(/^\/+/, "")}`,
   };
+};
 
-  const decreaseQuantity = (itemId) => {
-    setQuantities((prev) => {
-      const current = prev[itemId] || 0;
+// =========================================================
+// FOOD IMAGE
+// =========================================================
 
-      if (current <= 1) {
-        const updated = { ...prev };
-        delete updated[itemId];
-        return updated;
+const getFoodImage = (item) => {
+  const image = getFirstValue(
+    item?.image_url,
+    item?.product_image_url,
+    item?.thumbnail_url,
+    item?.thumbnail,
+    item?.image,
+    item?.product_image,
+    item?.product?.image_url,
+    item?.product?.image,
+    item?.images?.[0]?.image_url,
+    item?.images?.[0]?.url,
+    item?.images?.[0]?.image
+  );
+
+  if (!image) {
+    return {
+      uri: FALLBACK_FOOD_IMAGE,
+    };
+  }
+
+  if (
+    typeof image === "string" &&
+    /^https?:\/\//i.test(image.trim())
+  ) {
+    return {
+      uri: image.trim(),
+    };
+  }
+
+  if (
+    typeof image === "string" &&
+    image.trim()
+  ) {
+    return {
+      uri: `${BASE_URL}/${image
+        .trim()
+        .replace(/^\/+/, "")}`,
+    };
+  }
+
+  return {
+    uri: FALLBACK_FOOD_IMAGE,
+  };
+};
+
+// =========================================================
+// NORMALIZE FOOD
+// =========================================================
+
+const normalizeFoodItem = (item, index = 0) => {
+  const product = item?.product || item;
+
+  return {
+    id: String(
+      getFirstValue(
+        product?.id,
+        product?.product_id,
+        item?.id,
+        item?.product_id,
+        index + 1
+      )
+    ),
+
+    name:
+      getFirstValue(
+        product?.name,
+        product?.product_name,
+        item?.name,
+        item?.product_name
+      ) || "Food Item",
+
+    description:
+      getFirstValue(
+        product?.description,
+        item?.description,
+        product?.short_description,
+        item?.short_description
+      ) || "Delicious food prepared fresh.",
+
+    price: Number(
+      getFirstValue(
+        product?.price,
+        product?.selling_price,
+        product?.final_price,
+        item?.price,
+        item?.selling_price,
+        item?.final_price,
+        0
+      )
+    ),
+
+    image: getFoodImage(product),
+
+    rating:
+      getFirstValue(
+        product?.rating,
+        product?.avg_rating,
+        product?.average_rating,
+        item?.rating,
+        item?.avg_rating
+      ) || "4.5",
+  };
+};
+
+// =========================================================
+// NORMALIZE MENU
+// =========================================================
+
+const normalizeMenu = (
+  restaurantData,
+  fallbackMenu = {}
+) => {
+  const menuSource =
+    restaurantData?.menu ||
+    restaurantData?.menus ||
+    restaurantData?.menu_items ||
+    restaurantData?.menuItems ||
+    restaurantData?.products ||
+    restaurantData?.items;
+
+  if (
+    menuSource &&
+    typeof menuSource === "object" &&
+    !Array.isArray(menuSource)
+  ) {
+    const result = {};
+
+    Object.keys(menuSource).forEach((categoryName) => {
+      const categoryItems = menuSource[categoryName];
+
+      if (Array.isArray(categoryItems)) {
+        result[categoryName] = categoryItems.map(
+          (item, index) =>
+            normalizeFoodItem(item, index)
+        );
+      }
+    });
+
+    if (Object.keys(result).length > 0) {
+      return result;
+    }
+  }
+
+  if (Array.isArray(menuSource)) {
+    const result = {};
+
+    menuSource.forEach((item, index) => {
+      const categoryName =
+        getFirstValue(
+          item?.category_name,
+          item?.categoryName,
+          item?.category?.name,
+          typeof item?.category === "string"
+            ? item.category
+            : "",
+          item?.menu_category,
+          item?.type
+        ) || "Recommended";
+
+      if (!result[categoryName]) {
+        result[categoryName] = [];
       }
 
-      return {
-        ...prev,
-        [itemId]: current - 1,
-      };
+      result[categoryName].push(
+        normalizeFoodItem(item, index)
+      );
     });
-  };
 
-  // ==========================================================
-  // CART CALCULATION
-  // ==========================================================
+    if (Object.keys(result).length > 0) {
+      return result;
+    }
+  }
 
-  const cartItems = useMemo(() => {
-    const allItems = Object.values(restaurant.menu).flat();
+  if (Array.isArray(restaurantData?.products)) {
+    return {
+      Recommended: restaurantData.products.map(
+        (item, index) =>
+          normalizeFoodItem(item, index)
+      ),
+    };
+  }
 
-    return allItems.filter((item) => (quantities[item.id] || 0) > 0);
-  }, [restaurant.menu, quantities]);
+  return fallbackMenu || {};
+};
 
-  const cartCount = useMemo(() => {
-    return Object.values(quantities).reduce(
-      (total, quantity) => total + quantity,
-      0,
+// =========================================================
+// COMPONENT
+// =========================================================
+
+export default function RestaurantDetails() {
+  const { colors, isDark } = useTheme();
+
+  const params = useLocalSearchParams();
+
+  const restaurantId = String(
+    params?.restaurantId ||
+      params?.id ||
+      ""
+  );
+
+  const fallbackRestaurant =
+    restaurants[restaurantId] || null;
+
+  // =======================================================
+  // RESTAURANT STATE
+  // =======================================================
+
+  const [restaurant, setRestaurant] =
+    useState(fallbackRestaurant);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [refreshing, setRefreshing] =
+    useState(false);
+
+  const [apiError, setApiError] =
+    useState("");
+
+  const [favorite, setFavorite] =
+    useState(false);
+
+  const [quantities, setQuantities] =
+    useState({});
+
+  // =======================================================
+  // PRODUCT STATE
+  // =======================================================
+
+  const [productLoading, setProductLoading] =
+    useState(false);
+
+  const [selectedProduct, setSelectedProduct] =
+    useState(null);
+
+  const [selectedMenuItem, setSelectedMenuItem] =
+    useState(null);
+
+  const [productModalVisible, setProductModalVisible] =
+    useState(false);
+
+  // =======================================================
+  // LOAD RESTAURANT
+  // =======================================================
+
+  const loadRestaurant = useCallback(
+    async (isRefresh = false) => {
+      if (!restaurantId) {
+        setLoading(false);
+        setApiError("Restaurant ID is missing.");
+        return;
+      }
+
+      try {
+        if (isRefresh) {
+          setRefreshing(true);
+        } else {
+          setLoading(true);
+        }
+
+        setApiError("");
+
+        console.log(
+          "Loading restaurant:",
+          restaurantId
+        );
+
+        const response =
+          await getRestaurantById(
+            restaurantId
+          );
+
+        console.log(
+          "RESTAURANT RESPONSE:",
+          JSON.stringify(response, null, 2)
+        );
+
+        if (!isSuccessResponse(response)) {
+          throw new Error(
+            response?.message ||
+              response?.error ||
+              "Unable to load restaurant."
+          );
+        }
+
+        const apiRestaurant =
+          response?.data?.restaurant ||
+          response?.data?.data ||
+          response?.data ||
+          response?.restaurant ||
+          response;
+
+        if (
+          !apiRestaurant ||
+          typeof apiRestaurant !== "object"
+        ) {
+          throw new Error(
+            "Invalid restaurant data received."
+          );
+        }
+
+        const mergedRestaurant = {
+          ...(fallbackRestaurant || {}),
+          ...apiRestaurant,
+
+          id: String(
+            getFirstValue(
+              apiRestaurant?.id,
+              apiRestaurant?.restaurant_id,
+              restaurantId
+            )
+          ),
+
+          name:
+            getFirstValue(
+              apiRestaurant?.name,
+              apiRestaurant?.restaurant_name,
+              apiRestaurant?.title,
+              fallbackRestaurant?.name
+            ) || "Restaurant",
+
+          image:
+            getFirstValue(
+              apiRestaurant?.image_url,
+              apiRestaurant?.restaurant_image_url,
+              apiRestaurant?.image,
+              apiRestaurant?.thumbnail,
+              apiRestaurant?.logo,
+              apiRestaurant?.restaurant_image,
+              fallbackRestaurant?.image
+            ) || FALLBACK_RESTAURANT_IMAGE,
+
+          rating:
+            getFirstValue(
+              apiRestaurant?.rating,
+              apiRestaurant?.avg_rating,
+              apiRestaurant?.average_rating,
+              fallbackRestaurant?.rating
+            ) || "4.5",
+
+          reviews:
+            getFirstValue(
+              apiRestaurant?.reviews,
+              apiRestaurant?.review_count,
+              apiRestaurant?.reviews_count,
+              apiRestaurant?.ratings_count,
+              fallbackRestaurant?.reviews
+            ) || "0",
+
+          time:
+            getFirstValue(
+              apiRestaurant?.delivery_time,
+              apiRestaurant?.deliveryTime,
+              apiRestaurant?.time,
+              apiRestaurant?.estimated_time,
+              fallbackRestaurant?.time
+            ) || "30-40 mins",
+
+          price:
+            getFirstValue(
+              apiRestaurant?.price,
+              apiRestaurant?.price_for_two,
+              apiRestaurant?.cost_for_two,
+              apiRestaurant?.average_cost,
+              fallbackRestaurant?.price
+            ) || "₹200 for two",
+
+          cuisine:
+            getFirstValue(
+              apiRestaurant?.cuisine,
+              apiRestaurant?.cuisine_name,
+              apiRestaurant?.category_name,
+              apiRestaurant?.food_type,
+              fallbackRestaurant?.cuisine
+            ) || "Multi Cuisine",
+
+          address:
+            getFirstValue(
+              apiRestaurant?.address,
+              apiRestaurant?.location,
+              apiRestaurant?.full_address,
+              apiRestaurant?.area,
+              apiRestaurant?.city,
+              fallbackRestaurant?.address
+            ) || "Location unavailable",
+
+          phone:
+            getFirstValue(
+              apiRestaurant?.phone,
+              apiRestaurant?.mobile,
+              apiRestaurant?.mobile_number,
+              apiRestaurant?.contact_number,
+              apiRestaurant?.phone_number,
+              fallbackRestaurant?.phone
+            ) || "",
+
+          offer:
+            getFirstValue(
+              apiRestaurant?.offer,
+              apiRestaurant?.offer_title,
+              apiRestaurant?.offer_percentage,
+              fallbackRestaurant?.offer
+            ) || "",
+
+          offerText:
+            getFirstValue(
+              apiRestaurant?.offerText,
+              apiRestaurant?.offer_text,
+              apiRestaurant?.offer_description,
+              fallbackRestaurant?.offerText
+            ) || "",
+
+          offerCode:
+            getFirstValue(
+              apiRestaurant?.offerCode,
+              apiRestaurant?.offer_code,
+              apiRestaurant?.coupon_code,
+              fallbackRestaurant?.offerCode
+            ) || "",
+        };
+
+        mergedRestaurant.menu =
+          normalizeMenu(
+            apiRestaurant,
+            fallbackRestaurant?.menu || {}
+          );
+
+        setRestaurant(mergedRestaurant);
+      } catch (error) {
+        console.log(
+          "RESTAURANT ERROR:",
+          error?.message
+        );
+
+        setApiError(
+          error?.message ||
+            "Unable to load restaurant."
+        );
+
+        if (fallbackRestaurant) {
+          setRestaurant(
+            fallbackRestaurant
+          );
+        }
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [
+      restaurantId,
+      fallbackRestaurant,
+    ]
+  );
+
+  useEffect(() => {
+    loadRestaurant();
+  }, [loadRestaurant]);
+
+  // =======================================================
+  // GET PRODUCT BY ID
+  // =======================================================
+
+  const loadProductById = useCallback(
+    async (productId, menuItem = null) => {
+      if (
+        productId === undefined ||
+        productId === null ||
+        String(productId).trim() === ""
+      ) {
+        Alert.alert(
+          "Product",
+          "Product ID is not available."
+        );
+
+        return;
+      }
+
+      try {
+        setProductLoading(true);
+
+        setSelectedMenuItem(menuItem);
+        setSelectedProduct(null);
+
+        console.log(
+          "===================================="
+        );
+        console.log(
+          "CALLING PRODUCT API"
+        );
+        console.log("METHOD: GET");
+        console.log(
+          "PRODUCT ID:",
+          productId
+        );
+        console.log(
+          "===================================="
+        );
+
+        const response =
+          await getProductById(
+            productId
+          );
+
+        console.log(
+          "PRODUCT RESPONSE:",
+          JSON.stringify(response, null, 2)
+        );
+
+        if (!isSuccessResponse(response)) {
+          throw new Error(
+            response?.message ||
+              response?.error ||
+              "Unable to load product details."
+          );
+        }
+
+        const productData =
+          response?.data?.product ||
+          response?.data?.data ||
+          response?.data ||
+          response?.product ||
+          response;
+
+        if (
+          !productData ||
+          typeof productData !== "object"
+        ) {
+          throw new Error(
+            "Invalid product data received."
+          );
+        }
+
+        console.log(
+          "FINAL PRODUCT:",
+          JSON.stringify(
+            productData,
+            null,
+            2
+          )
+        );
+
+        setSelectedProduct(
+          productData
+        );
+
+        setProductModalVisible(
+          true
+        );
+      } catch (error) {
+        console.log(
+          "PRODUCT ERROR:",
+          error?.message
+        );
+
+        Alert.alert(
+          "Product",
+          error?.message ||
+            "Unable to load product details."
+        );
+      } finally {
+        setProductLoading(false);
+      }
+    },
+    []
+  );
+
+  // =======================================================
+  // OPEN PRODUCT
+  // =======================================================
+
+  const openProduct = useCallback(
+  (item) => {
+    const productId = getFirstValue(
+      item?.id,
+      item?.product_id,
+      item?.productId,
+      item?.product?.id
     );
-  }, [quantities]);
 
-  const subtotal = useMemo(() => {
-    return cartItems.reduce((total, item) => {
-      return total + item.price * (quantities[item.id] || 0);
-    }, 0);
-  }, [cartItems, quantities]);
+    if (!productId) {
+      Alert.alert(
+        "Product",
+        "Product ID is not available."
+      );
+      return;
+    }
 
-  const deliveryFee = cartCount > 0 ? 30 : 0;
-
-  const discount =
-    cartCount > 0 ? Math.min(Math.round(subtotal * 0.3), 100) : 0;
-
-  const total = subtotal + deliveryFee - discount;
-
-  // ==========================================================
-  // MENU ITEM  (IMAGE ON LEFT, DETAILS ON RIGHT)
-  // ==========================================================
-
-  // ==========================================================
-  // ACTIONS (CALL / DIRECTIONS / TABLE BOOKING / FOOD DETAILS)
-  // ==========================================================
-
-  const handleCall = () => {
-    Linking.openURL(`tel:${restaurant.phone}`).catch(() => {});
-  };
-
-  const handleDirections = () => {
-    const destination = encodeURIComponent(
-      `${restaurant.name}, ${restaurant.address}`,
-    );
-
-    Linking.openURL(
-      `https://www.google.com/maps/dir/?api=1&destination=${destination}`,
-    ).catch(() => {});
-  };
-
-  const handleTableBooking = () => {
-    router.push({
-      pathname: "/table-booking",
-      params: {
-        restaurantId: restaurant.id,
-        restaurantName: restaurant.name,
-        restaurantAddress: restaurant.address,
-      },
-    });
-  };
-
-  const openFoodDetails = (item) => {
     router.push({
       pathname: "/Food-Details",
       params: {
-        itemId: item.id,
-        restaurantId: restaurant.id,
+        itemId: String(productId),
+        restaurantId: String(restaurantId),
+      },
+    });
+  },
+  [restaurantId]
+);
+
+  // =======================================================
+  // RESTAURANT IMAGE
+  // =======================================================
+
+  const restaurantImage = useMemo(() => {
+    return getImageSource(
+      restaurant?.image ||
+        restaurant?.image_url ||
+        restaurant?.restaurant_image
+    );
+  }, [restaurant]);
+
+  // =======================================================
+  // MENU
+  // =======================================================
+
+  const menuCategories = useMemo(() => {
+    if (!restaurant?.menu) {
+      return [];
+    }
+
+    return Object.entries(
+      restaurant.menu
+    ).filter(
+      ([, items]) =>
+        Array.isArray(items) &&
+        items.length > 0
+    );
+  }, [restaurant]);
+
+  // =======================================================
+  // QUANTITY
+  // =======================================================
+
+  const increaseQuantity = useCallback(
+    (itemId) => {
+      const id = String(itemId);
+
+      setQuantities((previous) => ({
+        ...previous,
+        [id]:
+          (previous[id] || 0) + 1,
+      }));
+    },
+    []
+  );
+
+  const decreaseQuantity = useCallback(
+    (itemId) => {
+      const id = String(itemId);
+
+      setQuantities((previous) => {
+        const current =
+          previous[id] || 0;
+
+        if (current <= 1) {
+          const updated = {
+            ...previous,
+          };
+
+          delete updated[id];
+
+          return updated;
+        }
+
+        return {
+          ...previous,
+          [id]: current - 1,
+        };
+      });
+    },
+    []
+  );
+
+  // =======================================================
+  // TOTAL ITEMS
+  // =======================================================
+
+  const totalItems = useMemo(() => {
+    return Object.values(
+      quantities
+    ).reduce(
+      (sum, quantity) =>
+        sum + Number(quantity || 0),
+      0
+    );
+  }, [quantities]);
+
+  // =======================================================
+  // TOTAL PRICE
+  // =======================================================
+
+  const totalPrice = useMemo(() => {
+    let total = 0;
+
+    menuCategories.forEach(
+      ([, items]) => {
+        items.forEach((item) => {
+          const quantity =
+            quantities[
+              String(item.id)
+            ] || 0;
+
+          total +=
+            Number(item.price || 0) *
+            Number(quantity);
+        });
+      }
+    );
+
+    return total;
+  }, [
+    menuCategories,
+    quantities,
+  ]);
+
+  // =======================================================
+  // CALL RESTAURANT
+  // =======================================================
+
+  const callRestaurant = async () => {
+    const phone =
+      restaurant?.phone;
+
+    if (!phone) {
+      Alert.alert(
+        "Phone number unavailable",
+        "This restaurant has not provided a phone number."
+      );
+
+      return;
+    }
+
+    try {
+      const url = `tel:${phone}`;
+
+      const supported =
+        await Linking.canOpenURL(
+          url
+        );
+
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert(
+          "Unable to call",
+          "Calling is not available on this device."
+        );
+      }
+    } catch {
+      Alert.alert(
+        "Error",
+        "Unable to open the phone dialer."
+      );
+    }
+  };
+
+  // =======================================================
+  // OFFER
+  // =======================================================
+
+  const showOffer = () => {
+    if (!restaurant?.offerCode) {
+      return;
+    }
+
+    Alert.alert(
+      "Offer Available",
+      `${
+        restaurant.offerText ||
+        restaurant.offer ||
+        ""
+      }\n\nCoupon: ${restaurant.offerCode}`
+    );
+  };
+
+  // =======================================================
+  // CART
+  // =======================================================
+
+  const goToCart = () => {
+    if (totalItems <= 0) {
+      Alert.alert(
+        "Your cart is empty",
+        "Please add at least one item."
+      );
+
+      return;
+    }
+
+    router.push({
+      pathname: "/CartScreen",
+      params: {
+        restaurantId,
       },
     });
   };
 
-  const renderMenuItem = (item) => {
-    const quantity = quantities[item.id] || 0;
+  // =======================================================
+  // CLOSE PRODUCT MODAL
+  // =======================================================
 
-    return (
-      <View key={item.id} style={styles.menuItem}>
-        {/* ITEM IMAGE + ADD (LEFT) */}
-
-        <View style={styles.menuImageContainer}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => openFoodDetails(item)}
-          >
-            <Image
-              source={item.image}
-              style={styles.menuItemImage}
-              resizeMode="cover"
-            />
-          </TouchableOpacity>
-
-          {quantity === 0 ? (
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => increaseQuantity(item.id)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.addButtonText}>ADD</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.quantityContainer}>
-              <TouchableOpacity
-                style={styles.quantityButton}
-                onPress={() => decreaseQuantity(item.id)}
-              >
-                <Ionicons name="remove" size={17} color={Colors.white} />
-              </TouchableOpacity>
-
-              <Text style={styles.quantityText}>{quantity}</Text>
-
-              <TouchableOpacity
-                style={styles.quantityButton}
-                onPress={() => increaseQuantity(item.id)}
-              >
-                <Ionicons name="add" size={17} color={Colors.white} />
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-
-        {/* ITEM DETAILS (RIGHT) */}
-
-        <View style={styles.menuItemDetails}>
-          {/* VEG */}
-
-          <View
-            style={[
-              styles.vegIndicator,
-              {
-                borderColor: item.isVeg ? Colors.success : Colors.primary,
-              },
-            ]}
-          >
-            <View
-              style={[
-                styles.vegIndicatorDot,
-                {
-                  backgroundColor: item.isVeg ? Colors.success : Colors.primary,
-                },
-              ]}
-            />
-          </View>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => openFoodDetails(item)}
-          >
-            <Text style={styles.menuItemName} numberOfLines={2}>
-              {item.name}
-            </Text>
-          </TouchableOpacity>
-
-          <Text style={styles.menuItemPrice}>₹{item.price}</Text>
-
-          <Text style={styles.menuItemDescription} numberOfLines={2}>
-            {item.description}
-          </Text>
-
-          <Text style={styles.itemRating}>
-            <Ionicons name="star" size={11} color={Colors.rating} /> 4.5
-          </Text>
-        </View>
-      </View>
-    );
+  const closeProductModal = () => {
+    setProductModalVisible(false);
+    setSelectedProduct(null);
+    setSelectedMenuItem(null);
   };
 
-  // ==========================================================
-  // UI
-  // ==========================================================
+  // =======================================================
+  // PRODUCT DATA
+  // =======================================================
 
-  return (
-    <View style={styles.container}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.scrollContent,
-          cartCount > 0 && {
-            paddingBottom: 100,
+  const selectedProductImage =
+    getFoodImage(
+      selectedProduct ||
+        selectedMenuItem
+    );
+
+  const selectedProductName =
+    getFirstValue(
+      selectedProduct?.name,
+      selectedProduct?.product_name,
+      selectedProduct?.title,
+      selectedProduct?.product?.name,
+      selectedMenuItem?.name
+    ) || "Product";
+
+  const selectedProductDescription =
+    getFirstValue(
+      selectedProduct?.description,
+      selectedProduct?.short_description,
+      selectedProduct?.product?.description,
+      selectedMenuItem?.description
+    ) ||
+    "Delicious food prepared fresh.";
+
+  const selectedProductPrice =
+    Number(
+      getFirstValue(
+        selectedProduct?.price,
+        selectedProduct?.selling_price,
+        selectedProduct?.final_price,
+        selectedProduct?.product?.price,
+        selectedMenuItem?.price,
+        0
+      )
+    );
+
+  const selectedProductId =
+    getFirstValue(
+      selectedProduct?.id,
+      selectedProduct?.product_id,
+      selectedMenuItem?.id,
+      selectedMenuItem?.product_id
+    );
+
+  // =======================================================
+  // LOADING
+  // =======================================================
+
+  if (loading && !restaurant) {
+    return (
+      <SafeAreaView
+        style={[
+          styles.safeArea,
+          {
+            backgroundColor:
+              colors.background,
           },
         ]}
       >
-        {/* ==================================================
-            HERO
-        ================================================== */}
+        <View
+          style={
+            styles.loadingContainer
+          }
+        >
+          <ActivityIndicator
+            size="large"
+            color={
+              colors.primary ||
+              "#F9080C"
+            }
+          />
 
-        <View style={styles.heroContainer}>
+          <Text
+            style={[
+              styles.loadingText,
+              {
+                color:
+                  colors.text,
+              },
+            ]}
+          >
+            Loading restaurant...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // =======================================================
+  // NO RESTAURANT
+  // =======================================================
+
+  if (!restaurant) {
+    return (
+      <SafeAreaView
+        style={[
+          styles.safeArea,
+          {
+            backgroundColor:
+              colors.background,
+          },
+        ]}
+      >
+        <View
+          style={
+            styles.emptyContainer
+          }
+        >
+          <Ionicons
+            name="restaurant-outline"
+            size={60}
+            color={
+              colors.textSecondary ||
+              "#8F8F8F"
+            }
+          />
+
+          <Text
+            style={[
+              styles.emptyTitle,
+              {
+                color:
+                  colors.text,
+              },
+            ]}
+          >
+            Restaurant not found
+          </Text>
+
+          <Text
+            style={[
+              styles.emptyMessage,
+              {
+                color:
+                  colors.textSecondary ||
+                  "#8F8F8F",
+              },
+            ]}
+          >
+            Unable to find restaurant
+            details.
+          </Text>
+
+          <TouchableOpacity
+            style={[
+              styles.retryButton,
+              {
+                backgroundColor:
+                  colors.primary ||
+                  "#F9080C",
+              },
+            ]}
+            onPress={() =>
+              loadRestaurant()
+            }
+          >
+            <Text
+              style={
+                styles.retryText
+              }
+            >
+              Retry
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // =======================================================
+  // MAIN UI
+  // =======================================================
+
+  return (
+    <SafeAreaView
+      style={[
+        styles.safeArea,
+        {
+          backgroundColor:
+            colors.background,
+        },
+      ]}
+    >
+      {/* ===================================================
+          HEADER
+      =================================================== */}
+
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor:
+              colors.background,
+
+            borderBottomColor:
+              colors.divider ||
+              colors.border ||
+              "#2A2A2A",
+          },
+        ]}
+      >
+        <TouchableOpacity
+          style={
+            styles.headerButton
+          }
+          onPress={() =>
+            router.back()
+          }
+        >
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={
+              colors.text
+            }
+          />
+        </TouchableOpacity>
+
+        <Text
+          numberOfLines={1}
+          style={[
+            styles.headerTitle,
+            {
+              color:
+                colors.text,
+
+              fontFamily:
+                Fonts?.bold ||
+                undefined,
+            },
+          ]}
+        >
+          {restaurant.name}
+        </Text>
+
+        <TouchableOpacity
+          style={
+            styles.headerButton
+          }
+          onPress={() =>
+            setFavorite(
+              (previous) =>
+                !previous
+            )
+          }
+        >
+          <Ionicons
+            name={
+              favorite
+                ? "heart"
+                : "heart-outline"
+            }
+            size={24}
+            color={
+              favorite
+                ? "#F9080C"
+                : colors.text
+            }
+          />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        showsVerticalScrollIndicator={
+          false
+        }
+        refreshControl={
+          <RefreshControl
+            refreshing={
+              refreshing
+            }
+            onRefresh={() =>
+              loadRestaurant(
+                true
+              )
+            }
+            tintColor={
+              colors.primary ||
+              "#F9080C"
+            }
+          />
+        }
+        contentContainerStyle={{
+          paddingBottom:
+            totalItems > 0
+              ? 110
+              : 30,
+        }}
+      >
+        {/* ERROR */}
+
+        {apiError ? (
+          <View
+            style={[
+              styles.errorBox,
+              {
+                backgroundColor:
+                  isDark
+                    ? "#2A1515"
+                    : "#FFF0F0",
+              },
+            ]}
+          >
+            <Ionicons
+              name="warning-outline"
+              size={20}
+              color="#F9080C"
+            />
+
+            <View
+              style={{
+                flex: 1,
+              }}
+            >
+              <Text
+                style={[
+                  styles.errorTitle,
+                  {
+                    color:
+                      colors.text,
+                  },
+                ]}
+              >
+                Couldn't refresh restaurant
+              </Text>
+
+              <Text
+                style={[
+                  styles.errorText,
+                  {
+                    color:
+                      colors.textSecondary ||
+                      "#8F8F8F",
+                  },
+                ]}
+              >
+                {apiError}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={() =>
+                loadRestaurant()
+              }
+            >
+              <Text
+                style={[
+                  styles.retrySmall,
+                  {
+                    color:
+                      colors.primary ||
+                      "#F9080C",
+                  },
+                ]}
+              >
+                Retry
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        {/* HERO */}
+
+        <View
+          style={
+            styles.heroContainer
+          }
+        >
           <Image
-            source={restaurant.image}
-            style={styles.heroImage}
+            source={
+              restaurantImage
+            }
+            style={
+              styles.heroImage
+            }
             resizeMode="cover"
           />
 
-          <View style={styles.heroOverlay}>
-            {/* BACK */}
+          <View
+            style={
+              styles.imageOverlay
+            }
+          />
 
+          {restaurant.offer ? (
             <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
-              activeOpacity={0.8}
+              style={
+                styles.offerBadge
+              }
+              onPress={
+                showOffer
+              }
             >
-              <Ionicons name="arrow-back" size={22} color={Colors.white} />
+              <Ionicons
+                name="pricetag"
+                size={15}
+                color="#FFFFFF"
+              />
+
+              <Text
+                style={
+                  styles.offerBadgeText
+                }
+              >
+                {restaurant.offer}
+              </Text>
             </TouchableOpacity>
+          ) : null}
+        </View>
 
-            {/* ACTIONS */}
+        {/* RESTAURANT INFO */}
 
-            <View style={styles.heroActions}>
-              <TouchableOpacity style={styles.actionButton} activeOpacity={0.8}>
-                <Ionicons name="share-outline" size={20} color={Colors.white} />
-              </TouchableOpacity>
+        <View
+          style={[
+            styles.restaurantInfo,
+            {
+              backgroundColor:
+                colors.card ||
+                colors.surface ||
+                "#202020",
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.restaurantName,
+              {
+                color:
+                  colors.text,
 
-              <TouchableOpacity
-                style={styles.actionButton}
-                activeOpacity={0.8}
-                onPress={() => setIsFavorite(!isFavorite)}
+                fontFamily:
+                  Fonts?.bold ||
+                  undefined,
+              },
+            ]}
+          >
+            {restaurant.name}
+          </Text>
+
+          <Text
+            style={[
+              styles.cuisine,
+              {
+                color:
+                  colors.textSecondary ||
+                  "#8F8F8F",
+              },
+            ]}
+          >
+            {restaurant.cuisine}
+          </Text>
+
+          <View
+            style={
+              styles.infoRow
+            }
+          >
+            <View
+              style={
+                styles.infoItem
+              }
+            >
+              <View
+                style={
+                  styles.ratingBox
+                }
               >
                 <Ionicons
-                  name={isFavorite ? "heart" : "heart-outline"}
-                  size={20}
-                  color={isFavorite ? Colors.primary : Colors.white}
+                  name="star"
+                  size={13}
+                  color="#FFFFFF"
+                />
+
+                <Text
+                  style={
+                    styles.ratingText
+                  }
+                >
+                  {restaurant.rating}
+                </Text>
+              </View>
+
+              <Text
+                style={[
+                  styles.infoText,
+                  {
+                    color:
+                      colors.textSecondary ||
+                      "#8F8F8F",
+                  },
+                ]}
+              >
+                {restaurant.reviews}{" "}
+                reviews
+              </Text>
+            </View>
+
+            <View
+              style={styles.dot}
+            />
+
+            <View
+              style={
+                styles.infoItem
+              }
+            >
+              <Ionicons
+                name="time-outline"
+                size={17}
+                color={
+                  colors.textSecondary ||
+                  "#8F8F8F"
+                }
+              />
+
+              <Text
+                style={[
+                  styles.infoText,
+                  {
+                    color:
+                      colors.textSecondary ||
+                      "#8F8F8F",
+                  },
+                ]}
+              >
+                {restaurant.time}
+              </Text>
+            </View>
+
+            <View
+              style={styles.dot}
+            />
+
+            <View
+              style={
+                styles.infoItem
+              }
+            >
+              <Ionicons
+                name="wallet-outline"
+                size={17}
+                color={
+                  colors.textSecondary ||
+                  "#8F8F8F"
+                }
+              />
+
+              <Text
+                style={[
+                  styles.infoText,
+                  {
+                    color:
+                      colors.textSecondary ||
+                      "#8F8F8F",
+                  },
+                ]}
+              >
+                {restaurant.price}
+              </Text>
+            </View>
+          </View>
+
+          <View
+            style={
+              styles.addressRow
+            }
+          >
+            <Ionicons
+              name="location-outline"
+              size={19}
+              color={
+                colors.primary ||
+                "#F9080C"
+              }
+            />
+
+            <Text
+              style={[
+                styles.addressText,
+                {
+                  color:
+                    colors.textSecondary ||
+                    "#8F8F8F",
+                },
+              ]}
+            >
+              {restaurant.address}
+            </Text>
+          </View>
+
+          <View
+            style={
+              styles.actionRow
+            }
+          >
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                {
+                  borderColor:
+                    colors.border ||
+                    "#333333",
+                },
+              ]}
+              onPress={
+                callRestaurant
+              }
+            >
+              <Ionicons
+                name="call-outline"
+                size={18}
+                color={
+                  colors.primary ||
+                  "#F9080C"
+                }
+              />
+
+              <Text
+                style={[
+                  styles.actionText,
+                  {
+                    color:
+                      colors.text,
+                  },
+                ]}
+              >
+                Call
+              </Text>
+            </TouchableOpacity>
+
+            {restaurant.offerCode ? (
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  {
+                    borderColor:
+                      colors.border ||
+                      "#333333",
+                  },
+                ]}
+                onPress={
+                  showOffer
+                }
+              >
+                <Ionicons
+                  name="pricetag-outline"
+                  size={18}
+                  color={
+                    colors.primary ||
+                    "#F9080C"
+                  }
+                />
+
+                <Text
+                  style={[
+                    styles.actionText,
+                    {
+                      color:
+                        colors.text,
+                    },
+                  ]}
+                >
+                  Offers
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </View>
+
+        {/* OFFER */}
+
+        {restaurant.offerCode ? (
+          <TouchableOpacity
+            style={[
+              styles.offerCard,
+              {
+                backgroundColor:
+                  isDark
+                    ? "#261B0B"
+                    : "#FFF7E6",
+              },
+            ]}
+            onPress={
+              showOffer
+            }
+          >
+            <View
+              style={
+                styles.offerIcon
+              }
+            >
+              <Ionicons
+                name="pricetag"
+                size={21}
+                color="#F5B51B"
+              />
+            </View>
+
+            <View
+              style={{
+                flex: 1,
+              }}
+            >
+              <Text
+                style={[
+                  styles.offerTitle,
+                  {
+                    color:
+                      colors.text,
+                  },
+                ]}
+              >
+                {restaurant.offer ||
+                  "Special Offer"}
+              </Text>
+
+              <Text
+                style={[
+                  styles.offerDescription,
+                  {
+                    color:
+                      colors.textSecondary ||
+                      "#8F8F8F",
+                  },
+                ]}
+              >
+                {restaurant.offerText ||
+                  "Special offer available."}
+              </Text>
+
+              <Text
+                style={[
+                  styles.offerCode,
+                  {
+                    color:
+                      colors.primary ||
+                      "#F9080C",
+                  },
+                ]}
+              >
+                CODE:{" "}
+                {
+                  restaurant.offerCode
+                }
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ) : null}
+
+        {/* MENU HEADER */}
+
+        <View
+          style={
+            styles.menuHeader
+          }
+        >
+          <Text
+            style={[
+              styles.menuTitle,
+              {
+                color:
+                  colors.text,
+
+                fontFamily:
+                  Fonts?.bold ||
+                  undefined,
+              },
+            ]}
+          >
+            Menu
+          </Text>
+
+          <Text
+            style={[
+              styles.menuCount,
+              {
+                color:
+                  colors.textSecondary ||
+                  "#8F8F8F",
+              },
+            ]}
+          >
+            {menuCategories.reduce(
+              (
+                total,
+                [, items]
+              ) =>
+                total +
+                items.length,
+              0
+            )}{" "}
+            items
+          </Text>
+        </View>
+
+        {/* MENU */}
+
+        {menuCategories.length > 0 ? (
+          menuCategories.map(
+            ([categoryName, items]) => (
+              <View
+                key={categoryName}
+                style={
+                  styles.categoryContainer
+                }
+              >
+                <Text
+                  style={[
+                    styles.categoryTitle,
+                    {
+                      color:
+                        colors.text,
+
+                      fontFamily:
+                        Fonts?.bold ||
+                        undefined,
+                    },
+                  ]}
+                >
+                  {categoryName}
+                </Text>
+
+                {items.map((item) => {
+                  const itemId =
+                    String(item.id);
+
+                  const quantity =
+                    quantities[itemId] ||
+                    0;
+
+                  return (
+                    <TouchableOpacity
+                      key={itemId}
+                      activeOpacity={0.9}
+                      onPress={() =>
+                        openProduct(item)
+                      }
+                    >
+                      <View
+                        style={[
+                          styles.foodCard,
+                          {
+                            backgroundColor:
+                              colors.card ||
+                              colors.surface ||
+                              "#202020",
+
+                            borderColor:
+                              colors.border ||
+                              "#2A2A2A",
+                          },
+                        ]}
+                      >
+                        <View
+                          style={
+                            styles.foodDetails
+                          }
+                        >
+                          <Text
+                            style={[
+                              styles.foodName,
+                              {
+                                color:
+                                  colors.text,
+                              },
+                            ]}
+                          >
+                            {item.name}
+                          </Text>
+
+                          <Text
+                            style={[
+                              styles.foodPrice,
+                              {
+                                color:
+                                  colors.text,
+                              },
+                            ]}
+                          >
+                            ₹
+                            {Number(
+                              item.price ||
+                                0
+                            ).toFixed(0)}
+                          </Text>
+
+                          <View
+                            style={
+                              styles.foodRating
+                            }
+                          >
+                            <Ionicons
+                              name="star"
+                              size={12}
+                              color="#F5B51B"
+                            />
+
+                            <Text
+                              style={[
+                                styles.foodRatingText,
+                                {
+                                  color:
+                                    colors.textSecondary ||
+                                    "#8F8F8F",
+                                },
+                              ]}
+                            >
+                              {item.rating}
+                            </Text>
+                          </View>
+
+                          <Text
+                            numberOfLines={2}
+                            style={[
+                              styles.foodDescription,
+                              {
+                                color:
+                                  colors.textSecondary ||
+                                  "#8F8F8F",
+                              },
+                            ]}
+                          >
+                            {
+                              item.description
+                            }
+                          </Text>
+                        </View>
+
+                        <View
+                          style={
+                            styles.foodImageContainer
+                          }
+                        >
+                          <Image
+                            source={getImageSource(
+                              item.image
+                            )}
+                            style={
+                              styles.foodImage
+                            }
+                            resizeMode="cover"
+                          />
+
+                          {quantity === 0 ? (
+                            <TouchableOpacity
+                              style={[
+                                styles.addButton,
+                                {
+                                  backgroundColor:
+                                    colors.background ||
+                                    "#050505",
+
+                                  borderColor:
+                                    colors.primary ||
+                                    "#F9080C",
+                                },
+                              ]}
+                              onPress={(event) => {
+                                event?.stopPropagation?.();
+
+                                increaseQuantity(
+                                  itemId
+                                );
+                              }}
+                            >
+                              <Text
+                                style={[
+                                  styles.addButtonText,
+                                  {
+                                    color:
+                                      colors.primary ||
+                                      "#F9080C",
+                                  },
+                                ]}
+                              >
+                                ADD
+                              </Text>
+                            </TouchableOpacity>
+                          ) : (
+                            <View
+                              style={[
+                                styles.quantityContainer,
+                                {
+                                  backgroundColor:
+                                    colors.primary ||
+                                    "#F9080C",
+                                },
+                              ]}
+                            >
+                              <TouchableOpacity
+                                onPress={() =>
+                                  decreaseQuantity(
+                                    itemId
+                                  )
+                                }
+                                style={
+                                  styles.quantityButton
+                                }
+                              >
+                                <Ionicons
+                                  name="remove"
+                                  size={17}
+                                  color="#FFFFFF"
+                                />
+                              </TouchableOpacity>
+
+                              <Text
+                                style={
+                                  styles.quantityText
+                                }
+                              >
+                                {quantity}
+                              </Text>
+
+                              <TouchableOpacity
+                                onPress={() =>
+                                  increaseQuantity(
+                                    itemId
+                                  )
+                                }
+                                style={
+                                  styles.quantityButton
+                                }
+                              >
+                                <Ionicons
+                                  name="add"
+                                  size={17}
+                                  color="#FFFFFF"
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )
+          )
+        ) : (
+          <View
+            style={[
+              styles.noMenuContainer,
+              {
+                backgroundColor:
+                  colors.card ||
+                  colors.surface ||
+                  "#202020",
+              },
+            ]}
+          >
+            <Ionicons
+              name="restaurant-outline"
+              size={45}
+              color={
+                colors.textSecondary ||
+                "#8F8F8F"
+              }
+            />
+
+            <Text
+              style={[
+                styles.noMenuTitle,
+                {
+                  color:
+                    colors.text,
+                },
+              ]}
+            >
+              Menu unavailable
+            </Text>
+
+            <Text
+              style={[
+                styles.noMenuText,
+                {
+                  color:
+                    colors.textSecondary ||
+                    "#8F8F8F",
+                },
+              ]}
+            >
+              No menu items are
+              available for this
+              restaurant.
+            </Text>
+          </View>
+        )}
+      </ScrollView>
+
+      {/* ===================================================
+          CART BAR
+      =================================================== */}
+
+      {totalItems > 0 ? (
+        <View
+          style={[
+            styles.cartBar,
+            {
+              backgroundColor:
+                colors.card ||
+                colors.surface ||
+                "#202020",
+
+              borderTopColor:
+                colors.border ||
+                "#2A2A2A",
+            },
+          ]}
+        >
+          <View>
+            <Text
+              style={[
+                styles.cartItems,
+                {
+                  color:
+                    colors.textSecondary ||
+                    "#8F8F8F",
+                },
+              ]}
+            >
+              {totalItems}{" "}
+              {totalItems === 1
+                ? "item"
+                : "items"}
+            </Text>
+
+            <Text
+              style={[
+                styles.cartTotal,
+                {
+                  color:
+                    colors.text,
+                },
+              ]}
+            >
+              ₹
+              {totalPrice.toFixed(0)}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={[
+              styles.viewCartButton,
+              {
+                backgroundColor:
+                  colors.primary ||
+                  "#F9080C",
+              },
+            ]}
+            onPress={goToCart}
+          >
+            <Text
+              style={
+                styles.viewCartText
+              }
+            >
+              View Cart
+            </Text>
+
+            <Ionicons
+              name="arrow-forward"
+              size={19}
+              color="#FFFFFF"
+            />
+          </TouchableOpacity>
+        </View>
+      ) : null}
+
+      {/* ===================================================
+          PRODUCT DETAILS MODAL
+          
+          IMPORTANT:
+          productLoading is NOT rendered here.
+          The modal opens only after the GET API succeeds.
+      =================================================== */}
+
+      <Modal
+        visible={productModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={
+          closeProductModal
+        }
+      >
+        <View
+          style={
+            styles.modalOverlay
+          }
+        >
+          <View
+            style={[
+              styles.productModal,
+              {
+                backgroundColor:
+                  colors.card ||
+                  colors.surface ||
+                  "#202020",
+              },
+            ]}
+          >
+            {/* MODAL HEADER */}
+
+            <View
+              style={
+                styles.modalHeader
+              }
+            >
+              <Text
+                style={[
+                  styles.modalTitle,
+                  {
+                    color:
+                      colors.text,
+                  },
+                ]}
+              >
+                Product Details
+              </Text>
+
+              <TouchableOpacity
+                onPress={
+                  closeProductModal
+                }
+                hitSlop={10}
+              >
+                <Ionicons
+                  name="close-circle"
+                  size={28}
+                  color={
+                    colors.textSecondary ||
+                    "#8F8F8F"
+                  }
                 />
               </TouchableOpacity>
             </View>
 
-            {/* OPEN NOW */}
+            {/* PRODUCT CONTENT */}
 
-            <View style={styles.openBadge}>
-              <View style={styles.openDot} />
-
-              <Text style={styles.openText}>OPEN NOW</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ==================================================
-            RESTAURANT INFORMATION
-        ================================================== */}
-
-        <View style={styles.restaurantInfo}>
-          <Text style={styles.restaurantName}>{restaurant.name}</Text>
-
-          <Text style={styles.restaurantCuisine}>{restaurant.cuisine}</Text>
-
-          {/* STATS */}
-
-          <View style={styles.statsContainer}>
-            {/* RATING */}
-
-            <View style={styles.statItem}>
-              <View style={styles.ratingBox}>
-                <Ionicons name="star" size={13} color={Colors.white} />
-
-                <Text style={styles.ratingValue}>{restaurant.rating}</Text>
-              </View>
-
-              <Text style={styles.statLabel}>{restaurant.reviews} ratings</Text>
-            </View>
-
-            <View style={styles.statDivider} />
-
-            {/* DELIVERY */}
-
-            <View style={styles.statItem}>
-              <Ionicons name="time-outline" size={18} color={Colors.primary} />
-
-              <Text style={styles.statValue}>{restaurant.time}</Text>
-
-              <Text style={styles.statLabel}>Delivery</Text>
-            </View>
-
-            <View style={styles.statDivider} />
-
-            {/* PRICE */}
-
-            <View style={styles.statItem}>
-              <Ionicons
-                name="wallet-outline"
-                size={18}
-                color={Colors.primary}
-              />
-
-              <Text style={styles.statValue}>
-                {restaurant.price.replace(" for two", "")}
-              </Text>
-
-              <Text style={styles.statLabel}>for two</Text>
-            </View>
-          </View>
-
-          {/* ADDRESS */}
-
-          <TouchableOpacity style={styles.addressContainer} activeOpacity={0.8}>
-            <Ionicons
-              name="location-outline"
-              size={20}
-              color={Colors.primary}
-            />
-
-            <Text style={styles.addressText} numberOfLines={1}>
-              {restaurant.address}
-            </Text>
-
-            <Ionicons
-              name="chevron-forward"
-              size={18}
-              color={Colors.textMuted}
-            />
-          </TouchableOpacity>
-
-          {/* QUICK ACTIONS */}
-
-          <View style={styles.quickActions}>
-            <TouchableOpacity
-              style={styles.quickActionButton}
-              activeOpacity={0.8}
-              onPress={handleCall}
-            >
-              <Ionicons name="call-outline" size={20} color={Colors.primary} />
-
-              <Text style={styles.quickActionText}>Call</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.quickActionButton}
-              activeOpacity={0.8}
-              onPress={handleDirections}
-            >
-              <Ionicons
-                name="location-outline"
-                size={20}
-                color={Colors.primary}
-              />
-
-              <Text style={styles.quickActionText}>Directions</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.quickActionButton, styles.quickActionPrimary]}
-              activeOpacity={0.8}
-              onPress={handleTableBooking}
-            >
-              <Ionicons
-                name="calendar-outline"
-                size={20}
-                color={Colors.primary}
-              />
-
-              <Text style={styles.quickActionText}>Table Booking</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* ==================================================
-            OFFER
-        ================================================== */}
-
-        <View style={styles.offerCard}>
-          <View style={styles.offerIcon}>
-            <Ionicons name="pricetag" size={19} color={Colors.white} />
-          </View>
-
-          <View style={styles.offerContent}>
-            <Text style={styles.offerTitle}>{restaurant.offerText}</Text>
-
-            <Text style={styles.offerSubtitle}>
-              Use code {restaurant.offerCode} above ₹299
-            </Text>
-          </View>
-
-          <TouchableOpacity style={styles.applyButton} activeOpacity={0.8}>
-            <Text style={styles.applyText}>APPLY</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* ==================================================
-            MENU HEADER
-        ================================================== */}
-
-        <View style={styles.menuHeader}>
-          <View>
-            <Text style={styles.menuTitle}>Menu</Text>
-
-            <Text style={styles.menuSubtitle}>
-              {Object.values(restaurant.menu).flat().length} items
-            </Text>
-          </View>
-        </View>
-
-        {/* ==================================================
-            MENU CATEGORIES
-        ================================================== */}
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.menuCategoryList}
-        >
-          {menuCategories.map((category) => {
-            const active = selectedCategory === category;
-
-            return (
-              <TouchableOpacity
-                key={category}
-                style={[
-                  styles.menuCategoryButton,
-                  active && styles.activeMenuCategoryButton,
-                ]}
-                onPress={() => setSelectedCategory(category)}
-                activeOpacity={0.8}
+            {selectedProduct ? (
+              <ScrollView
+                showsVerticalScrollIndicator={
+                  false
+                }
+                contentContainerStyle={{
+                  paddingBottom: 20,
+                }}
               >
+                <Image
+                  source={
+                    selectedProductImage
+                  }
+                  style={
+                    styles.productModalImage
+                  }
+                  resizeMode="cover"
+                />
+
                 <Text
                   style={[
-                    styles.menuCategoryText,
-                    active && styles.activeMenuCategoryText,
+                    styles.productModalName,
+                    {
+                      color:
+                        colors.text,
+                    },
                   ]}
                 >
-                  {category}
+                  {
+                    selectedProductName
+                  }
                 </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
 
-        {/* ==================================================
-            MENU ITEMS
-        ================================================== */}
+                <View
+                  style={
+                    styles.productModalRating
+                  }
+                >
+                  <Ionicons
+                    name="star"
+                    size={16}
+                    color="#F5B51B"
+                  />
 
-        <View style={styles.menuList}>{currentItems.map(renderMenuItem)}</View>
-      </ScrollView>
+                  <Text
+                    style={[
+                      styles.productModalRatingText,
+                      {
+                        color:
+                          colors.textSecondary ||
+                          "#8F8F8F",
+                      },
+                    ]}
+                  >
+                    {getFirstValue(
+                      selectedProduct?.rating,
+                      selectedProduct?.avg_rating,
+                      selectedProduct?.average_rating,
+                      selectedMenuItem?.rating,
+                      "4.5"
+                    )}
+                  </Text>
+                </View>
 
-      {/* =====================================================
-          CART BAR
-      ===================================================== */}
+                <Text
+                  style={[
+                    styles.productModalPrice,
+                    {
+                      color:
+                        colors.primary ||
+                        "#F9080C",
+                    },
+                  ]}
+                >
+                  ₹
+                  {selectedProductPrice.toFixed(
+                    0
+                  )}
+                </Text>
 
-      {cartCount > 0 && (
-        <View style={styles.cartBar}>
-          <View>
-            <Text style={styles.cartCount}>
-              {cartCount} {cartCount === 1 ? "item" : "items"}
-            </Text>
+                <Text
+                  style={[
+                    styles.productModalDescription,
+                    {
+                      color:
+                        colors.textSecondary ||
+                        "#8F8F8F",
+                    },
+                  ]}
+                >
+                  {
+                    selectedProductDescription
+                  }
+                </Text>
 
-            <Text style={styles.cartTotal}>₹{total}</Text>
+                {/* CATEGORY */}
+
+                {getFirstValue(
+                  selectedProduct?.category?.name,
+                  selectedProduct?.category_name,
+                  typeof selectedProduct?.category ===
+                    "string"
+                    ? selectedProduct.category
+                    : ""
+                ) ? (
+                  <View
+                    style={
+                      styles.productInfoRow
+                    }
+                  >
+                    <Ionicons
+                      name="restaurant-outline"
+                      size={18}
+                      color={
+                        colors.primary ||
+                        "#F9080C"
+                      }
+                    />
+
+                    <Text
+                      style={[
+                        styles.productInfoText,
+                        {
+                          color:
+                            colors.text,
+                        },
+                      ]}
+                    >
+                      {getFirstValue(
+                        selectedProduct?.category?.name,
+                        selectedProduct?.category_name,
+                        typeof selectedProduct?.category ===
+                          "string"
+                          ? selectedProduct.category
+                          : ""
+                      )}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {/* PRODUCT ID */}
+
+                {selectedProductId ? (
+                  <View
+                    style={
+                      styles.productInfoRow
+                    }
+                  >
+                    <Ionicons
+                      name="barcode-outline"
+                      size={18}
+                      color={
+                        colors.primary ||
+                        "#F9080C"
+                      }
+                    />
+
+                    <Text
+                      style={[
+                        styles.productInfoText,
+                        {
+                          color:
+                            colors.textSecondary ||
+                            "#8F8F8F",
+                        },
+                      ]}
+                    >
+                      Product ID:{" "}
+                      {
+                        selectedProductId
+                      }
+                    </Text>
+                  </View>
+                ) : null}
+
+                {/* ADD TO CART */}
+
+                <TouchableOpacity
+                  style={[
+                    styles.modalAddButton,
+                    {
+                      backgroundColor:
+                        colors.primary ||
+                        "#F9080C",
+                    },
+                  ]}
+                  onPress={() => {
+                    if (
+                      selectedProductId ===
+                        undefined ||
+                      selectedProductId ===
+                        null ||
+                      selectedProductId ===
+                        ""
+                    ) {
+                      Alert.alert(
+                        "Cart",
+                        "Product ID is missing."
+                      );
+
+                      return;
+                    }
+
+                    /*
+                     * Use the menu item ID first.
+                     * This keeps the quantity/cart total
+                     * connected to the menu item that
+                     * the user clicked.
+                     */
+                    const cartItemId =
+                      selectedMenuItem?.id ||
+                      selectedMenuItem?.product_id ||
+                      selectedProductId;
+
+                    increaseQuantity(
+                      String(
+                        cartItemId
+                      )
+                    );
+
+                    closeProductModal();
+                  }}
+                >
+                  <Ionicons
+                    name="cart-outline"
+                    size={20}
+                    color="#FFFFFF"
+                  />
+
+                  <Text
+                    style={
+                      styles.modalAddButtonText
+                    }
+                  >
+                    Add to Cart
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+            ) : (
+              <View
+                style={
+                  styles.productEmpty
+                }
+              >
+                <Ionicons
+                  name="fast-food-outline"
+                  size={50}
+                  color={
+                    colors.textSecondary ||
+                    "#8F8F8F"
+                  }
+                />
+
+                <Text
+                  style={[
+                    styles.productEmptyText,
+                    {
+                      color:
+                        colors.textSecondary ||
+                        "#8F8F8F",
+                    },
+                  ]}
+                >
+                  Product details unavailable.
+                </Text>
+              </View>
+            )}
           </View>
+        </View>
+      </Modal>
 
-          <TouchableOpacity
-            style={styles.viewCartButton}
-            activeOpacity={0.85}
-            onPress={() => router.push("/CartScreen")}
+      {/* ===================================================
+          PRODUCT API LOADING OVERLAY
+
+          ONLY ONE LOADING OVERLAY
+      =================================================== */}
+
+      {productLoading && (
+        <View
+          style={
+            styles.productLoadingOverlay
+          }
+        >
+          <View
+            style={[
+              styles.productLoadingBox,
+              {
+                backgroundColor:
+                  colors.card ||
+                  colors.surface ||
+                  "#202020",
+              },
+            ]}
           >
-            <Text style={styles.viewCartText}>VIEW CART</Text>
+            <ActivityIndicator
+              size="large"
+              color={
+                colors.primary ||
+                "#F9080C"
+              }
+            />
 
-            <Ionicons name="arrow-forward" size={17} color={Colors.white} />
-          </TouchableOpacity>
+            <Text
+              style={[
+                styles.productLoadingOverlayText,
+                {
+                  color:
+                    colors.text,
+                },
+              ]}
+            >
+              Loading product...
+            </Text>
+          </View>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
-};
+}
 
-export default RestaurantDetails;
-
-// ============================================================
+// =========================================================
 // STYLES
-// ============================================================
-
-const createStyles = (Colors) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: Colors.background,
-    },
-
-    scrollContent: {
-      paddingBottom: 30,
-    },
-
-    // ==========================================================
-    // ERROR
-    // ==========================================================
-
-    errorContainer: {
-      flex: 1,
-      backgroundColor: Colors.background,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: 30,
-    },
-
-    errorTitle: {
-      color: Colors.textPrimary,
-      fontFamily: Fonts.bold,
-      fontSize: Fonts.size.lg,
-      marginTop: 15,
-    },
-
-    backHomeButton: {
-      backgroundColor: Colors.primary,
-      paddingHorizontal: 25,
-      paddingVertical: 12,
-      borderRadius: 25,
-      marginTop: 20,
-    },
-
-    backHomeText: {
-      color: Colors.white,
-      fontFamily: Fonts.semiBold,
-    },
-
-    // ==========================================================
-    // HERO
-    // ==========================================================
-
-    heroContainer: {
-      width: "100%",
-      height: 230,
-      backgroundColor: Colors.surface,
-      position: "relative",
-    },
-
-    heroImage: {
-      width: "100%",
-      height: "100%",
-    },
-
-    heroOverlay: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: "rgba(0,0,0,0.25)",
-    },
-
-    backButton: {
-      position: "absolute",
-      top: 18,
-      left: 12,
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: "rgba(0,0,0,0.7)",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    heroActions: {
-      position: "absolute",
-      top: 18,
-      right: 12,
-      flexDirection: "row",
-      gap: 8,
-    },
-
-    actionButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: "rgba(0,0,0,0.7)",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    openBadge: {
-      position: "absolute",
-      bottom: 12,
-      left: 12,
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: "rgba(0,0,0,0.78)",
-      paddingHorizontal: 8,
-      paddingVertical: 5,
-      borderRadius: 5,
-    },
-
-    openDot: {
-      width: 6,
-      height: 6,
-      borderRadius: 3,
-      backgroundColor: Colors.success,
-      marginRight: 5,
-    },
-
-    openText: {
-      color: Colors.white,
-      fontFamily: Fonts.bold,
-      fontSize: 8,
-    },
-
-    // ==========================================================
-    // RESTAURANT INFO
-    // ==========================================================
-
-    restaurantInfo: {
-      paddingHorizontal: 15,
-      paddingTop: 15,
-    },
-
-    restaurantName: {
-      color: Colors.textPrimary,
-      fontFamily: Fonts.extraBold,
-      fontSize: 24,
-    },
-
-    restaurantCuisine: {
-      color: Colors.textSecondary,
-      fontFamily: Fonts.regular,
-      fontSize: 15,
-      marginTop: 4,
-    },
-
-    // ==========================================================
-    // STATS
-    // ==========================================================
-
-    statsContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: Colors.surface,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: Colors.border,
-      marginTop: 15,
-      paddingVertical: 13,
-    },
-
-    statItem: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    statDivider: {
-      width: 1,
-      height: 38,
-      backgroundColor: Colors.divider,
-    },
-
-    ratingBox: {
-      backgroundColor: Colors.success,
-      paddingHorizontal: 7,
-      paddingVertical: 4,
-      borderRadius: 5,
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 3,
-    },
-
-    ratingValue: {
-      color: Colors.white,
-      fontFamily: Fonts.bold,
-      fontSize: 12,
-    },
-
-    statValue: {
-      color: Colors.success,
-      fontFamily: Fonts.semiBold,
-      fontSize: 15,
-      marginTop: 3,
-    },
-
-    statLabel: {
-      color: Colors.textPrimary,
-      fontFamily: Fonts.medium,
-      fontSize: 14,
-      marginTop: 3,
-    },
-
-    // ==========================================================
-    // ADDRESS
-    // ==========================================================
-
-    addressContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: Colors.surface,
-      borderRadius: 10,
-      paddingHorizontal: 12,
-      paddingVertical: 13,
-      marginTop: 10,
-      borderWidth: 1,
-      borderColor: Colors.border,
-    },
-
-    addressText: {
-      flex: 1,
-      color: Colors.warningDark,
-      fontFamily: Fonts.regular,
-      fontSize: 16,
-      marginHorizontal: 8,
-    },
-
-    // ==========================================================
-    // QUICK ACTIONS
-    // ==========================================================
-
-    quickActions: {
-      flexDirection: "row",
-      gap: 10,
-      marginTop: 10,
-    },
-
-    quickActionButton: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: 12,
-      borderRadius: 10,
-      backgroundColor: Colors.surface,
-      borderWidth: 1,
-      borderColor: Colors.border,
-      gap: 4,
-    },
-
-    quickActionPrimary: {
-      borderColor: Colors.primary,
-    },
-
-    quickActionText: {
-      color: Colors.textPrimary,
-      fontFamily: Fonts.semiBold,
-      fontSize: 13,
-    },
-
-    // ==========================================================
-    // OFFER
-    // ==========================================================
-
-    offerCard: {
-      marginHorizontal: 15,
-      marginTop: 15,
-      backgroundColor: "rgba(255,32,40,0.10)",
-      borderWidth: 1,
-      borderColor: "rgba(255,32,40,0.35)",
-      borderRadius: 12,
-      padding: 10,
-      flexDirection: "row",
-      alignItems: "center",
-    },
-
-    offerIcon: {
-      width: 38,
-      height: 38,
-      borderRadius: 19,
-      backgroundColor: Colors.info,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    offerContent: {
-      flex: 1,
-      marginLeft: 10,
-    },
-
-    offerTitle: {
-      color: Colors.info,
-      fontFamily: Fonts.bold,
-      fontSize: 14,
-    },
-
-    offerSubtitle: {
-      color: Colors.textSecondary,
-      fontFamily: Fonts.regular,
-      fontSize: 12,
-      marginTop: 3,
-    },
-
-    applyButton: {
-      paddingHorizontal: 8,
-      paddingVertical: 6,
-    },
-
-    applyText: {
-      color: Colors.primary,
-      fontFamily: Fonts.bold,
-      fontSize: 14,
-    },
-
-    // ==========================================================
-    // MENU HEADER
-    // ==========================================================
-
-    menuHeader: {
-      paddingHorizontal: 15,
-      marginTop: 20,
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
-
-    menuTitle: {
-      color: Colors.textPrimary,
-      fontFamily: Fonts.bold,
-      fontSize: 22,
-    },
-
-    menuSubtitle: {
-      color: Colors.orangeDark,
-      fontFamily: Fonts.medium,
-      fontSize: 17,
-      marginTop: 2,
-    },
-
-    // ==========================================================
-    // MENU CATEGORIES
-    // ==========================================================
-
-    menuCategoryList: {
-      paddingHorizontal: 15,
-      paddingTop: 12,
-      paddingBottom: 12,
-      gap: 8,
-    },
-
-    menuCategoryButton: {
-      paddingHorizontal: 14,
-      height: 34,
-      borderRadius: 17,
-      backgroundColor: Colors.surface,
-      borderWidth: 1,
-      borderColor: Colors.border,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    activeMenuCategoryButton: {
-      backgroundColor: Colors.primary,
-      borderColor: Colors.primary,
-    },
-
-    menuCategoryText: {
-      color: Colors.textSecondary,
-      fontFamily: Fonts.medium,
-      fontSize: 16,
-    },
-
-    activeMenuCategoryText: {
-      color: Colors.white,
-      fontFamily: Fonts.bold,
-    },
-
-    // ==========================================================
-    // MENU
-    // ==========================================================
-
-    menuList: {
-      paddingHorizontal: 15,
-    },
-
-    menuItem: {
-      minHeight: 150,
-      paddingVertical: 14,
-      borderBottomWidth: 1,
-      borderBottomColor: Colors.divider,
-      flexDirection: "row",
-    },
-
-    // Image is now on the left, so the gap goes on the LEFT of the details
-    menuItemDetails: {
-      flex: 1,
-      paddingLeft: 12,
-    },
-
-    vegIndicator: {
-      width: 14,
-      height: 14,
-      borderRadius: 3,
-      borderWidth: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: 6,
-    },
-
-    vegIndicatorDot: {
-      width: 6,
-      height: 6,
-      borderRadius: 3,
-    },
-
-    menuItemName: {
-      color: Colors.textPrimary,
-      fontFamily: Fonts.bold,
-      fontSize: 19,
-      lineHeight: 19,
-    },
-
-    menuItemPrice: {
-      color: Colors.gold,
-      fontFamily: Fonts.semiBold,
-      fontSize: 14,
-      marginTop: 4,
-    },
-
-    menuItemDescription: {
-      color: Colors.textMuted,
-      fontFamily: Fonts.medium,
-      fontSize: 16,
-      lineHeight: 14,
-      marginTop: 5,
-    },
-
-    itemRating: {
-      color: Colors.rating,
-      fontFamily: Fonts.medium,
-      fontSize: 9,
-      marginTop: 7,
-    },
-
-    // ==========================================================
-    // MENU IMAGE
-    // ==========================================================
-
-    menuImageContainer: {
-      width: 120,
-      height: 120,
-      position: "relative",
-    },
-
-    menuItemImage: {
-      width: 120,
-      height: 100,
-      borderRadius: 10,
-    },
-
-    addButton: {
-      position: "absolute",
-      bottom: 5,
-      left: 16,
-      right: 16,
-      height: 34,
-      borderRadius: 8,
-      backgroundColor: Colors.primaryDark,
-      borderWidth: 1,
-      borderColor: Colors.primary,
-      alignItems: "center",
-      justifyContent: "center",
-      elevation: 4,
-    },
-
-    addButtonText: {
-      color: Colors.white,
-      fontFamily: Fonts.bold,
-      fontSize: 15,
-    },
-
-    quantityContainer: {
-      position: "absolute",
-      bottom: 5,
-      left: 8,
-      right: 8,
-      height: 34,
-      borderRadius: 8,
-      backgroundColor: Colors.primary,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: 5,
-    },
-
-    quantityButton: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    quantityText: {
-      color: Colors.white,
-      fontFamily: Fonts.bold,
-      fontSize: 15,
-    },
-
-    // ==========================================================
-    // CART BAR
-    // ==========================================================
-
-    cartBar: {
-      position: "absolute",
-      left: 10,
-      right: 10,
-      bottom: 10,
-      minHeight: 62,
-      backgroundColor: Colors.primary,
-      borderRadius: 15,
-      paddingHorizontal: 15,
-      paddingVertical: 9,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      elevation: 8,
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 4,
-      },
-      shadowOpacity: 0.4,
-      shadowRadius: 8,
-    },
-
-    cartCount: {
-      color: Colors.white,
-      fontFamily: Fonts.medium,
-      fontSize: 15,
-    },
-
-    cartTotal: {
-      color: Colors.white,
-      fontFamily: Fonts.extraBold,
-      fontSize: 19,
-      marginTop: 2,
-    },
-
-    viewCartButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 7,
-      paddingHorizontal: 13,
-      paddingVertical: 9,
-      backgroundColor: Colors.primaryDark,
-      borderRadius: 10,
-    },
-
-    viewCartText: {
-      color: Colors.white,
-      fontFamily: Fonts.bold,
-      fontSize: 15,
-    },
-  });
+// =========================================================
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+
+  header: {
+    height: 58,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+  },
+
+  headerButton: {
+    width: 42,
+    height: 42,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  headerTitle: {
+    flex: 1,
+    textAlign: "center",
+    fontSize: 18,
+    marginHorizontal: 8,
+  },
+
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  loadingText: {
+    marginTop: 14,
+    fontSize: 15,
+  },
+
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 30,
+  },
+
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginTop: 15,
+  },
+
+  emptyMessage: {
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: 8,
+  },
+
+  retryButton: {
+    marginTop: 20,
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+
+  retryText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+
+  errorBox: {
+    margin: 12,
+    padding: 12,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  errorTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+
+  errorText: {
+    fontSize: 12,
+    marginTop: 3,
+  },
+
+  retrySmall: {
+    fontSize: 13,
+    fontWeight: "700",
+  },
+
+  heroContainer: {
+    height: 230,
+    width: "100%",
+    position: "relative",
+  },
+
+  heroImage: {
+    width: "100%",
+    height: "100%",
+  },
+
+  imageOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 90,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+
+  offerBadge: {
+    position: "absolute",
+    bottom: 15,
+    left: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#F9080C",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+
+  offerBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+
+  restaurantInfo: {
+    margin: 12,
+    padding: 16,
+    borderRadius: 16,
+  },
+
+  restaurantName: {
+    fontSize: 24,
+  },
+
+  cuisine: {
+    marginTop: 5,
+    fontSize: 14,
+  },
+
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 16,
+    flexWrap: "wrap",
+    gap: 8,
+  },
+
+  infoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+
+  ratingBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    borderRadius: 5,
+    gap: 3,
+    backgroundColor: "#15803D",
+  },
+
+  ratingText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+
+  infoText: {
+    fontSize: 12,
+  },
+
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#777777",
+  },
+
+  addressRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginTop: 15,
+    gap: 8,
+  },
+
+  addressText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+
+  actionRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 16,
+  },
+
+  actionButton: {
+    flex: 1,
+    minHeight: 44,
+    borderWidth: 1,
+    borderRadius: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+  },
+
+  actionText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  offerCard: {
+    marginHorizontal: 12,
+    marginBottom: 6,
+    padding: 14,
+    borderRadius: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+
+  offerIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "rgba(245,181,27,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  offerTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+  },
+
+  offerDescription: {
+    fontSize: 12,
+    marginTop: 3,
+  },
+
+  offerCode: {
+    fontSize: 11,
+    fontWeight: "800",
+    marginTop: 5,
+  },
+
+  menuHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingTop: 15,
+    paddingBottom: 8,
+  },
+
+  menuTitle: {
+    fontSize: 23,
+  },
+
+  menuCount: {
+    fontSize: 13,
+  },
+
+  categoryContainer: {
+    marginTop: 7,
+  },
+
+  categoryTitle: {
+    fontSize: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+
+  foodCard: {
+    marginHorizontal: 12,
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    flexDirection: "row",
+    minHeight: 145,
+  },
+
+  foodDetails: {
+    flex: 1,
+    paddingRight: 12,
+  },
+
+  foodName: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
+  foodPrice: {
+    marginTop: 7,
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  foodRating: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 7,
+    gap: 4,
+  },
+
+  foodRatingText: {
+    fontSize: 11,
+  },
+
+  foodDescription: {
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 7,
+  },
+
+  foodImageContainer: {
+    width: 125,
+    height: 125,
+    position: "relative",
+  },
+
+  foodImage: {
+    width: 125,
+    height: 105,
+    borderRadius: 12,
+  },
+
+  addButton: {
+    position: "absolute",
+    bottom: 0,
+    left: 18,
+    right: 18,
+    height: 38,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  addButtonText: {
+    fontSize: 13,
+    fontWeight: "900",
+  },
+
+  quantityContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 4,
+    right: 4,
+    height: 38,
+    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  quantityButton: {
+    width: 35,
+    height: 38,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  quantityText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+
+  noMenuContainer: {
+    margin: 12,
+    minHeight: 180,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 25,
+  },
+
+  noMenuTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    marginTop: 10,
+  },
+
+  noMenuText: {
+    fontSize: 13,
+    textAlign: "center",
+    marginTop: 6,
+  },
+
+  cartBar: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    minHeight: 78,
+    borderTopWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  cartItems: {
+    fontSize: 12,
+  },
+
+  cartTotal: {
+    fontSize: 18,
+    fontWeight: "800",
+    marginTop: 2,
+  },
+
+  viewCartButton: {
+    minWidth: 145,
+    height: 48,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+
+  viewCartText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+
+  // =======================================================
+  // PRODUCT MODAL
+  // =======================================================
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.65)",
+    justifyContent: "flex-end",
+  },
+
+  productModal: {
+    width: "100%",
+    maxHeight: "85%",
+    minHeight: 300,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 16,
+  },
+
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+  },
+
+  productModalImage: {
+    width: "100%",
+    height: 220,
+    borderRadius: 16,
+  },
+
+  productModalName: {
+    fontSize: 23,
+    fontWeight: "800",
+    marginTop: 16,
+  },
+
+  productModalRating: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+    gap: 5,
+  },
+
+  productModalRatingText: {
+    fontSize: 13,
+  },
+
+  productModalPrice: {
+    fontSize: 21,
+    fontWeight: "800",
+    marginTop: 12,
+  },
+
+  productModalDescription: {
+    fontSize: 14,
+    lineHeight: 21,
+    marginTop: 12,
+  },
+
+  productInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 14,
+  },
+
+  productInfoText: {
+    flex: 1,
+    fontSize: 13,
+  },
+
+  modalAddButton: {
+    height: 50,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginTop: 22,
+    marginBottom: 20,
+  },
+
+  modalAddButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+
+  productEmpty: {
+    minHeight: 220,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  productEmptyText: {
+    fontSize: 14,
+    marginTop: 12,
+    textAlign: "center",
+  },
+
+  // =======================================================
+  // PRODUCT API LOADING
+  // =======================================================
+
+  productLoadingOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999,
+  },
+
+  productLoadingBox: {
+    minWidth: 180,
+    paddingHorizontal: 25,
+    paddingVertical: 22,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  productLoadingOverlayText: {
+    marginTop: 12,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+});

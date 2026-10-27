@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 
 import {
+  ActivityIndicator,
   Image,
   Modal,
   ScrollView,
@@ -17,75 +18,102 @@ import {
 import Fonts from "../../constants/Fonts";
 import { useTheme } from "../../hooks/use-theme";
 
+import {
+  getCategories,
+} from "../../utils/Function";
+
 // IMPORTANT:
 // Restaurant data stays inside ../Restaurant/[id].jsx
 import { restaurants } from "../Restaurant/[id]";
 
 /* ============================================================
-   CATEGORIES
+   FALLBACK CATEGORY IMAGES
 ============================================================ */
 
-const categories = [
+const FALLBACK_CATEGORY_IMAGES = {
+  all: require("../../../assets/images/all.png"),
+  dosa: require("../../../assets/images/dosa.png"),
+  "south indian": require("../../../assets/images/south_indian.png"),
+  "south-indian": require("../../../assets/images/south_indian.png"),
+  biryani: require("../../../assets/images/biryani.png"),
+  idli: require("../../../assets/images/idli.png"),
+  pizza: require("../../../assets/images/pizza.png"),
+  burgers: require("../../../assets/images/burgers.png"),
+  burger: require("../../../assets/images/burgers.png"),
+  chinese: require("../../../assets/images/chinese.png"),
+  chicken: require("../../../assets/images/fried_chicken.jpg"),
+  "fried chicken": require("../../../assets/images/fried_chicken.jpg"),
+  desserts: require("../../../assets/images/desserts.png"),
+  dessert: require("../../../assets/images/desserts.png"),
+  drinks: require("../../../assets/images/drinks.png"),
+  drink: require("../../../assets/images/drinks.png"),
+};
+
+/* ============================================================
+   DEFAULT / FALLBACK CATEGORIES
+============================================================ */
+
+const DEFAULT_CATEGORIES = [
   {
     id: "all",
     name: "All",
-    image: require("../../../assets/images/all.png"),
+    image: FALLBACK_CATEGORY_IMAGES.all,
   },
   {
     id: "dosa",
     name: "Dosa",
-    image: require("../../../assets/images/dosa.png"),
+    image: FALLBACK_CATEGORY_IMAGES.dosa,
   },
   {
     id: "south-indian",
     name: "South Indian",
-    image: require("../../../assets/images/south_indian.png"),
+    image: FALLBACK_CATEGORY_IMAGES["south indian"],
   },
   {
     id: "biryani",
     name: "Biryani",
-    image: require("../../../assets/images/biryani.png"),
+    image: FALLBACK_CATEGORY_IMAGES.biryani,
   },
   {
     id: "idli",
     name: "Idli",
-    image: require("../../../assets/images/idli.png"),
+    image: FALLBACK_CATEGORY_IMAGES.idli,
   },
   {
     id: "pizza",
     name: "Pizza",
-    image: require("../../../assets/images/pizza.png"),
+    image: FALLBACK_CATEGORY_IMAGES.pizza,
   },
   {
     id: "burgers",
     name: "Burgers",
-    image: require("../../../assets/images/burgers.png"),
+    image: FALLBACK_CATEGORY_IMAGES.burgers,
   },
   {
     id: "chinese",
     name: "Chinese",
-    image: require("../../../assets/images/chinese.png"),
+    image: FALLBACK_CATEGORY_IMAGES.chinese,
   },
   {
     id: "chicken",
     name: "Chicken",
-    image: require("../../../assets/images/fried_chicken.jpg"),
+    image: FALLBACK_CATEGORY_IMAGES.chicken,
   },
   {
     id: "desserts",
     name: "Desserts",
-    image: require("../../../assets/images/desserts.png"),
+    image: FALLBACK_CATEGORY_IMAGES.desserts,
   },
   {
     id: "drinks",
     name: "Drinks",
-    image: require("../../../assets/images/drinks.png"),
+    image: FALLBACK_CATEGORY_IMAGES.drinks,
   },
 ];
 
-// ============================================================
-// POPULAR CUISINES
-// ============================================================
+/* ============================================================
+   POPULAR CUISINES
+============================================================ */
 
 const popularCuisines = [
   {
@@ -157,22 +185,213 @@ const getPrice = (price) => {
 };
 
 /* ============================================================
+   EXTRACT CATEGORY LIST
+============================================================ */
+
+const extractCategoryList = (response) => {
+  if (!response) {
+    return [];
+  }
+
+  // Response itself is array
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  // { data: [] }
+  if (Array.isArray(response?.data)) {
+    return response.data;
+  }
+
+  // { data: { data: [] } }
+  if (Array.isArray(response?.data?.data)) {
+    return response.data.data;
+  }
+
+  // { categories: [] }
+  if (Array.isArray(response?.categories)) {
+    return response.categories;
+  }
+
+  // { data: { categories: [] } }
+  if (Array.isArray(response?.data?.categories)) {
+    return response.data.categories;
+  }
+
+  // { result: [] }
+  if (Array.isArray(response?.result)) {
+    return response.result;
+  }
+
+  return [];
+};
+
+/* ============================================================
+   GET IMAGE URL
+============================================================ */
+
+const getCategoryImage = (category) => {
+  if (!category) {
+    return FALLBACK_CATEGORY_IMAGES.all;
+  }
+
+  const categoryName = normalize(
+    category?.name ||
+      category?.category_name ||
+      category?.title ||
+      category?.slug ||
+      "",
+  );
+
+  const apiImage =
+    category?.image_url ||
+    category?.imageUrl ||
+    category?.image ||
+    category?.icon ||
+    category?.category_image ||
+    category?.categoryImage ||
+    category?.photo ||
+    category?.thumbnail ||
+    "";
+
+  /* ----------------------------------------------------------
+     ABSOLUTE IMAGE URL
+  ---------------------------------------------------------- */
+
+  if (
+    typeof apiImage === "string" &&
+    /^https?:\/\//i.test(apiImage)
+  ) {
+    return {
+      uri: apiImage,
+    };
+  }
+
+  /* ----------------------------------------------------------
+     RELATIVE IMAGE URL
+  ---------------------------------------------------------- */
+
+  if (
+    typeof apiImage === "string" &&
+    apiImage.trim().length > 0
+  ) {
+    let cleanPath = apiImage
+      .trim()
+      .replace(/^\/+/, "");
+
+    /*
+     * APP_URL:
+     *
+     * http://192.168.x.x:8001/api/customer/
+     *
+     * We need only the base URL.
+     */
+
+    const baseUrl = String(APP_URL || "").replace(
+      /\/api\/customer\/?$/,
+      "",
+    );
+
+    if (cleanPath.startsWith("storage/")) {
+      return {
+        uri: `${baseUrl}/${cleanPath}`,
+      };
+    }
+
+    return {
+      uri: `${baseUrl}/${cleanPath}`,
+    };
+  }
+
+  /* ----------------------------------------------------------
+     LOCAL FALLBACK
+  ---------------------------------------------------------- */
+
+  if (FALLBACK_CATEGORY_IMAGES[categoryName]) {
+    return FALLBACK_CATEGORY_IMAGES[categoryName];
+  }
+
+  const fallbackKey = Object.keys(
+    FALLBACK_CATEGORY_IMAGES,
+  ).find(
+    (key) =>
+      categoryName.includes(key) ||
+      key.includes(categoryName),
+  );
+
+  if (fallbackKey) {
+    return FALLBACK_CATEGORY_IMAGES[fallbackKey];
+  }
+
+  return FALLBACK_CATEGORY_IMAGES.all;
+};
+
+/* ============================================================
+   NORMALIZE API CATEGORIES
+============================================================ */
+
+const normalizeCategories = (response) => {
+  const apiCategories = extractCategoryList(response);
+
+  console.log(
+    "CATEGORY ARRAY LENGTH:",
+    apiCategories.length,
+  );
+
+  const validCategories = apiCategories
+    .filter((item) => item)
+    .filter((item) => {
+      const name =
+        item?.name ||
+        item?.category_name ||
+        item?.title ||
+        item?.slug;
+
+      return Boolean(name);
+    })
+    .map((item, index) => {
+      const id =
+        item?.id ??
+        item?.category_id ??
+        item?.categoryId ??
+        item?.slug ??
+        index + 1;
+
+      const name =
+        item?.name ||
+        item?.category_name ||
+        item?.title ||
+        item?.slug ||
+        `Category ${index + 1}`;
+
+      return {
+        id: String(id),
+        name: String(name),
+        image: getCategoryImage(item),
+        original: item,
+      };
+    });
+
+  return [
+    {
+      id: "all",
+      name: "All",
+      image: FALLBACK_CATEGORY_IMAGES.all,
+    },
+    ...validCategories,
+  ];
+};
+
+/* ============================================================
    RESTAURANT DATA
 ============================================================ */
 
-/*
-  IMPORTANT:
-
-  restaurants comes directly from:
-  app/Restaurant/[id].jsx
-
-  We are NOT creating another restaurant data file.
-  We are NOT duplicating restaurant names.
-*/
-
-const restaurantList = Object.values(restaurants || {}).map((restaurant) => {
+const restaurantList = Object.values(
+  restaurants || {},
+).map((restaurant) => {
   const menu =
-    restaurant?.menu && typeof restaurant.menu === "object"
+    restaurant?.menu &&
+    typeof restaurant.menu === "object"
       ? restaurant.menu
       : {};
 
@@ -181,7 +400,10 @@ const restaurantList = Object.values(restaurants || {}).map((restaurant) => {
   const allVeg =
     typeof restaurant?.isVeg === "boolean"
       ? restaurant.isVeg
-      : menuItems.length > 0 && menuItems.every((item) => item?.isVeg === true);
+      : menuItems.length > 0 &&
+        menuItems.every(
+          (item) => item?.isVeg === true,
+        );
 
   return {
     ...restaurant,
@@ -204,40 +426,197 @@ const restaurantList = Object.values(restaurants || {}).map((restaurant) => {
 
 export default function ExploreScreen() {
   const params = useLocalSearchParams();
+
   const { colors: Colors, isDark } = useTheme();
-  const styles = useMemo(() => makeStyles(Colors, isDark), [Colors, isDark]);
+
+  const styles = useMemo(
+    () => makeStyles(Colors, isDark),
+    [Colors, isDark],
+  );
 
   /* ==========================================================
      PARAMS
   ========================================================== */
 
-  const incomingSearch = typeof params.search === "string" ? params.search : "";
+  const incomingSearch =
+    typeof params.search === "string"
+      ? params.search
+      : "";
 
   const incomingCategory =
-    typeof params.category === "string" ? params.category : "All";
+    typeof params.category === "string"
+      ? params.category
+      : "All";
+
+  const incomingCategoryId =
+    typeof params.categoryId === "string"
+      ? params.categoryId
+      : "";
 
   /* ==========================================================
      STATE
   ========================================================== */
 
-  const [searchText, setSearchText] = useState(incomingSearch);
+  const [searchText, setSearchText] =
+    useState(incomingSearch);
 
-  const [selectedCategory, setSelectedCategory] = useState(incomingCategory);
+  const [selectedCategory, setSelectedCategory] =
+    useState(incomingCategory);
 
-  const [selectedFilter, setSelectedFilter] = useState("All");
+  const [selectedCategoryId, setSelectedCategoryId] =
+    useState(incomingCategoryId);
 
-  const [sortBy, setSortBy] = useState("default");
+  const [categories, setCategories] =
+    useState(DEFAULT_CATEGORIES);
 
-  const [favorites, setFavorites] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] =
+    useState(false);
 
-  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [categoriesError, setCategoriesError] =
+    useState("");
 
-  const [tempFilter, setTempFilter] = useState("All");
+  const [selectedFilter, setSelectedFilter] =
+    useState("All");
 
-  const [tempSort, setTempSort] = useState("default");
+  const [sortBy, setSortBy] =
+    useState("default");
+
+  const [favorites, setFavorites] =
+    useState([]);
+
+  const [showFilterModal, setShowFilterModal] =
+    useState(false);
+
+  const [tempFilter, setTempFilter] =
+    useState("All");
+
+  const [tempSort, setTempSort] =
+    useState("default");
 
   /* ==========================================================
-     UPDATE PARAMS
+     CATEGORIES GET API
+  ========================================================== */
+
+  const loadCategories = async () => {
+    try {
+      setCategoriesLoading(true);
+      setCategoriesError("");
+
+      console.log(
+        "====================================",
+      );
+      console.log(
+        "EXPLORE SCREEN - CATEGORIES API",
+      );
+      console.log(
+        "METHOD: GET",
+      );
+      console.log(
+        "FUNCTION: getCategories()",
+      );
+      console.log(
+        "====================================",
+      );
+
+      const response = await getCategories();
+
+      console.log(
+        "====================================",
+      );
+      console.log(
+        "CATEGORIES API RESPONSE",
+      );
+      console.log(
+        JSON.stringify(response, null, 2),
+      );
+      console.log(
+        "====================================",
+      );
+
+      const apiCategories =
+        normalizeCategories(response);
+
+      if (apiCategories.length > 1) {
+        console.log(
+          "API CATEGORIES USED:",
+          apiCategories.length,
+        );
+
+        setCategories(apiCategories);
+
+        /*
+         * Match incoming categoryId from HomeScreen.
+         */
+
+        if (incomingCategoryId) {
+          const matchedCategory =
+            apiCategories.find(
+              (item) =>
+                String(item.id) ===
+                String(incomingCategoryId),
+            );
+
+          if (matchedCategory) {
+            setSelectedCategory(
+              matchedCategory.name,
+            );
+
+            setSelectedCategoryId(
+              String(matchedCategory.id),
+            );
+          }
+        }
+      } else {
+        console.log(
+          "No API categories found.",
+        );
+
+        console.log(
+          "Using fallback categories.",
+        );
+
+        setCategories(
+          DEFAULT_CATEGORIES,
+        );
+      }
+    } catch (error) {
+      console.log(
+        "====================================",
+      );
+      console.log(
+        "CATEGORIES API ERROR",
+      );
+      console.log(
+        "MESSAGE:",
+        error?.message,
+      );
+      console.log(
+        "====================================",
+      );
+
+      setCategoriesError(
+        error?.message ||
+          "Unable to load categories.",
+      );
+
+      setCategories(
+        DEFAULT_CATEGORIES,
+      );
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
+  /* ==========================================================
+     CALL CATEGORY API
+  ========================================================== */
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  /* ==========================================================
+     UPDATE ROUTE PARAMS
   ========================================================== */
 
   useEffect(() => {
@@ -248,14 +627,34 @@ export default function ExploreScreen() {
     if (typeof params.category === "string") {
       setSelectedCategory(params.category);
     }
-  }, [params.search, params.category]);
+
+    if (
+      typeof params.categoryId === "string"
+    ) {
+      setSelectedCategoryId(
+        params.categoryId,
+      );
+    }
+  }, [
+    params.search,
+    params.category,
+    params.categoryId,
+  ]);
 
   /* ==========================================================
-     CATEGORY
+     SELECT CATEGORY
   ========================================================== */
 
-  const selectCategory = (category) => {
-    setSelectedCategory(category);
+  const selectCategory = (
+    categoryName,
+    categoryId = "",
+  ) => {
+    setSelectedCategory(categoryName);
+
+    setSelectedCategoryId(
+      String(categoryId || ""),
+    );
+
     setSearchText("");
   };
 
@@ -266,7 +665,9 @@ export default function ExploreScreen() {
   const toggleFavorite = (id) => {
     setFavorites((previous) => {
       if (previous.includes(id)) {
-        return previous.filter((item) => item !== id);
+        return previous.filter(
+          (item) => item !== id,
+        );
       }
 
       return [...previous, id];
@@ -274,7 +675,7 @@ export default function ExploreScreen() {
   };
 
   /* ==========================================================
-     FILTERED RESTAURANTS
+     FILTER RESTAURANTS
   ========================================================== */
 
   const filteredRestaurants = useMemo(() => {
@@ -285,106 +686,169 @@ export default function ExploreScreen() {
     -------------------------------------------------------- */
 
     const search = normalize(searchText);
+
     const isRestaurantBrowseQuery =
-      search === "restaurant" || search === "restaurants";
+      search === "restaurant" ||
+      search === "restaurants";
 
-    if (search && !isRestaurantBrowseQuery) {
-      result = result.filter((restaurant) => {
-        const name = normalize(restaurant?.name);
+    if (
+      search &&
+      !isRestaurantBrowseQuery
+    ) {
+      result = result.filter(
+        (restaurant) => {
+          const name = normalize(
+            restaurant?.name,
+          );
 
-        const cuisine = normalize(restaurant?.cuisine);
+          const cuisine = normalize(
+            restaurant?.cuisine,
+          );
 
-        const address = normalize(restaurant?.address);
+          const address = normalize(
+            restaurant?.address,
+          );
 
-        const categoryText = (restaurant?.categories || [])
-          .map(normalize)
-          .join(" ");
+          const categoryText = (
+            restaurant?.categories || []
+          )
+            .map(normalize)
+            .join(" ");
 
-        const menu =
-          restaurant?.menu && typeof restaurant.menu === "object"
-            ? restaurant.menu
-            : {};
+          const menu =
+            restaurant?.menu &&
+            typeof restaurant.menu === "object"
+              ? restaurant.menu
+              : {};
 
-        const foodNames = Object.values(menu)
-          .flat()
-          .map((item) => normalize(item?.name))
-          .join(" ");
+          const foodNames =
+            Object.values(menu)
+              .flat()
+              .map((item) =>
+                normalize(item?.name),
+              )
+              .join(" ");
 
-        const foodDescriptions = Object.values(menu)
-          .flat()
-          .map((item) => normalize(item?.description))
-          .join(" ");
+          const foodDescriptions =
+            Object.values(menu)
+              .flat()
+              .map((item) =>
+                normalize(
+                  item?.description,
+                ),
+              )
+              .join(" ");
 
-        return (
-          name.includes(search) ||
-          cuisine.includes(search) ||
-          address.includes(search) ||
-          categoryText.includes(search) ||
-          foodNames.includes(search) ||
-          foodDescriptions.includes(search)
-        );
-      });
+          return (
+            name.includes(search) ||
+            cuisine.includes(search) ||
+            address.includes(search) ||
+            categoryText.includes(search) ||
+            foodNames.includes(search) ||
+            foodDescriptions.includes(search)
+          );
+        },
+      );
     }
 
     /* --------------------------------------------------------
        CATEGORY
     -------------------------------------------------------- */
 
-    if (selectedCategory && normalize(selectedCategory) !== "all") {
-      const category = normalize(selectedCategory);
+    if (
+      selectedCategory &&
+      normalize(selectedCategory) !== "all"
+    ) {
+      const category =
+        normalize(selectedCategory);
 
-      result = result.filter((restaurant) => {
-        const cuisineMatch = (restaurant?.categories || []).some((item) => {
-          const current = normalize(item);
-
-          return (
-            current === category ||
-            current.includes(category) ||
-            category.includes(current)
-          );
-        });
-
-        const menu =
-          restaurant?.menu && typeof restaurant.menu === "object"
-            ? restaurant.menu
-            : {};
-
-        const foodMatch = Object.values(menu)
-          .flat()
-          .some((item) => {
-            const itemName = normalize(item?.name);
-
-            const description = normalize(item?.description);
+      result = result.filter(
+        (restaurant) => {
+          const cuisineMatch = (
+            restaurant?.categories || []
+          ).some((item) => {
+            const current =
+              normalize(item);
 
             return (
-              itemName.includes(category) || description.includes(category)
+              current === category ||
+              current.includes(category) ||
+              category.includes(current)
             );
           });
 
-        return cuisineMatch || foodMatch;
-      });
+          const menu =
+            restaurant?.menu &&
+            typeof restaurant.menu === "object"
+              ? restaurant.menu
+              : {};
+
+          const foodMatch =
+            Object.values(menu)
+              .flat()
+              .some((item) => {
+                const itemName =
+                  normalize(item?.name);
+
+                const description =
+                  normalize(
+                    item?.description,
+                  );
+
+                return (
+                  itemName.includes(category) ||
+                  description.includes(category)
+                );
+              });
+
+          return (
+            cuisineMatch ||
+            foodMatch
+          );
+        },
+      );
     }
 
     /* --------------------------------------------------------
        FILTER
     -------------------------------------------------------- */
 
-    if (selectedFilter === "Pure Veg") {
-      result = result.filter((restaurant) => restaurant?.isVeg === true);
-    }
-
-    if (selectedFilter === "Rating 4.0+") {
-      result = result.filter((restaurant) => Number(restaurant?.rating) >= 4);
-    }
-
-    if (selectedFilter === "Fast Delivery") {
+    if (
+      selectedFilter === "Pure Veg"
+    ) {
       result = result.filter(
-        (restaurant) => getFirstMinutes(restaurant?.time) <= 30,
+        (restaurant) =>
+          restaurant?.isVeg === true,
       );
     }
 
-    if (selectedFilter === "Offers") {
-      result = result.filter((restaurant) => Boolean(restaurant?.offer));
+    if (
+      selectedFilter === "Rating 4.0+"
+    ) {
+      result = result.filter(
+        (restaurant) =>
+          Number(restaurant?.rating) >= 4,
+      );
+    }
+
+    if (
+      selectedFilter === "Fast Delivery"
+    ) {
+      result = result.filter(
+        (restaurant) =>
+          getFirstMinutes(
+            restaurant?.time,
+          ) <= 30,
+      );
+    }
+
+    if (
+      selectedFilter === "Offers"
+    ) {
+      result = result.filter(
+        (restaurant) =>
+          Boolean(restaurant?.offer),
+      );
     }
 
     /* --------------------------------------------------------
@@ -392,25 +856,44 @@ export default function ExploreScreen() {
     -------------------------------------------------------- */
 
     if (sortBy === "rating") {
-      result.sort((a, b) => Number(b?.rating || 0) - Number(a?.rating || 0));
+      result.sort(
+        (a, b) =>
+          Number(b?.rating || 0) -
+          Number(a?.rating || 0),
+      );
     }
 
     if (sortBy === "delivery") {
       result.sort(
-        (a, b) => getFirstMinutes(a?.time) - getFirstMinutes(b?.time),
+        (a, b) =>
+          getFirstMinutes(a?.time) -
+          getFirstMinutes(b?.time),
       );
     }
 
     if (sortBy === "priceLow") {
-      result.sort((a, b) => getPrice(a?.price) - getPrice(b?.price));
+      result.sort(
+        (a, b) =>
+          getPrice(a?.price) -
+          getPrice(b?.price),
+      );
     }
 
     if (sortBy === "priceHigh") {
-      result.sort((a, b) => getPrice(b?.price) - getPrice(a?.price));
+      result.sort(
+        (a, b) =>
+          getPrice(b?.price) -
+          getPrice(a?.price),
+      );
     }
 
     return result;
-  }, [searchText, selectedCategory, selectedFilter, sortBy]);
+  }, [
+    searchText,
+    selectedCategory,
+    selectedFilter,
+    sortBy,
+  ]);
 
   /* ==========================================================
      CLEAR ALL
@@ -418,8 +901,13 @@ export default function ExploreScreen() {
 
   const clearAll = () => {
     setSearchText("");
+
     setSelectedCategory("All");
+
+    setSelectedCategoryId("");
+
     setSelectedFilter("All");
+
     setSortBy("default");
   };
 
@@ -429,7 +917,9 @@ export default function ExploreScreen() {
 
   const openFilter = () => {
     setTempFilter(selectedFilter);
+
     setTempSort(sortBy);
+
     setShowFilterModal(true);
   };
 
@@ -439,7 +929,9 @@ export default function ExploreScreen() {
 
   const applyFilter = () => {
     setSelectedFilter(tempFilter);
+
     setSortBy(tempSort);
+
     setShowFilterModal(false);
   };
 
@@ -465,14 +957,18 @@ export default function ExploreScreen() {
   ========================================================== */
 
   const renderRestaurant = (restaurant) => {
-    const favorite = favorites.includes(restaurant.id);
+    const favorite = favorites.includes(
+      restaurant.id,
+    );
 
     return (
       <TouchableOpacity
         key={String(restaurant.id)}
         activeOpacity={0.92}
         style={styles.restaurantCard}
-        onPress={() => openRestaurant(restaurant)}
+        onPress={() =>
+          openRestaurant(restaurant)
+        }
       >
         {/* IMAGE */}
 
@@ -487,7 +983,9 @@ export default function ExploreScreen() {
 
           {restaurant.offer && (
             <View style={styles.offerBadge}>
-              <Text style={styles.offerText}>{restaurant.offer}</Text>
+              <Text style={styles.offerText}>
+                {restaurant.offer}
+              </Text>
             </View>
           )}
 
@@ -498,13 +996,24 @@ export default function ExploreScreen() {
             style={styles.favoriteButton}
             onPress={(event) => {
               event.stopPropagation?.();
-              toggleFavorite(restaurant.id);
+
+              toggleFavorite(
+                restaurant.id,
+              );
             }}
           >
             <Ionicons
-              name={favorite ? "heart" : "heart-outline"}
+              name={
+                favorite
+                  ? "heart"
+                  : "heart-outline"
+              }
               size={21}
-              color={favorite ? Colors.error : Colors.textSecondary}
+              color={
+                favorite
+                  ? Colors.error
+                  : Colors.textSecondary
+              }
             />
           </TouchableOpacity>
         </View>
@@ -513,42 +1022,67 @@ export default function ExploreScreen() {
 
         <View style={styles.restaurantDetails}>
           <View style={styles.nameRow}>
-            <Text style={styles.restaurantName} numberOfLines={1}>
+            <Text
+              style={styles.restaurantName}
+              numberOfLines={1}
+            >
               {restaurant.name}
             </Text>
 
             <View style={styles.ratingBadge}>
-              <Ionicons name="star" size={11} color={Colors.white} />
+              <Ionicons
+                name="star"
+                size={11}
+                color={Colors.white}
+              />
 
-              <Text style={styles.ratingText}>{restaurant.rating || "—"}</Text>
+              <Text style={styles.ratingText}>
+                {restaurant.rating || "—"}
+              </Text>
             </View>
           </View>
 
-          <Text style={styles.cuisine} numberOfLines={1}>
-            {restaurant.cuisine || "Various cuisines"}
+          <Text
+            style={styles.cuisine}
+            numberOfLines={1}
+          >
+            {restaurant.cuisine ||
+              "Various cuisines"}
           </Text>
 
           <View style={styles.infoRow}>
             <View style={styles.infoItem}>
-              <Ionicons name="time-outline" size={14} color={Colors.textSecondary} />
+              <Ionicons
+                name="time-outline"
+                size={14}
+                color={Colors.textSecondary}
+              />
 
               <Text style={styles.infoText}>
-                {restaurant.time || "30-40 min"}
+                {restaurant.time ||
+                  "30-40 min"}
               </Text>
             </View>
 
             <View style={styles.dot} />
 
             <Text style={styles.infoText}>
-              {restaurant.price || "₹200 for two"}
+              {restaurant.price ||
+                "₹200 for two"}
             </Text>
           </View>
 
           <View style={styles.cardBottom}>
             <View style={styles.delivery}>
-              <Ionicons name="bicycle-outline" size={15} color={Colors.textSecondary} />
+              <Ionicons
+                name="bicycle-outline"
+                size={15}
+                color={Colors.textSecondary}
+              />
 
-              <Text style={styles.deliveryText}>Free delivery</Text>
+              <Text style={styles.deliveryText}>
+                Free delivery
+              </Text>
             </View>
 
             <Text style={styles.reviews}>
@@ -568,13 +1102,20 @@ export default function ExploreScreen() {
     return (
       <View style={styles.emptyContainer}>
         <View style={styles.emptyIcon}>
-          <Ionicons name="restaurant-outline" size={42} color={Colors.textMuted} />
+          <Ionicons
+            name="restaurant-outline"
+            size={42}
+            color={Colors.textMuted}
+          />
         </View>
 
-        <Text style={styles.emptyTitle}>No restaurants found</Text>
+        <Text style={styles.emptyTitle}>
+          No restaurants found
+        </Text>
 
         <Text style={styles.emptyDescription}>
-          We couldn't find restaurants matching your search or filters.
+          We couldn't find restaurants
+          matching your search or filters.
         </Text>
 
         <TouchableOpacity
@@ -582,7 +1123,9 @@ export default function ExploreScreen() {
           activeOpacity={0.85}
           onPress={clearAll}
         >
-          <Text style={styles.clearButtonText}>Clear Filters</Text>
+          <Text style={styles.clearButtonText}>
+            Clear Filters
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -595,8 +1138,14 @@ export default function ExploreScreen() {
   return (
     <View style={styles.container}>
       <StatusBar
-        barStyle={isDark ? "light-content" : "dark-content"}
-        backgroundColor={Colors.background}
+        barStyle={
+          isDark
+            ? "light-content"
+            : "dark-content"
+        }
+        backgroundColor={
+          Colors.background
+        }
       />
 
       <ScrollView
@@ -611,53 +1160,102 @@ export default function ExploreScreen() {
               <Ionicons
                 name="location"
                 size={18}
-                color={Colors.primary || "#E85D04"}
+                color={
+                  Colors.primary ||
+                  "#E85D04"
+                }
               />
             </View>
 
             <View>
-              <Text style={styles.deliverText}>Delivering to</Text>
+              <Text style={styles.deliverText}>
+                Delivering to
+              </Text>
 
               <View style={styles.locationRow}>
-                <Text style={styles.location}>Hitech City</Text>
+                <Text style={styles.location}>
+                  Hitech City
+                </Text>
 
-                <Ionicons name="chevron-down" size={14} color={Colors.textPrimary} />
+                <Ionicons
+                  name="chevron-down"
+                  size={14}
+                  color={
+                    Colors.textPrimary
+                  }
+                />
               </View>
 
-              <Text style={styles.city}>Hyderabad</Text>
+              <Text style={styles.city}>
+                Hyderabad
+              </Text>
             </View>
           </View>
 
-          <TouchableOpacity style={styles.profileButton} activeOpacity={0.8}>
-            <Ionicons name="person-outline" size={20} color={Colors.textPrimary} />
+          <TouchableOpacity
+            style={styles.profileButton}
+            activeOpacity={0.8}
+            onPress={() =>
+              router.push("/Profile")
+            }
+          >
+            <Ionicons
+              name="person-outline"
+              size={20}
+              color={
+                Colors.textPrimary
+              }
+            />
           </TouchableOpacity>
         </View>
 
         {/* TITLE */}
 
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>Explore</Text>
+          <Text style={styles.title}>
+            Explore
+          </Text>
 
-          <Text style={styles.subtitle}>Discover the best food near you</Text>
+          <Text style={styles.subtitle}>
+            Discover the best food near you
+          </Text>
         </View>
 
         {/* SEARCH */}
 
         <View style={styles.searchRow}>
           <View style={styles.searchBox}>
-            <Ionicons name="search" size={20} color={Colors.textSecondary} />
+            <Ionicons
+              name="search"
+              size={20}
+              color={
+                Colors.textSecondary
+              }
+            />
 
             <TextInput
               value={searchText}
               onChangeText={setSearchText}
               placeholder="Search restaurants or food"
-              placeholderTextColor={Colors.textMuted}
+              placeholderTextColor={
+                Colors.textMuted
+              }
               style={styles.searchInput}
             />
 
             {searchText.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchText("")}>
-                <Ionicons name="close-circle" size={19} color={Colors.textMuted} />
+              <TouchableOpacity
+                onPress={() =>
+                  setSearchText("")
+                }
+              >
+                <Ionicons
+                  name="close-circle"
+                  size={19}
+                  color={
+                    Colors.textMuted
+                  }
+                />
               </TouchableOpacity>
             )}
           </View>
@@ -667,41 +1265,89 @@ export default function ExploreScreen() {
             activeOpacity={0.85}
             onPress={openFilter}
           >
-            <Ionicons name="options-outline" size={22} color={Colors.white} />
+            <Ionicons
+              name="options-outline"
+              size={22}
+              color={Colors.white}
+            />
           </TouchableOpacity>
         </View>
 
-        {/* CATEGORIES */}
+        {/* ====================================================
+            CATEGORIES
+        ==================================================== */}
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Eat what makes you happy</Text>
+          <View style={styles.categoryTitleRow}>
+            <Text style={styles.sectionTitle}>
+              Eat what makes you happy
+            </Text>
+
+            {categoriesLoading && (
+              <ActivityIndicator
+                size="small"
+                color={
+                  Colors.primary ||
+                  "#E85D04"
+                }
+              />
+            )}
+          </View>
+
+          {categoriesError ? (
+            <TouchableOpacity
+              onPress={loadCategories}
+              style={styles.retryCategory}
+            >
+              <Text style={styles.retryCategoryText}>
+                Unable to load categories. Tap to retry.
+              </Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryList}
+          contentContainerStyle={
+            styles.categoryList
+          }
         >
           {categories.map((category) => {
             const active =
-              normalize(selectedCategory) === normalize(category.name);
+              normalize(
+                selectedCategory,
+              ) ===
+              normalize(
+                category.name,
+              );
 
             return (
               <TouchableOpacity
-                key={category.id}
+                key={String(category.id)}
                 activeOpacity={0.85}
                 style={styles.categoryItem}
-                onPress={() => selectCategory(category.name)}
+                onPress={() =>
+                  selectCategory(
+                    category.name,
+                    category.id,
+                  )
+                }
               >
                 <View
                   style={[
                     styles.categoryImageBox,
-                    active && styles.categoryImageBoxActive,
+                    active &&
+                      styles.categoryImageBoxActive,
                   ]}
                 >
                   <Image
-                    source={category.image}
-                    style={styles.categoryImage}
+                    source={
+                      category.image
+                    }
+                    style={
+                      styles.categoryImage
+                    }
                     resizeMode="cover"
                   />
                 </View>
@@ -709,8 +1355,10 @@ export default function ExploreScreen() {
                 <Text
                   style={[
                     styles.categoryText,
-                    active && styles.categoryTextActive,
+                    active &&
+                      styles.categoryTextActive,
                   ]}
+                  numberOfLines={1}
                 >
                   {category.name}
                 </Text>
@@ -724,51 +1372,79 @@ export default function ExploreScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipsContainer}
+          contentContainerStyle={
+            styles.chipsContainer
+          }
         >
-          {["All", "Pure Veg", "Rating 4.0+", "Fast Delivery", "Offers"].map(
-            (filter) => {
-              const active = selectedFilter === filter;
+          {[
+            "All",
+            "Pure Veg",
+            "Rating 4.0+",
+            "Fast Delivery",
+            "Offers",
+          ].map((filter) => {
+            const active =
+              selectedFilter === filter;
 
-              return (
-                <TouchableOpacity
-                  key={filter}
-                  activeOpacity={0.85}
-                  style={[styles.chip, active && styles.activeChip]}
-                  onPress={() => setSelectedFilter(filter)}
+            return (
+              <TouchableOpacity
+                key={filter}
+                activeOpacity={0.85}
+                style={[
+                  styles.chip,
+                  active &&
+                    styles.activeChip,
+                ]}
+                onPress={() =>
+                  setSelectedFilter(
+                    filter,
+                  )
+                }
+              >
+                {filter !== "All" && (
+                  <Ionicons
+                    name={
+                      filter ===
+                      "Pure Veg"
+                        ? "leaf-outline"
+                        : filter ===
+                            "Rating 4.0+"
+                          ? "star-outline"
+                          : filter ===
+                              "Fast Delivery"
+                            ? "flash-outline"
+                            : "pricetag-outline"
+                    }
+                    size={14}
+                    color={
+                      active
+                        ? Colors.white
+                        : Colors.gold
+                    }
+                  />
+                )}
+
+                <Text
+                  style={[
+                    styles.chipText,
+                    active &&
+                      styles.activeChipText,
+                  ]}
                 >
-                  {filter !== "All" && (
-                    <Ionicons
-                      name={
-                        filter === "Pure Veg"
-                          ? "leaf-outline"
-                          : filter === "Rating 4.0+"
-                            ? "star-outline"
-                            : filter === "Fast Delivery"
-                              ? "flash-outline"
-                              : "pricetag-outline"
-                      }
-                      size={14}
-                      color={active ? Colors.white : Colors.gold}
-                    />
-                  )}
-
-                  <Text
-                    style={[styles.chipText, active && styles.activeChipText]}
-                  >
-                    {filter}
-                  </Text>
-                </TouchableOpacity>
-              );
-            },
-          )}
+                  {filter}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
 
         {/* RESTAURANT HEADER */}
 
         <View style={styles.restaurantHeader}>
           <View>
-            <Text style={styles.restaurantTitle}>Top restaurants near you</Text>
+            <Text style={styles.restaurantTitle}>
+              Top restaurants near you
+            </Text>
 
             <Text style={styles.resultText}>
               {filteredRestaurants.length} restaurants
@@ -780,9 +1456,17 @@ export default function ExploreScreen() {
             activeOpacity={0.8}
             onPress={openFilter}
           >
-            <Ionicons name="swap-vertical-outline" size={17} color={Colors.textSecondary} />
+            <Ionicons
+              name="swap-vertical-outline"
+              size={17}
+              color={
+                Colors.textSecondary
+              }
+            />
 
-            <Text style={styles.sortText}>Sort</Text>
+            <Text style={styles.sortText}>
+              Sort
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -790,41 +1474,71 @@ export default function ExploreScreen() {
 
         <View style={styles.restaurantList}>
           {filteredRestaurants.length > 0
-            ? filteredRestaurants.map(renderRestaurant)
+            ? filteredRestaurants.map(
+                renderRestaurant,
+              )
             : renderEmpty()}
         </View>
 
         {/* POPULAR CUISINES */}
 
         <View style={styles.popularHeader}>
-          <Text style={styles.sectionTitle}>Popular cuisines</Text>
+          <Text style={styles.sectionTitle}>
+            Popular cuisines
+          </Text>
 
-          <TouchableOpacity onPress={() => selectCategory("All")}>
-            <Text style={styles.viewAll}>View all</Text>
+          <TouchableOpacity
+            onPress={() =>
+              selectCategory("All")
+            }
+          >
+            <Text style={styles.viewAll}>
+              View all
+            </Text>
           </TouchableOpacity>
         </View>
 
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.popularList}
+          contentContainerStyle={
+            styles.popularList
+          }
         >
           {popularCuisines.map((item) => (
             <TouchableOpacity
               key={item.id}
               activeOpacity={0.9}
               style={styles.popularCard}
-              onPress={() => selectCategory(item.name)}
+              onPress={() =>
+                selectCategory(
+                  item.name,
+                )
+              }
             >
               <Image
                 source={item.image}
-                style={styles.popularImage}
+                style={
+                  styles.popularImage
+                }
                 resizeMode="cover"
               />
 
-              <Text style={styles.popularName}>{item.name}</Text>
+              <Text
+                style={
+                  styles.popularName
+                }
+              >
+                {item.name}
+              </Text>
 
-              <Text style={styles.popularPlaces}>{item.places}</Text>
+              <Text
+                style={
+                  styles.popularPlaces
+                }
+              >
+                {item.places}
+              </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -832,54 +1546,105 @@ export default function ExploreScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* FILTER MODAL */}
+      {/* ====================================================
+          FILTER MODAL
+      ==================================================== */}
 
       <Modal
         visible={showFilterModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowFilterModal(false)}
+        onRequestClose={() =>
+          setShowFilterModal(false)
+        }
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Filters & Sort</Text>
+              <Text style={styles.modalTitle}>
+                Filters & Sort
+              </Text>
 
-              <TouchableOpacity onPress={() => setShowFilterModal(false)}>
-                <Ionicons name="close" size={25} color={Colors.textPrimary} />
+              <TouchableOpacity
+                onPress={() =>
+                  setShowFilterModal(false)
+                }
+              >
+                <Ionicons
+                  name="close"
+                  size={25}
+                  color={
+                    Colors.textPrimary
+                  }
+                />
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.modalHeading}>Filter by</Text>
+            {/* FILTER */}
 
-            {["All", "Pure Veg", "Rating 4.0+", "Fast Delivery", "Offers"].map(
-              (filter) => {
-                const active = tempFilter === filter;
+            <Text style={styles.modalHeading}>
+              Filter by
+            </Text>
 
-                return (
-                  <TouchableOpacity
-                    key={filter}
-                    style={styles.modalOption}
-                    onPress={() => setTempFilter(filter)}
+            {[
+              "All",
+              "Pure Veg",
+              "Rating 4.0+",
+              "Fast Delivery",
+              "Offers",
+            ].map((filter) => {
+              const active =
+                tempFilter === filter;
+
+              return (
+                <TouchableOpacity
+                  key={filter}
+                  style={styles.modalOption}
+                  onPress={() =>
+                    setTempFilter(
+                      filter,
+                    )
+                  }
+                >
+                  <View
+                    style={[
+                      styles.radio,
+                      active &&
+                        styles.radioActive,
+                    ]}
                   >
-                    <View style={[styles.radio, active && styles.radioActive]}>
-                      {active && <View style={styles.radioDot} />}
-                    </View>
+                    {active && (
+                      <View
+                        style={
+                          styles.radioDot
+                        }
+                      />
+                    )}
+                  </View>
 
-                    <Text
-                      style={[
-                        styles.modalOptionText,
-                        active && styles.modalOptionTextActive,
-                      ]}
-                    >
-                      {filter}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              },
-            )}
+                  <Text
+                    style={[
+                      styles.modalOptionText,
+                      active &&
+                        styles.modalOptionTextActive,
+                    ]}
+                  >
+                    {filter}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
 
-            <Text style={[styles.modalHeading, { marginTop: 16 }]}>
+            {/* SORT */}
+
+            <Text
+              style={[
+                styles.modalHeading,
+                {
+                  marginTop: 16,
+                },
+              ]}
+            >
               Sort by
             </Text>
 
@@ -905,22 +1670,41 @@ export default function ExploreScreen() {
                 label: "Price: High to Low",
               },
             ].map((sort) => {
-              const active = tempSort === sort.value;
+              const active =
+                tempSort ===
+                sort.value;
 
               return (
                 <TouchableOpacity
                   key={sort.value}
                   style={styles.modalOption}
-                  onPress={() => setTempSort(sort.value)}
+                  onPress={() =>
+                    setTempSort(
+                      sort.value,
+                    )
+                  }
                 >
-                  <View style={[styles.radio, active && styles.radioActive]}>
-                    {active && <View style={styles.radioDot} />}
+                  <View
+                    style={[
+                      styles.radio,
+                      active &&
+                        styles.radioActive,
+                    ]}
+                  >
+                    {active && (
+                      <View
+                        style={
+                          styles.radioDot
+                        }
+                      />
+                    )}
                   </View>
 
                   <Text
                     style={[
                       styles.modalOptionText,
-                      active && styles.modalOptionTextActive,
+                      active &&
+                        styles.modalOptionTextActive,
                     ]}
                   >
                     {sort.label}
@@ -929,22 +1713,42 @@ export default function ExploreScreen() {
               );
             })}
 
+            {/* BUTTONS */}
+
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={styles.clearModalButton}
+                style={
+                  styles.clearModalButton
+                }
                 onPress={() => {
                   setTempFilter("All");
                   setTempSort("default");
                 }}
               >
-                <Text style={styles.clearModalText}>Clear</Text>
+                <Text
+                  style={
+                    styles.clearModalText
+                  }
+                >
+                  Clear
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.applyModalButton}
-                onPress={applyFilter}
+                style={
+                  styles.applyModalButton
+                }
+                onPress={
+                  applyFilter
+                }
               >
-                <Text style={styles.applyModalText}>Apply</Text>
+                <Text
+                  style={
+                    styles.applyModalText
+                  }
+                >
+                  Apply
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -958,682 +1762,805 @@ export default function ExploreScreen() {
    STYLES
 ============================================================ */
 
-const makeStyles = (Colors, isDark) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-
-  /* HEADER */
-
-  header: {
-    paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  locationWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  locationIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: isDark ? Colors.surface : Colors.backgroundElement,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 10,
-  },
-
-  deliverText: {
-    fontFamily: Fonts.regular,
-    fontSize: 10,
-    color: Colors.textSecondary,
-    marginBottom: 2,
-  },
-
-  locationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  location: {
-    fontFamily: Fonts.bold,
-    fontSize: 15,
-    color: Colors.textPrimary,
-  },
-
-  city: {
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-
-  profileButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: Colors.surface,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-
-  /* TITLE */
-
-  titleContainer: {
-    paddingHorizontal: 18,
-    marginTop: 14,
-  },
-
-  title: {
-    fontFamily: Fonts.bold,
-    fontSize: 30,
-    color: Colors.textPrimary,
-    letterSpacing: -0.5,
-  },
-
-  subtitle: {
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginTop: 4,
-  },
-
-  /* SEARCH */
-
-  searchRow: {
-    paddingHorizontal: 18,
-    marginTop: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-
-  searchBox: {
-    flex: 1,
-    height: 52,
-    backgroundColor: Colors.surface,
-    borderRadius: 15,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 15,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-
-  searchInput: {
-    flex: 1,
-    fontFamily: Fonts.regular,
-    fontSize: 13,
-    color: Colors.textPrimary,
-    marginLeft: 9,
-    paddingVertical: 0,
-  },
-
-  filterButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 15,
-    backgroundColor: Colors.primary || "#E85D04",
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
+const makeStyles = (Colors, isDark) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor:
+        Colors.background,
     },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-  },
 
-  /* SECTION */
+    /* HEADER */
 
-  sectionHeader: {
-    paddingHorizontal: 18,
-    marginTop: 26,
-    marginBottom: 14,
-  },
-
-  sectionTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 24,
-    color: Colors.textPrimary,
-    letterSpacing: -0.2,
-  },
-
-  /* CATEGORY */
-
-  categoryList: {
-    paddingHorizontal: 18,
-    gap: 15,
-  },
-
-  categoryItem: {
-    width: 72,
-    alignItems: "center",
-  },
-
-  categoryImageBox: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    overflow: "hidden",
-    backgroundColor: isDark ? Colors.surface : Colors.backgroundElement,
-    borderWidth: 2,
-    borderColor: "transparent",
-  },
-
-  categoryImageBoxActive: {
-    borderColor: Colors.primary || "#E85D04",
-    transform: [{ scale: 1.04 }],
-  },
-
-  categoryImage: {
-    width: "100%",
-    height: "100%",
-  },
-
-  categoryText: {
-    marginTop: 8,
-    fontFamily: Fonts.medium,
-    fontSize: 18,
-    color: Colors.textPrimary,
-    textAlign: "center",
-  },
-
-  categoryTextActive: {
-    color: Colors.primary || "#E85D04",
-    fontFamily: Fonts.bold,
-  },
-
-  /* FILTER CHIPS */
-
-  chipsContainer: {
-    paddingHorizontal: 18,
-    paddingTop: 21,
-    gap: 8,
-  },
-
-  chip: {
-    height: 36,
-    paddingHorizontal: 13,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 5,
-  },
-
-  activeChip: {
-    backgroundColor: Colors.primary || "#E85D04",
-    borderColor: Colors.primary || "#E85D04",
-  },
-
-  chipText: {
-    fontFamily: Fonts.bold,
-    fontSize: 14,
-    color: Colors.textPrimary,
-  },
-
-  activeChipText: {
-    color: Colors.white,
-    fontFamily: Fonts.semiBold,
-  },
-
-  /* RESTAURANT HEADER */
-
-  restaurantHeader: {
-    marginTop: 27,
-    paddingHorizontal: 18,
-    marginBottom: 13,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-
-  restaurantTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 24,
-    color: Colors.textPrimary,
-    letterSpacing: -0.2,
-  },
-
-  resultText: {
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginTop: 4,
-  },
-
-  sortButton: {
-    height: 35,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 5,
-  },
-
-  sortText: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 11,
-    color: Colors.textSecondary,
-  },
-
-  /* RESTAURANT LIST */
-
-  restaurantList: {
-    paddingHorizontal: 18,
-  },
-
-  /* RESTAURANT CARD */
-
-  restaurantCard: {
-    backgroundColor: Colors.card,
-    borderRadius: 20,
-    overflow: "hidden",
-
-    borderWidth: 1,
-    borderColor: Colors.border,
-
-    marginBottom: 18,
-
-    elevation: 5,
-
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
+    header: {
+      paddingHorizontal: 18,
+      paddingTop: 18,
+      paddingBottom: 8,
+      flexDirection: "row",
+      justifyContent:
+        "space-between",
+      alignItems: "center",
     },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-  },
 
-  imageContainer: {
-    height: 195,
-    width: "100%",
-    position: "relative",
-    backgroundColor: Colors.card,
-  },
-
-  restaurantImage: {
-    width: "100%",
-    height: "100%",
-  },
-
-  offerBadge: {
-    position: "absolute",
-    left: 12,
-    bottom: 12,
-    backgroundColor: "#D84315",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 7,
-  },
-
-  offerText: {
-    color: "#FFFFFF",
-    fontFamily: Fonts.bold,
-    fontSize: 10,
-    letterSpacing: 0.2,
-  },
-
-  favoriteButton: {
-    position: "absolute",
-    right: 12,
-    top: 12,
-    width: 39,
-    height: 39,
-    borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.96)",
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
+    locationWrapper: {
+      flexDirection: "row",
+      alignItems: "center",
     },
-    shadowOpacity: 0.12,
-    shadowRadius: 3,
-  },
 
-  /* DETAILS */
-
-  restaurantDetails: {
-    paddingHorizontal: 14,
-    paddingTop: 13,
-    paddingBottom: 14,
-  },
-
-  nameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  restaurantName: {
-    flex: 1,
-    fontFamily: Fonts.bold,
-    fontSize: 20,
-    color: Colors.textPrimary,
-    letterSpacing: -0.2,
-    marginRight: 8,
-  },
-
-  ratingBadge: {
-    backgroundColor: "#00420f",
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 5,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 3,
-  },
-
-  ratingText: {
-    color: "#FFFFFF",
-    fontFamily: Fonts.bold,
-    fontSize: 15,
-  },
-
-  cuisine: {
-    marginTop: 6,
-    fontFamily: Fonts.regular,
-    fontSize: 17,
-    color: Colors.logoGold,
-  },
-
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 10,
-  },
-
-  infoItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-
-  infoText: {
-    fontFamily: Fonts.bold,
-    fontSize: 15,
-    color: Colors.success,
-  },
-
-  dot: {
-    width: 3,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: Colors.divider,
-    marginHorizontal: 8,
-  },
-
-  cardBottom: {
-    marginTop: 12,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: Colors.divider,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  delivery: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-
-  deliveryText: {
-    fontFamily: Fonts.medium,
-    fontSize: 14,
-    color: Colors.textPrimary,
-  },
-
-  reviews: {
-    marginLeft: "auto",
-    fontFamily: Fonts.regular,
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-
-  /* EMPTY */
-
-  emptyContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 55,
-    paddingHorizontal: 30,
-  },
-
-  emptyIcon: {
-    width: 82,
-    height: 82,
-    borderRadius: 41,
-    backgroundColor: Colors.backgroundElement,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  emptyTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 18,
-    color: Colors.textPrimary,
-    marginTop: 16,
-  },
-
-  emptyDescription: {
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    color: Colors.textSecondary,
-    textAlign: "center",
-    marginTop: 7,
-    lineHeight: 19,
-  },
-
-  clearButton: {
-    marginTop: 18,
-    backgroundColor: Colors.primary || "#E85D04",
-    paddingHorizontal: 23,
-    paddingVertical: 11,
-    borderRadius: 11,
-  },
-
-  clearButtonText: {
-    color: "#FFFFFF",
-    fontFamily: Fonts.bold,
-    fontSize: 12,
-  },
-
-  /* POPULAR CUISINES */
-
-  popularHeader: {
-    paddingHorizontal: 18,
-    marginTop: 12,
-    marginBottom: 14,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  viewAll: {
-    fontFamily: Fonts.bold,
-    fontSize: 14,
-    color: Colors.primary || "#E85D04",
-  },
-
-  popularList: {
-    paddingHorizontal: 18,
-    gap: 12,
-  },
-
-  popularCard: {
-    width: 145,
-    borderRadius: 15,
-    backgroundColor: Colors.card,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingBottom: 11,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
+    locationIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor:
+        isDark
+          ? Colors.surface
+          : Colors.backgroundElement,
+      justifyContent:
+        "center",
+      alignItems: "center",
+      marginRight: 10,
     },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-  },
 
-  popularImage: {
-    width: "100%",
-    height: 100,
-  },
+    deliverText: {
+      fontFamily:
+        Fonts.regular,
+      fontSize: 10,
+      color:
+        Colors.textSecondary,
+      marginBottom: 2,
+    },
 
-  popularName: {
-    fontFamily: Fonts.bold,
-    fontSize: 14,
-    color: Colors.textPrimary,
-    paddingHorizontal: 10,
-    marginTop: 9,
-  },
+    locationRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
 
-  popularPlaces: {
-    fontFamily: Fonts.regular,
-    fontSize: 13,
-    color: Colors.textSecondary,
-    paddingHorizontal: 10,
-    marginTop: 3,
-  },
+    location: {
+      fontFamily:
+        Fonts.bold,
+      fontSize: 15,
+      color:
+        Colors.textPrimary,
+    },
 
-  /* MODAL */
+    city: {
+      fontFamily:
+        Fonts.regular,
+      fontSize: 14,
+      color:
+        Colors.textSecondary,
+      marginTop: 2,
+    },
 
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    justifyContent: "flex-end",
-  },
+    profileButton: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor:
+        Colors.surface,
+      justifyContent:
+        "center",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor:
+        Colors.border,
+    },
 
-  modal: {
-    backgroundColor: Colors.surface,
-    borderTopLeftRadius: 26,
-    borderTopRightRadius: 26,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 30,
-  },
+    /* TITLE */
 
-  modalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 20,
-  },
+    titleContainer: {
+      paddingHorizontal: 18,
+      marginTop: 14,
+    },
 
-  modalTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 21,
-    color: Colors.textPrimary,
-  },
+    title: {
+      fontFamily:
+        Fonts.bold,
+      fontSize: 30,
+      color:
+        Colors.textPrimary,
+      letterSpacing: -0.5,
+    },
 
-  modalHeading: {
-    fontFamily: Fonts.bold,
-    fontSize: 14,
-    color: Colors.textPrimary,
-    marginBottom: 8,
-  },
+    subtitle: {
+      fontFamily:
+        Fonts.regular,
+      fontSize: 14,
+      color:
+        Colors.textSecondary,
+      marginTop: 4,
+    },
 
-  modalOption: {
-    minHeight: 43,
-    flexDirection: "row",
-    alignItems: "center",
-  },
+    /* SEARCH */
 
-  radio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 11,
-  },
+    searchRow: {
+      paddingHorizontal: 18,
+      marginTop: 18,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
 
-  radioActive: {
-    borderColor: Colors.primary || "#E85D04",
-  },
+    searchBox: {
+      flex: 1,
+      height: 52,
+      backgroundColor:
+        Colors.surface,
+      borderRadius: 15,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 15,
+      borderWidth: 1,
+      borderColor:
+        Colors.border,
+    },
 
-  radioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Colors.primary || "#E85D04",
-  },
+    searchInput: {
+      flex: 1,
+      fontFamily:
+        Fonts.regular,
+      fontSize: 13,
+      color:
+        Colors.textPrimary,
+      marginLeft: 9,
+      paddingVertical: 0,
+    },
 
-  modalOptionText: {
-    fontFamily: Fonts.regular,
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
+    filterButton: {
+      width: 52,
+      height: 52,
+      borderRadius: 15,
+      backgroundColor:
+        Colors.primary ||
+        "#E85D04",
+      justifyContent:
+        "center",
+      alignItems: "center",
+      elevation: 3,
+    },
 
-  modalOptionTextActive: {
-    color: Colors.primary || "#E85D04",
-    fontFamily: Fonts.semiBold,
-  },
+    /* SECTION */
 
-  modalButtons: {
-    flexDirection: "row",
-    gap: 10,
-    marginTop: 22,
-  },
+    sectionHeader: {
+      paddingHorizontal: 18,
+      marginTop: 26,
+      marginBottom: 14,
+    },
 
-  clearModalButton: {
-    flex: 1,
-    height: 48,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.surface,
-  },
+    categoryTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent:
+        "space-between",
+    },
 
-  clearModalText: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 13,
-  },
+    sectionTitle: {
+      fontFamily:
+        Fonts.bold,
+      fontSize: 24,
+      color:
+        Colors.textPrimary,
+      letterSpacing: -0.2,
+    },
 
-  applyModalButton: {
-    flex: 2,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: Colors.primary || "#E85D04",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    retryCategory: {
+      marginTop: 6,
+    },
 
-  applyModalText: {
-    color: "#FFFFFF",
-    fontFamily: Fonts.bold,
-    fontSize: 13,
-  },
-});
+    retryCategoryText: {
+      fontFamily:
+        Fonts.medium,
+      fontSize: 11,
+      color:
+        Colors.primary ||
+        "#E85D04",
+    },
+
+    /* CATEGORY */
+
+    categoryList: {
+      paddingHorizontal: 18,
+      gap: 15,
+    },
+
+    categoryItem: {
+      width: 82,
+      alignItems: "center",
+    },
+
+    categoryImageBox: {
+      width: 68,
+      height: 68,
+      borderRadius: 34,
+      overflow: "hidden",
+      backgroundColor:
+        isDark
+          ? Colors.surface
+          : Colors.backgroundElement,
+      borderWidth: 2,
+      borderColor:
+        "transparent",
+    },
+
+    categoryImageBoxActive: {
+      borderColor:
+        Colors.primary ||
+        "#E85D04",
+      transform: [
+        {
+          scale: 1.04,
+        },
+      ],
+    },
+
+    categoryImage: {
+      width: "100%",
+      height: "100%",
+    },
+
+    categoryText: {
+      marginTop: 8,
+      fontFamily:
+        Fonts.medium,
+      fontSize: 14,
+      color:
+        Colors.textPrimary,
+      textAlign: "center",
+    },
+
+    categoryTextActive: {
+      color:
+        Colors.primary ||
+        "#E85D04",
+      fontFamily:
+        Fonts.bold,
+    },
+
+    /* FILTER CHIPS */
+
+    chipsContainer: {
+      paddingHorizontal: 18,
+      paddingTop: 21,
+      gap: 8,
+    },
+
+    chip: {
+      height: 36,
+      paddingHorizontal: 13,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor:
+        Colors.border,
+      backgroundColor:
+        Colors.surface,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent:
+        "center",
+      gap: 5,
+    },
+
+    activeChip: {
+      backgroundColor:
+        Colors.primary ||
+        "#E85D04",
+      borderColor:
+        Colors.primary ||
+        "#E85D04",
+    },
+
+    chipText: {
+      fontFamily:
+        Fonts.bold,
+      fontSize: 14,
+      color:
+        Colors.textPrimary,
+    },
+
+    activeChipText: {
+      color:
+        Colors.white,
+      fontFamily:
+        Fonts.semiBold,
+    },
+
+    /* RESTAURANT HEADER */
+
+    restaurantHeader: {
+      marginTop: 27,
+      paddingHorizontal: 18,
+      marginBottom: 13,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent:
+        "space-between",
+    },
+
+    restaurantTitle: {
+      fontFamily:
+        Fonts.bold,
+      fontSize: 24,
+      color:
+        Colors.textPrimary,
+      letterSpacing: -0.2,
+    },
+
+    resultText: {
+      fontFamily:
+        Fonts.regular,
+      fontSize: 12,
+      color:
+        Colors.textSecondary,
+      marginTop: 4,
+    },
+
+    sortButton: {
+      height: 35,
+      paddingHorizontal: 12,
+      borderRadius: 10,
+      backgroundColor:
+        Colors.surface,
+      borderWidth: 1,
+      borderColor:
+        Colors.border,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent:
+        "center",
+      gap: 5,
+    },
+
+    sortText: {
+      fontFamily:
+        Fonts.semiBold,
+      fontSize: 11,
+      color:
+        Colors.textSecondary,
+    },
+
+    /* RESTAURANT LIST */
+
+    restaurantList: {
+      paddingHorizontal: 18,
+    },
+
+    /* RESTAURANT CARD */
+
+    restaurantCard: {
+      backgroundColor:
+        Colors.card,
+      borderRadius: 20,
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor:
+        Colors.border,
+      marginBottom: 18,
+      elevation: 5,
+    },
+
+    imageContainer: {
+      height: 195,
+      width: "100%",
+      position: "relative",
+      backgroundColor:
+        Colors.card,
+    },
+
+    restaurantImage: {
+      width: "100%",
+      height: "100%",
+    },
+
+    offerBadge: {
+      position: "absolute",
+      left: 12,
+      bottom: 12,
+      backgroundColor:
+        "#D84315",
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 7,
+    },
+
+    offerText: {
+      color: "#FFFFFF",
+      fontFamily:
+        Fonts.bold,
+      fontSize: 10,
+      letterSpacing: 0.2,
+    },
+
+    favoriteButton: {
+      position: "absolute",
+      right: 12,
+      top: 12,
+      width: 39,
+      height: 39,
+      borderRadius: 20,
+      backgroundColor:
+        "rgba(255,255,255,0.96)",
+      alignItems: "center",
+      justifyContent:
+        "center",
+      elevation: 2,
+    },
+
+    /* DETAILS */
+
+    restaurantDetails: {
+      paddingHorizontal: 14,
+      paddingTop: 13,
+      paddingBottom: 14,
+    },
+
+    nameRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    restaurantName: {
+      flex: 1,
+      fontFamily:
+        Fonts.bold,
+      fontSize: 20,
+      color:
+        Colors.textPrimary,
+      letterSpacing: -0.2,
+      marginRight: 8,
+    },
+
+    ratingBadge: {
+      backgroundColor:
+        "#00420f",
+      borderRadius: 6,
+      paddingHorizontal: 7,
+      paddingVertical: 5,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent:
+        "center",
+      gap: 3,
+    },
+
+    ratingText: {
+      color: "#FFFFFF",
+      fontFamily:
+        Fonts.bold,
+      fontSize: 15,
+    },
+
+    cuisine: {
+      marginTop: 6,
+      fontFamily:
+        Fonts.regular,
+      fontSize: 17,
+      color:
+        Colors.logoGold,
+    },
+
+    infoRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 10,
+    },
+
+    infoItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+
+    infoText: {
+      fontFamily:
+        Fonts.bold,
+      fontSize: 15,
+      color:
+        Colors.success,
+    },
+
+    dot: {
+      width: 3,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor:
+        Colors.divider,
+      marginHorizontal: 8,
+    },
+
+    cardBottom: {
+      marginTop: 12,
+      paddingTop: 10,
+      borderTopWidth: 1,
+      borderTopColor:
+        Colors.divider,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    delivery: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+
+    deliveryText: {
+      fontFamily:
+        Fonts.medium,
+      fontSize: 14,
+      color:
+        Colors.textPrimary,
+    },
+
+    reviews: {
+      marginLeft: "auto",
+      fontFamily:
+        Fonts.regular,
+      fontSize: 13,
+      color:
+        Colors.textSecondary,
+    },
+
+    /* EMPTY */
+
+    emptyContainer: {
+      alignItems: "center",
+      justifyContent:
+        "center",
+      paddingVertical: 55,
+      paddingHorizontal: 30,
+    },
+
+    emptyIcon: {
+      width: 82,
+      height: 82,
+      borderRadius: 41,
+      backgroundColor:
+        Colors.backgroundElement,
+      alignItems: "center",
+      justifyContent:
+        "center",
+    },
+
+    emptyTitle: {
+      fontFamily:
+        Fonts.bold,
+      fontSize: 18,
+      color:
+        Colors.textPrimary,
+      marginTop: 16,
+    },
+
+    emptyDescription: {
+      fontFamily:
+        Fonts.regular,
+      fontSize: 12,
+      color:
+        Colors.textSecondary,
+      textAlign: "center",
+      marginTop: 7,
+      lineHeight: 19,
+    },
+
+    clearButton: {
+      marginTop: 18,
+      backgroundColor:
+        Colors.primary ||
+        "#E85D04",
+      paddingHorizontal: 23,
+      paddingVertical: 11,
+      borderRadius: 11,
+    },
+
+    clearButtonText: {
+      color: "#FFFFFF",
+      fontFamily:
+        Fonts.bold,
+      fontSize: 12,
+    },
+
+    /* POPULAR CUISINES */
+
+    popularHeader: {
+      paddingHorizontal: 18,
+      marginTop: 12,
+      marginBottom: 14,
+      flexDirection: "row",
+      justifyContent:
+        "space-between",
+      alignItems: "center",
+    },
+
+    viewAll: {
+      fontFamily:
+        Fonts.bold,
+      fontSize: 14,
+      color:
+        Colors.primary ||
+        "#E85D04",
+    },
+
+    popularList: {
+      paddingHorizontal: 18,
+      gap: 12,
+    },
+
+    popularCard: {
+      width: 145,
+      borderRadius: 15,
+      backgroundColor:
+        Colors.card,
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor:
+        Colors.border,
+      paddingBottom: 11,
+      elevation: 2,
+    },
+
+    popularImage: {
+      width: "100%",
+      height: 100,
+    },
+
+    popularName: {
+      fontFamily:
+        Fonts.bold,
+      fontSize: 14,
+      color:
+        Colors.textPrimary,
+      paddingHorizontal: 10,
+      marginTop: 9,
+    },
+
+    popularPlaces: {
+      fontFamily:
+        Fonts.regular,
+      fontSize: 13,
+      color:
+        Colors.textSecondary,
+      paddingHorizontal: 10,
+      marginTop: 3,
+    },
+
+    /* MODAL */
+
+    modalOverlay: {
+      flex: 1,
+      backgroundColor:
+        "rgba(0,0,0,0.45)",
+      justifyContent:
+        "flex-end",
+    },
+
+    modal: {
+      backgroundColor:
+        Colors.surface,
+      borderTopLeftRadius: 26,
+      borderTopRightRadius: 26,
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: 30,
+    },
+
+    modalHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent:
+        "space-between",
+      marginBottom: 20,
+    },
+
+    modalTitle: {
+      fontFamily:
+        Fonts.bold,
+      fontSize: 21,
+      color:
+        Colors.textPrimary,
+    },
+
+    modalHeading: {
+      fontFamily:
+        Fonts.bold,
+      fontSize: 14,
+      color:
+        Colors.textPrimary,
+      marginBottom: 8,
+    },
+
+    modalOption: {
+      minHeight: 43,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    radio: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      borderWidth: 1.5,
+      borderColor:
+        Colors.border,
+      alignItems: "center",
+      justifyContent:
+        "center",
+      marginRight: 11,
+    },
+
+    radioActive: {
+      borderColor:
+        Colors.primary ||
+        "#E85D04",
+    },
+
+    radioDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      backgroundColor:
+        Colors.primary ||
+        "#E85D04",
+    },
+
+    modalOptionText: {
+      fontFamily:
+        Fonts.regular,
+      fontSize: 13,
+      color:
+        Colors.textSecondary,
+    },
+
+    modalOptionTextActive: {
+      color:
+        Colors.primary ||
+        "#E85D04",
+      fontFamily:
+        Fonts.semiBold,
+    },
+
+    modalButtons: {
+      flexDirection: "row",
+      gap: 10,
+      marginTop: 22,
+    },
+
+    clearModalButton: {
+      flex: 1,
+      height: 48,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor:
+        Colors.border,
+      alignItems: "center",
+      justifyContent:
+        "center",
+      backgroundColor:
+        Colors.surface,
+    },
+
+    clearModalText: {
+      color:
+        Colors.textPrimary,
+      fontFamily:
+        Fonts.bold,
+      fontSize: 13,
+    },
+
+    applyModalButton: {
+      flex: 2,
+      height: 48,
+      borderRadius: 12,
+      backgroundColor:
+        Colors.primary ||
+        "#E85D04",
+      alignItems: "center",
+      justifyContent:
+        "center",
+    },
+
+    applyModalText: {
+      color: "#FFFFFF",
+      fontFamily:
+        Fonts.bold,
+      fontSize: 13,
+    },
+  });

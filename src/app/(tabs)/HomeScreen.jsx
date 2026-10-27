@@ -1,4 +1,3 @@
-
 import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
@@ -16,18 +15,19 @@ import {
 import BannersScreen from "../../components/BannersScreen";
 import HomeHeader from "../../components/HomeHeader";
 import HomeSearchResults from "../../components/HomeSearchResults";
-import RestaurantCard from "../../components/RestaurantCard";
 import SearchBar from "../../components/SearchBar";
 import { useTheme } from "../../hooks/use-theme";
 
 import {
   getBanners,
   getCategories,
-
   getHome,
   getNotifications,
   getProduct,
+  getRestaurants,
 } from "../../utils/Function";
+
+import BASE_URL from "../../constants/AppUrls";
 
 // =====================================================
 // LOCAL CATEGORY FALLBACK IMAGES
@@ -68,6 +68,14 @@ const extractList = (response, keys = []) => {
 
   if (Array.isArray(payload?.data?.data)) {
     return payload.data.data;
+  }
+
+  if (Array.isArray(payload?.items)) {
+    return payload.items;
+  }
+
+  if (Array.isArray(payload?.results)) {
+    return payload.results;
   }
 
   for (const key of keys) {
@@ -121,7 +129,7 @@ const getProductName = (item) =>
   item?.product?.name ||
   "Product";
 
-const getProductId = (item, index) =>
+const getProductId = (item, index = 0) =>
   item?.id ??
   item?.product_id ??
   item?.productId ??
@@ -149,6 +157,14 @@ const getProductPrice = (item) => {
     : `₹${price}`;
 };
 
+// =====================================================
+// PRODUCT IMAGE
+// Handles both:
+// https://example.com/image.jpg
+// media/products/image.jpg
+// /media/products/image.jpg
+// =====================================================
+
 const getProductImage = (item) => {
   const possibleImage =
     item?.image_url ||
@@ -164,23 +180,184 @@ const getProductImage = (item) => {
     item?.images?.[0]?.image ||
     item?.image?.url;
 
-  if (
-    typeof possibleImage === "string" &&
-    /^https?:\/\//i.test(possibleImage)
-  ) {
-    return { uri: possibleImage };
+  if (!possibleImage) {
+    return CATEGORY_IMAGES.all;
   }
 
   if (
-    possibleImage &&
     typeof possibleImage === "object" &&
     typeof possibleImage.uri === "string"
   ) {
-    return { uri: possibleImage.uri };
+    return {
+      uri: possibleImage.uri,
+    };
   }
 
-  // Fallback for missing images or relative image paths.
+  if (typeof possibleImage === "string") {
+    const imagePath = possibleImage.trim();
+
+    if (!imagePath) {
+      return CATEGORY_IMAGES.all;
+    }
+
+    if (/^https?:\/\//i.test(imagePath)) {
+      return {
+        uri: imagePath,
+      };
+    }
+
+    return {
+      uri: `${BASE_URL}/${imagePath.replace(/^\/+/, "")}`,
+    };
+  }
+
   return CATEGORY_IMAGES.all;
+};
+
+// =====================================================
+// RESTAURANT HELPERS
+// =====================================================
+
+const getRestaurantId = (item, index = 0) =>
+  item?.id ??
+  item?.restaurant_id ??
+  item?.restaurantId ??
+  item?.vendor_id ??
+  item?.vendorId ??
+  item?.restaurant?.id ??
+  index;
+
+const getRestaurantName = (item) =>
+  item?.name ||
+  item?.restaurant_name ||
+  item?.restaurantName ||
+  item?.title ||
+  item?.business_name ||
+  item?.businessName ||
+  item?.restaurant?.name ||
+  "Restaurant";
+
+const getRestaurantImage = (item) => {
+  const possibleImage =
+    item?.image_url ||
+    item?.restaurant_image_url ||
+    item?.thumbnail_url ||
+    item?.thumbnail ||
+    item?.image ||
+    item?.restaurant_image ||
+    item?.logo ||
+    item?.restaurant?.image_url ||
+    item?.restaurant?.image ||
+    item?.restaurant?.logo ||
+    item?.images?.[0]?.image_url ||
+    item?.images?.[0]?.url ||
+    item?.images?.[0]?.image ||
+    item?.image?.url;
+
+  if (!possibleImage) {
+    return CATEGORY_IMAGES.all;
+  }
+
+  if (
+    typeof possibleImage === "object" &&
+    typeof possibleImage.uri === "string"
+  ) {
+    return {
+      uri: possibleImage.uri,
+    };
+  }
+
+  if (typeof possibleImage === "string") {
+    const imagePath = possibleImage.trim();
+
+    if (!imagePath) {
+      return CATEGORY_IMAGES.all;
+    }
+
+    if (/^https?:\/\//i.test(imagePath)) {
+      return {
+        uri: imagePath,
+      };
+    }
+
+    return {
+      uri: `${BASE_URL}/${imagePath.replace(/^\/+/, "")}`,
+    };
+  }
+
+  return CATEGORY_IMAGES.all;
+};
+
+const getRestaurantRating = (item) => {
+  const rating =
+    item?.rating ??
+    item?.avg_rating ??
+    item?.average_rating ??
+    item?.ratings ??
+    item?.restaurant?.rating;
+
+  if (
+    rating === null ||
+    rating === undefined ||
+    rating === ""
+  ) {
+    return "4.5";
+  }
+
+  return String(rating);
+};
+
+const getRestaurantLocation = (item) => {
+  const location =
+    item?.address ||
+    item?.location ||
+    item?.area ||
+    item?.city ||
+    item?.address_line ||
+    item?.restaurant?.address;
+
+  if (typeof location === "object" && location !== null) {
+    return (
+      location?.address ||
+      location?.area ||
+      location?.city ||
+      "Location available"
+    );
+  }
+
+  return location || "Location available";
+};
+
+const getRestaurantCuisine = (item) => {
+  const cuisine =
+    item?.cuisine ||
+    item?.cuisine_name ||
+    item?.category_name ||
+    item?.food_type ||
+    item?.restaurant?.cuisine;
+
+  if (Array.isArray(cuisine)) {
+    return cuisine.join(", ");
+  }
+
+  return cuisine || "Multi Cuisine";
+};
+
+const getRestaurantDeliveryTime = (item) => {
+  const value =
+    item?.delivery_time ||
+    item?.deliveryTime ||
+    item?.delivery_minutes ||
+    item?.delivery ||
+    item?.restaurant?.delivery_time;
+
+  if (!value) {
+    return "30-40 min";
+  }
+
+  return String(value).toLowerCase().includes("min")
+    ? String(value)
+    : `${value} min`;
 };
 
 // =====================================================
@@ -201,7 +378,8 @@ const HomeScreen = () => {
 
   const [searchText, setSearchText] = useState("");
 
-  const hasSearchQuery = searchText.trim().length > 0;
+  const hasSearchQuery =
+    searchText.trim().length > 0;
 
   // ===================================================
   // HOME API STATE
@@ -217,37 +395,62 @@ const HomeScreen = () => {
   // ===================================================
 
   const [categories, setCategories] = useState([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(false);
-  const [categoriesError, setCategoriesError] = useState("");
-  const [categoriesRetry, setCategoriesRetry] = useState(0);
+  const [categoriesLoading, setCategoriesLoading] =
+    useState(false);
+  const [categoriesError, setCategoriesError] =
+    useState("");
+  const [categoriesRetry, setCategoriesRetry] =
+    useState(0);
 
-  
   // ===================================================
   // BANNERS API STATE
   // ===================================================
 
   const [banners, setBanners] = useState([]);
-  const [bannersLoading, setBannersLoading] = useState(false);
-  const [bannersError, setBannersError] = useState("");
-  const [bannersRetry, setBannersRetry] = useState(0);
+  const [bannersLoading, setBannersLoading] =
+    useState(false);
+  const [bannersError, setBannersError] =
+    useState("");
+  const [bannersRetry, setBannersRetry] =
+    useState(0);
 
   // ===================================================
   // NOTIFICATIONS API STATE
   // ===================================================
 
-  const [notifications, setNotifications] = useState([]);
-  const [notificationsLoading, setNotificationsLoading] = useState(false);
-  const [notificationsError, setNotificationsError] = useState("");
-  const [notificationsRetry, setNotificationsRetry] = useState(0);
+  const [notifications, setNotifications] =
+    useState([]);
+  const [notificationsLoading, setNotificationsLoading] =
+    useState(false);
+  const [notificationsError, setNotificationsError] =
+    useState("");
+  const [notificationsRetry, setNotificationsRetry] =
+    useState(0);
 
   // ===================================================
   // PRODUCTS API STATE
   // ===================================================
 
   const [products, setProducts] = useState([]);
-  const [productsLoading, setProductsLoading] = useState(false);
-  const [productsError, setProductsError] = useState("");
-  const [productsRetry, setProductsRetry] = useState(0);
+  const [productsLoading, setProductsLoading] =
+    useState(false);
+  const [productsError, setProductsError] =
+    useState("");
+  const [productsRetry, setProductsRetry] =
+    useState(0);
+
+  // ===================================================
+  // RESTAURANTS API STATE
+  // ===================================================
+
+  const [restaurants, setRestaurants] =
+    useState([]);
+  const [restaurantsLoading, setRestaurantsLoading] =
+    useState(false);
+  const [restaurantsError, setRestaurantsError] =
+    useState("");
+  const [restaurantsRetry, setRestaurantsRetry] =
+    useState(0);
 
   // ===================================================
   // GET HOME API
@@ -265,26 +468,35 @@ const HomeScreen = () => {
           const response = await getHome();
 
           console.log(
-            "HOME API RESPONSE:",
+            "========== HOME API =========="
+          );
+          console.log(
             JSON.stringify(response, null, 2)
           );
 
           if (!isActive) return;
 
-          if (response?.success != null && !isApiSuccess(response)) {
+          if (
+            response?.success != null &&
+            !isApiSuccess(response)
+          ) {
             setHomeError(
-              response?.message || "Unable to load home data."
+              response?.message ||
+                "Unable to load home data."
             );
             return;
           }
 
-          setHomeData(response?.data ?? response);
+          setHomeData(
+            response?.data ?? response
+          );
         } catch (error) {
           if (!isActive) return;
 
           console.log(
             "HOME API ERROR:",
-            error?.response?.data || error?.message
+            error?.response?.data ||
+              error?.message
           );
 
           setHomeError(
@@ -293,7 +505,9 @@ const HomeScreen = () => {
               "Unable to load home data."
           );
         } finally {
-          if (isActive) setHomeLoading(false);
+          if (isActive) {
+            setHomeLoading(false);
+          }
         }
       };
 
@@ -321,7 +535,9 @@ const HomeScreen = () => {
           const response = await getCategories();
 
           console.log(
-            "CATEGORIES API RESPONSE:",
+            "========== CATEGORIES API =========="
+          );
+          console.log(
             JSON.stringify(response, null, 2)
           );
 
@@ -332,28 +548,45 @@ const HomeScreen = () => {
             !isApiSuccess(response)
           ) {
             setCategoriesError(
-              response?.message || "Unable to load categories."
+              response?.message ||
+                "Unable to load categories."
             );
+
+            setCategories([]);
+
             return;
           }
 
-          const list = extractList(response, ["categories"]);
+          const list = extractList(
+            response,
+            ["categories", "category"]
+          );
 
-          const visibleCategories = list.filter((item) => {
-            if (item?.status == null) return true;
+          const visibleCategories =
+            list.filter((item) => {
+              if (item?.status == null) {
+                return true;
+              }
 
-            return ["show", "active", "1"].includes(
-              String(item.status).toLowerCase()
-            );
-          });
+              return [
+                "show",
+                "active",
+                "1",
+              ].includes(
+                String(item.status).toLowerCase()
+              );
+            });
 
-          setCategories(visibleCategories);
+          setCategories(
+            visibleCategories
+          );
         } catch (error) {
           if (!isActive) return;
 
           console.log(
             "CATEGORIES API ERROR:",
-            error?.response?.data || error?.message
+            error?.response?.data ||
+              error?.message
           );
 
           setCategoriesError(
@@ -361,8 +594,12 @@ const HomeScreen = () => {
               error?.message ||
               "Unable to load categories."
           );
+
+          setCategories([]);
         } finally {
-          if (isActive) setCategoriesLoading(false);
+          if (isActive) {
+            setCategoriesLoading(false);
+          }
         }
       };
 
@@ -374,7 +611,6 @@ const HomeScreen = () => {
     }, [categoriesRetry])
   );
 
- 
   // ===================================================
   // GET BANNERS API
   // ===================================================
@@ -391,26 +627,32 @@ const HomeScreen = () => {
           const response = await getBanners();
 
           console.log(
-            "BANNERS API RESPONSE:",
+            "========== BANNERS API =========="
+          );
+          console.log(
             JSON.stringify(response, null, 2)
           );
 
           if (!isActive) return;
-
-          const list = extractList(response, [
-            "banners",
-            "banner",
-          ]);
 
           if (
             response?.success != null &&
             !isApiSuccess(response)
           ) {
             setBannersError(
-              response?.message || "Unable to load banners."
+              response?.message ||
+                "Unable to load banners."
             );
+
+            setBanners([]);
+
             return;
           }
+
+          const list = extractList(
+            response,
+            ["banners", "banner"]
+          );
 
           setBanners(list);
         } catch (error) {
@@ -418,7 +660,8 @@ const HomeScreen = () => {
 
           console.log(
             "BANNERS API ERROR:",
-            error?.response?.data || error?.message
+            error?.response?.data ||
+              error?.message
           );
 
           setBannersError(
@@ -426,8 +669,12 @@ const HomeScreen = () => {
               error?.message ||
               "Unable to load banners."
           );
+
+          setBanners([]);
         } finally {
-          if (isActive) setBannersLoading(false);
+          if (isActive) {
+            setBannersLoading(false);
+          }
         }
       };
 
@@ -452,10 +699,13 @@ const HomeScreen = () => {
           setNotificationsLoading(true);
           setNotificationsError("");
 
-          const response = await getNotifications();
+          const response =
+            await getNotifications();
 
           console.log(
-            "NOTIFICATIONS API RESPONSE:",
+            "========== NOTIFICATIONS API =========="
+          );
+          console.log(
             JSON.stringify(response, null, 2)
           );
 
@@ -466,16 +716,22 @@ const HomeScreen = () => {
             !isApiSuccess(response)
           ) {
             setNotificationsError(
-              response?.message || "Unable to load notifications."
+              response?.message ||
+                "Unable to load notifications."
             );
+
             setNotifications([]);
+
             return;
           }
 
-          const list = extractList(response, [
-            "notifications",
-            "notification",
-          ]);
+          const list = extractList(
+            response,
+            [
+              "notifications",
+              "notification",
+            ]
+          );
 
           setNotifications(list);
         } catch (error) {
@@ -483,7 +739,8 @@ const HomeScreen = () => {
 
           console.log(
             "NOTIFICATIONS API ERROR:",
-            error?.response?.data || error?.message
+            error?.response?.data ||
+              error?.message
           );
 
           setNotificationsError(
@@ -494,7 +751,9 @@ const HomeScreen = () => {
 
           setNotifications([]);
         } finally {
-          if (isActive) setNotificationsLoading(false);
+          if (isActive) {
+            setNotificationsLoading(false);
+          }
         }
       };
 
@@ -522,7 +781,9 @@ const HomeScreen = () => {
           const response = await getProduct();
 
           console.log(
-            "PRODUCT API RESPONSE:",
+            "========== PRODUCTS API =========="
+          );
+          console.log(
             JSON.stringify(response, null, 2)
           );
 
@@ -533,16 +794,19 @@ const HomeScreen = () => {
             !isApiSuccess(response)
           ) {
             setProductsError(
-              response?.message || "Unable to load products."
+              response?.message ||
+                "Unable to load products."
             );
+
             setProducts([]);
+
             return;
           }
 
-          const list = extractList(response, [
-            "products",
-            "product",
-          ]);
+          const list = extractList(
+            response,
+            ["products", "product"]
+          );
 
           console.log(
             "PRODUCT LIST:",
@@ -556,7 +820,8 @@ const HomeScreen = () => {
           console.log(
             "PRODUCT API ERROR:",
             error?.response?.status,
-            error?.response?.data || error?.message
+            error?.response?.data ||
+              error?.message
           );
 
           setProductsError(
@@ -567,7 +832,9 @@ const HomeScreen = () => {
 
           setProducts([]);
         } finally {
-          if (isActive) setProductsLoading(false);
+          if (isActive) {
+            setProductsLoading(false);
+          }
         }
       };
 
@@ -577,6 +844,119 @@ const HomeScreen = () => {
         isActive = false;
       };
     }, [productsRetry])
+  );
+
+  // ===================================================
+  // GET RESTAURANTS API
+  // GET /api/customer/restaurants
+  // ===================================================
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const fetchRestaurants = async () => {
+        try {
+          setRestaurantsLoading(true);
+          setRestaurantsError("");
+
+          const response =
+            await getRestaurants();
+
+          console.log(
+            "===================================="
+          );
+          console.log(
+            "RESTAURANTS API RESPONSE"
+          );
+          console.log(
+            JSON.stringify(response, null, 2)
+          );
+          console.log(
+            "===================================="
+          );
+
+          if (!isActive) return;
+
+          if (
+            response?.success != null &&
+            !isApiSuccess(response)
+          ) {
+            setRestaurantsError(
+              response?.message ||
+                "Unable to load restaurants."
+            );
+
+            setRestaurants([]);
+
+            return;
+          }
+
+          const list = extractList(
+            response,
+            [
+              "restaurants",
+              "restaurant",
+              "items",
+              "results",
+            ]
+          );
+
+          console.log(
+            "RESTAURANT LIST:",
+            JSON.stringify(list, null, 2)
+          );
+
+          setRestaurants(list);
+        } catch (error) {
+          if (!isActive) return;
+
+          console.log(
+            "===================================="
+          );
+          console.log(
+            "RESTAURANTS API ERROR"
+          );
+          console.log(
+            "MESSAGE:",
+            error?.message
+          );
+          console.log(
+            "STATUS:",
+            error?.response?.status
+          );
+          console.log(
+            "SERVER RESPONSE:",
+            JSON.stringify(
+              error?.response?.data,
+              null,
+              2
+            )
+          );
+          console.log(
+            "===================================="
+          );
+
+          setRestaurantsError(
+            error?.response?.data?.message ||
+              error?.message ||
+              "Unable to load restaurants."
+          );
+
+          setRestaurants([]);
+        } finally {
+          if (isActive) {
+            setRestaurantsLoading(false);
+          }
+        }
+      };
+
+      fetchRestaurants();
+
+      return () => {
+        isActive = false;
+      };
+    }, [restaurantsRetry])
   );
 
   // ===================================================
@@ -592,16 +972,32 @@ const HomeScreen = () => {
 
     if (
       typeof imageUrl === "string" &&
-      /^https?:\/\//i.test(imageUrl)
+      imageUrl.trim()
     ) {
-      return { uri: imageUrl };
+      if (/^https?:\/\//i.test(imageUrl)) {
+        return {
+          uri: imageUrl,
+        };
+      }
+
+      return {
+        uri: `${BASE_URL}/${imageUrl.replace(
+          /^\/+/,
+          ""
+        )}`,
+      };
     }
 
-    const name = String(getCategoryName(item))
+    const name = String(
+      getCategoryName(item)
+    )
       .trim()
       .toLowerCase();
 
-    return CATEGORY_IMAGES[name] || CATEGORY_IMAGES.all;
+    return (
+      CATEGORY_IMAGES[name] ||
+      CATEGORY_IMAGES.all
+    );
   };
 
   // ===================================================
@@ -610,10 +1006,13 @@ const HomeScreen = () => {
 
   const openCategory = (item) => {
     router.push({
-      pathname: "/(tabs)/ExploreScreen",
+      pathname:
+        "/(tabs)/ExploreScreen",
       params: {
         search: getCategoryName(item),
-        categoryId: String(getCategoryId(item)),
+        categoryId: String(
+          getCategoryId(item)
+        ),
       },
     });
   };
@@ -623,12 +1022,15 @@ const HomeScreen = () => {
   };
 
   const openProduct = (item) => {
-    const productId = getProductId(item, 0);
-    const productName = getProductName(item);
+    const productId =
+      getProductId(item, 0);
 
-    // Replace this route if your app has a dedicated product-details screen.
+    const productName =
+      getProductName(item);
+
     router.push({
-      pathname: "/(tabs)/ExploreScreen",
+      pathname:
+        "/(tabs)/ExploreScreen",
       params: {
         search: productName,
         productId: String(productId),
@@ -636,74 +1038,131 @@ const HomeScreen = () => {
     });
   };
 
+  const openRestaurant = (item, index) => {
+  const restaurantId =
+    item?.id ||
+    item?.restaurant_id ||
+    item?.restaurantId ||
+    index + 1;
+
+  router.push({
+    pathname: "/Restaurant/[id]",
+    params: {
+      restaurantId: String(restaurantId),
+    },
+  });
+};
+
   // ===================================================
   // UNREAD NOTIFICATION COUNT
   // ===================================================
 
-  const unreadNotificationCount = notifications.filter((item) => {
-    const readValue =
-      item?.is_read ??
-      item?.isRead ??
-      item?.read;
+  const unreadNotificationCount =
+    notifications.filter((item) => {
+      const readValue =
+        item?.is_read ??
+        item?.isRead ??
+        item?.read;
 
-    return !(
-      readValue === true ||
-      readValue === 1 ||
-      readValue === "1"
-    );
-  }).length;
+      return !(
+        readValue === true ||
+        readValue === 1 ||
+        readValue === "1"
+      );
+    }).length;
 
   // ===================================================
   // RETRY HANDLERS
   // ===================================================
 
-  const retryHome = () => setHomeRetry((previous) => previous + 1);
+  const retryHome = () =>
+    setHomeRetry(
+      (previous) => previous + 1
+    );
+
   const retryCategories = () =>
-    setCategoriesRetry((previous) => previous + 1);
- 
+    setCategoriesRetry(
+      (previous) => previous + 1
+    );
+
   const retryBanners = () =>
-    setBannersRetry((previous) => previous + 1);
+    setBannersRetry(
+      (previous) => previous + 1
+    );
+
   const retryNotifications = () =>
-    setNotificationsRetry((previous) => previous + 1);
+    setNotificationsRetry(
+      (previous) => previous + 1
+    );
+
   const retryProducts = () =>
-    setProductsRetry((previous) => previous + 1);
+    setProductsRetry(
+      (previous) => previous + 1
+    );
+
+  const retryRestaurants = () =>
+    setRestaurantsRetry(
+      (previous) => previous + 1
+    );
 
   // ===================================================
   // CATEGORY LIST
   // ===================================================
 
-  const renderCategoryList = (list, featured = false) => (
+  const renderCategoryList = (
+    list,
+    featured = false
+  ) => (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={
-        featured ? styles.featuredList : styles.cuisineTopList
+        featured
+          ? styles.featuredList
+          : styles.cuisineTopList
       }
     >
       {list.map((item, index) => {
-        const id = getCategoryId(item);
-        const name = getCategoryName(item);
+        const id =
+          getCategoryId(item);
+
+        const name =
+          getCategoryName(item);
 
         return (
           <TouchableOpacity
-            key={String(id || `${name}-${index}`)}
+            key={String(
+              id || `${name}-${index}`
+            )}
             style={
-              featured ? styles.featuredItem : styles.cuisineTopItem
+              featured
+                ? styles.featuredItem
+                : styles.cuisineTopItem
             }
             activeOpacity={0.8}
-            onPress={() => openCategory(item)}
+            onPress={() =>
+              openCategory(item)
+            }
           >
             <Image
               source={getCategoryImage(item)}
               style={
-                featured ? styles.featuredImage : styles.cuisineTopImage
+                featured
+                  ? styles.featuredImage
+                  : styles.cuisineTopImage
               }
-              resizeMode={featured ? "cover" : "contain"}
+              resizeMode={
+                featured
+                  ? "cover"
+                  : "contain"
+              }
             />
 
             <Text
               style={
-                featured ? styles.featuredName : styles.cuisineTopText
+                featured
+                  ? styles.featuredName
+                  : styles.cuisineTopText
               }
               numberOfLines={2}
             >
@@ -726,26 +1185,42 @@ const HomeScreen = () => {
     retry,
     emptyMessage
   ) => {
-    if (loading && list.length === 0) {
+    if (
+      loading &&
+      list.length === 0
+    ) {
       return (
         <View style={styles.statusContainer}>
-          <ActivityIndicator size="small" color={colors.primary} />
-          <Text style={styles.statusText}>Loading...</Text>
+          <ActivityIndicator
+            size="small"
+            color={colors.primary}
+          />
+
+          <Text style={styles.statusText}>
+            Loading...
+          </Text>
         </View>
       );
     }
 
-    if (error && list.length === 0) {
+    if (
+      error &&
+      list.length === 0
+    ) {
       return (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.errorText}>
+            {error}
+          </Text>
 
           <TouchableOpacity
             style={styles.retryButton}
             onPress={retry}
             activeOpacity={0.8}
           >
-            <Text style={styles.retryText}>Try Again</Text>
+            <Text style={styles.retryText}>
+              Try Again
+            </Text>
           </TouchableOpacity>
         </View>
       );
@@ -754,7 +1229,9 @@ const HomeScreen = () => {
     if (list.length === 0) {
       return (
         <View style={styles.statusContainer}>
-          <Text style={styles.statusText}>{emptyMessage}</Text>
+          <Text style={styles.statusText}>
+            {emptyMessage}
+          </Text>
         </View>
       );
     }
@@ -767,26 +1244,42 @@ const HomeScreen = () => {
   // ===================================================
 
   const renderProductsSection = () => {
-    if (productsLoading && products.length === 0) {
+    if (
+      productsLoading &&
+      products.length === 0
+    ) {
       return (
         <View style={styles.productStatus}>
-          <ActivityIndicator size="small" color={colors.primary} />
-          <Text style={styles.statusText}>Loading products...</Text>
+          <ActivityIndicator
+            size="small"
+            color={colors.primary}
+          />
+
+          <Text style={styles.statusText}>
+            Loading products...
+          </Text>
         </View>
       );
     }
 
-    if (productsError && products.length === 0) {
+    if (
+      productsError &&
+      products.length === 0
+    ) {
       return (
         <View style={styles.productStatus}>
-          <Text style={styles.errorText}>{productsError}</Text>
+          <Text style={styles.errorText}>
+            {productsError}
+          </Text>
 
           <TouchableOpacity
             style={styles.retryButton}
             onPress={retryProducts}
             activeOpacity={0.8}
           >
-            <Text style={styles.retryText}>Try Again</Text>
+            <Text style={styles.retryText}>
+              Try Again
+            </Text>
           </TouchableOpacity>
         </View>
       );
@@ -806,12 +1299,22 @@ const HomeScreen = () => {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.productsList}
+        contentContainerStyle={
+          styles.productsList
+        }
       >
         {products.map((item, index) => {
-          const productId = getProductId(item, index);
-          const productName = getProductName(item);
-          const productPrice = getProductPrice(item);
+          const productId =
+            getProductId(
+              item,
+              index
+            );
+
+          const productName =
+            getProductName(item);
+
+          const productPrice =
+            getProductPrice(item);
 
           const oldPrice =
             item?.original_price ??
@@ -823,24 +1326,47 @@ const HomeScreen = () => {
               key={String(productId)}
               style={styles.productCard}
               activeOpacity={0.85}
-              onPress={() => openProduct(item)}
+              onPress={() =>
+                openProduct(item)
+              }
             >
-              <View style={styles.productImageContainer}>
+              <View
+                style={
+                  styles.productImageContainer
+                }
+              >
                 <Image
                   source={getProductImage(item)}
                   style={styles.productImage}
                   resizeMode="cover"
                 />
 
-                {Number(item?.discount_percentage) > 0 && (
-                  <View style={styles.productDiscount}>
-                    <Text style={styles.productDiscountText}>
-                      {item.discount_percentage}% OFF
+                {Number(
+                  item?.discount_percentage
+                ) > 0 && (
+                  <View
+                    style={
+                      styles.productDiscount
+                    }
+                  >
+                    <Text
+                      style={
+                        styles.productDiscountText
+                      }
+                    >
+                      {
+                        item.discount_percentage
+                      }
+                      % OFF
                     </Text>
                   </View>
                 )}
 
-                <View style={styles.productImageIcon}>
+                <View
+                  style={
+                    styles.productImageIcon
+                  }
+                >
                   <Ionicons
                     name="arrow-forward"
                     size={16}
@@ -849,7 +1375,11 @@ const HomeScreen = () => {
                 </View>
               </View>
 
-              <View style={styles.productDetails}>
+              <View
+                style={
+                  styles.productDetails
+                }
+              >
                 <Text
                   style={styles.productName}
                   numberOfLines={2}
@@ -857,35 +1387,45 @@ const HomeScreen = () => {
                   {productName}
                 </Text>
 
-                {(item?.category?.name || item?.category_name) && (
+                {(item?.category?.name ||
+                  item?.category_name) && (
                   <Text
-                    style={styles.productCategory}
+                    style={
+                      styles.productCategory
+                    }
                     numberOfLines={1}
                   >
-                    {item?.category?.name || item?.category_name}
+                    {item?.category?.name ||
+                      item?.category_name}
                   </Text>
                 )}
 
-                <View style={styles.productPriceRow}>
+                <View
+                  style={
+                    styles.productPriceRow
+                  }
+                >
                   {productPrice !== null && (
-                    <Text style={styles.productPrice}>
+                    <Text
+                      style={
+                        styles.productPrice
+                      }
+                    >
                       {productPrice}
                     </Text>
                   )}
 
                   {oldPrice != null &&
-                    Number(oldPrice) > 0 &&
-                    Number(oldPrice) >
-                      Number(
-                        item?.selling_price ??
-                          item?.discount_price ??
-                          item?.sale_price ??
-                          item?.price ??
-                          item?.product_price ??
-                          item?.product?.price
-                      ) && (
-                      <Text style={styles.productOldPrice}>
-                        ₹{Number(oldPrice).toFixed(2)}
+                    Number(oldPrice) > 0 && (
+                      <Text
+                        style={
+                          styles.productOldPrice
+                        }
+                      >
+                        ₹
+                        {Number(
+                          oldPrice
+                        ).toFixed(2)}
                       </Text>
                     )}
                 </View>
@@ -898,33 +1438,351 @@ const HomeScreen = () => {
   };
 
   // ===================================================
+  // RESTAURANTS SECTION
+  // ===================================================
+
+  const renderRestaurantsSection = () => {
+    if (
+      restaurantsLoading &&
+      restaurants.length === 0
+    ) {
+      return (
+        <View
+          style={
+            styles.restaurantStatus
+          }
+        >
+          <ActivityIndicator
+            size="small"
+            color={colors.primary}
+          />
+
+          <Text style={styles.statusText}>
+            Loading restaurants...
+          </Text>
+        </View>
+      );
+    }
+
+    if (
+      restaurantsError &&
+      restaurants.length === 0
+    ) {
+      return (
+        <View
+          style={
+            styles.restaurantStatus
+          }
+        >
+          <Ionicons
+            name="cloud-offline-outline"
+            size={30}
+            color={colors.textSecondary}
+          />
+
+          <Text
+            style={
+              styles.restaurantErrorText
+            }
+          >
+            {restaurantsError}
+          </Text>
+
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={
+              retryRestaurants
+            }
+            activeOpacity={0.8}
+          >
+            <Text style={styles.retryText}>
+              Try Again
+            </Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    if (restaurants.length === 0) {
+      return (
+        <View
+          style={
+            styles.restaurantStatus
+          }
+        >
+          <Ionicons
+            name="restaurant-outline"
+            size={34}
+            color={colors.textSecondary}
+          />
+
+          <Text style={styles.statusText}>
+            No restaurants available.
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View>
+        {restaurants.map(
+          (item, index) => {
+            const id =
+              getRestaurantId(
+                item,
+                index
+              );
+
+            const name =
+              getRestaurantName(item);
+
+            const image =
+              getRestaurantImage(item);
+
+            const rating =
+              getRestaurantRating(item);
+
+            const location =
+              getRestaurantLocation(
+                item
+              );
+
+            const cuisine =
+              getRestaurantCuisine(
+                item
+              );
+
+            const deliveryTime =
+              getRestaurantDeliveryTime(
+                item
+              );
+
+            return (
+              <TouchableOpacity
+                key={String(id)}
+                style={
+                  styles.restaurantCard
+                }
+                activeOpacity={0.88}
+                onPress={() =>
+                  openRestaurant(
+                    item,
+                    index
+                  )
+                }
+              >
+                <View
+                  style={
+                    styles.restaurantImageWrapper
+                  }
+                >
+                  <Image
+                    source={image}
+                    style={
+                      styles.restaurantImage
+                    }
+                    resizeMode="cover"
+                  />
+
+                  {item?.is_open !==
+                    false && (
+                    <View
+                      style={
+                        styles.openBadge
+                      }
+                    >
+                      <View
+                        style={
+                          styles.openDot
+                        }
+                      />
+
+                      <Text
+                        style={
+                          styles.openBadgeText
+                        }
+                      >
+                        OPEN
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                <View
+                  style={
+                    styles.restaurantContent
+                  }
+                >
+                  <View
+                    style={
+                      styles.restaurantTopRow
+                    }
+                  >
+                    <Text
+                      style={
+                        styles.restaurantName
+                      }
+                      numberOfLines={1}
+                    >
+                      {name}
+                    </Text>
+
+                    <View
+                      style={
+                        styles.ratingBadge
+                      }
+                    >
+                      <Ionicons
+                        name="star"
+                        size={13}
+                        color="#FFFFFF"
+                      />
+
+                      <Text
+                        style={
+                          styles.ratingText
+                        }
+                      >
+                        {rating}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text
+                    style={
+                      styles.restaurantCuisine
+                    }
+                    numberOfLines={1}
+                  >
+                    {cuisine}
+                  </Text>
+
+                  <View
+                    style={
+                      styles.restaurantInfoRow
+                    }
+                  >
+                    <View
+                      style={
+                        styles.restaurantInfoItem
+                      }
+                    >
+                      <Ionicons
+                        name="location-outline"
+                        size={14}
+                        color={
+                          colors.textSecondary
+                        }
+                      />
+
+                      <Text
+                        style={
+                          styles.restaurantInfoText
+                        }
+                        numberOfLines={1}
+                      >
+                        {location}
+                      </Text>
+                    </View>
+
+                    <View
+                      style={
+                        styles.restaurantInfoItem
+                      }
+                    >
+                      <Ionicons
+                        name="time-outline"
+                        size={14}
+                        color={
+                          colors.textSecondary
+                        }
+                      />
+
+                      <Text
+                        style={
+                          styles.restaurantInfoText
+                        }
+                      >
+                        {deliveryTime}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View
+                    style={
+                      styles.restaurantBottomRow
+                    }
+                  >
+                    <Text
+                      style={
+                        styles.restaurantDeliveryText
+                      }
+                    >
+                      Delivery available
+                    </Text>
+
+                    <View
+                      style={
+                        styles.restaurantArrow
+                      }
+                    >
+                      <Ionicons
+                        name="chevron-forward"
+                        size={18}
+                        color="#FFFFFF"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          }
+        )}
+      </View>
+    );
+  };
+
+  // ===================================================
   // HOME SCREEN UI
   // ===================================================
 
   return (
     <View style={styles.container}>
-      {/* HEADER */}
+      {/* =================================================
+          HEADER
+      ================================================= */}
 
-      <View style={styles.headerWrapper}>
+      <View
+        style={styles.headerWrapper}
+      >
         <HomeHeader />
 
         <TouchableOpacity
-          style={styles.notificationButton}
+          style={
+            styles.notificationButton
+          }
           activeOpacity={0.8}
-          onPress={openNotifications}
+          onPress={
+            openNotifications
+          }
           accessibilityRole="button"
           accessibilityLabel="Open notifications"
         >
-          <Ionicons
-            name="notifications-outline"
-            size={27}
-            color="#FFFFFF"
-          />
-
-          {unreadNotificationCount > 0 && (
-            <View style={styles.notificationBadge}>
-              <Text style={styles.notificationBadgeText}>
-                {unreadNotificationCount > 99
+          
+          {unreadNotificationCount >
+            0 && (
+            <View
+              style={
+                styles.notificationBadge
+              }
+            >
+              <Text
+                style={
+                  styles.notificationBadgeText
+                }
+              >
+                {unreadNotificationCount >
+                99
                   ? "99+"
                   : unreadNotificationCount}
               </Text>
@@ -934,117 +1792,250 @@ const HomeScreen = () => {
       </View>
 
       <ScrollView
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={
+          false
+        }
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={
+          styles.scrollContent
+        }
       >
-        {/* NOTIFICATIONS LOADING */}
+        {/* =================================================
+            NOTIFICATION LOADING
+        ================================================= */}
 
         {notificationsLoading && (
-          <View style={styles.notificationLoading}>
-            <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={styles.notificationLoadingText}>
+          <View
+            style={
+              styles.notificationLoading
+            }
+          >
+            <ActivityIndicator
+              size="small"
+              color={colors.primary}
+            />
+
+            <Text
+              style={
+                styles.notificationLoadingText
+              }
+            >
               Loading notifications...
             </Text>
           </View>
         )}
 
-        {/* NOTIFICATIONS ERROR */}
+        {/* =================================================
+            NOTIFICATION ERROR
+        ================================================= */}
 
-        {!notificationsLoading && notificationsError !== "" && (
-          <View style={styles.notificationError}>
-            <Text style={styles.notificationErrorText}>
-              {notificationsError}
-            </Text>
-
-            <TouchableOpacity
-              style={styles.retryButton}
-              onPress={retryNotifications}
-              activeOpacity={0.8}
+        {!notificationsLoading &&
+          notificationsError !== "" && (
+            <View
+              style={
+                styles.notificationError
+              }
             >
-              <Text style={styles.retryText}>Try Again</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+              <Text
+                style={
+                  styles.notificationErrorText
+                }
+              >
+                {notificationsError}
+              </Text>
 
-        {/* HOME LOADING */}
+              <TouchableOpacity
+                style={
+                  styles.retryButton
+                }
+                onPress={
+                  retryNotifications
+                }
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={
+                    styles.retryText
+                  }
+                >
+                  Try Again
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+        {/* =================================================
+            HOME LOADING
+        ================================================= */}
 
         {homeLoading && (
-          <View style={styles.statusContainer}>
-            <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={styles.statusText}>Loading home...</Text>
-          </View>
-        )}
+          <View
+            style={
+              styles.statusContainer
+            }
+          >
+            <ActivityIndicator
+              size="small"
+              color={colors.primary}
+            />
 
-        {/* HOME ERROR */}
-
-        {!homeLoading && homeError !== "" && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorTitle}>
-              Unable to load home data
-            </Text>
-
-            <Text style={styles.errorText}>{homeError}</Text>
-
-            <TouchableOpacity
-              style={styles.retryButton}
-              onPress={retryHome}
-              activeOpacity={0.8}
+            <Text
+              style={
+                styles.statusText
+              }
             >
-              <Text style={styles.retryText}>Try Again</Text>
-            </TouchableOpacity>
+              Loading home...
+            </Text>
           </View>
         )}
 
-        {/* SEARCH */}
+        {/* =================================================
+            HOME ERROR
+        ================================================= */}
 
-        <View style={styles.searchWrap}>
+        {!homeLoading &&
+          homeError !== "" && (
+            <View
+              style={
+                styles.errorContainer
+              }
+            >
+              <Text
+                style={
+                  styles.errorTitle
+                }
+              >
+                Unable to load home data
+              </Text>
+
+              <Text
+                style={
+                  styles.errorText
+                }
+              >
+                {homeError}
+              </Text>
+
+              <TouchableOpacity
+                style={
+                  styles.retryButton
+                }
+                onPress={retryHome}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={
+                    styles.retryText
+                  }
+                >
+                  Try Again
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+        {/* =================================================
+            SEARCH
+        ================================================= */}
+
+        <View
+          style={styles.searchWrap}
+        >
           <SearchBar
             value={searchText}
-            onChangeText={setSearchText}
-            onSubmitEditing={Keyboard.dismiss}
+            onChangeText={
+              setSearchText
+            }
+            onSubmitEditing={
+              Keyboard.dismiss
+            }
           />
         </View>
 
-        {/* BANNERS */}
+        {/* =================================================
+            BANNERS
+        ================================================= */}
 
         {!hasSearchQuery && (
           <View>
-            {bannersLoading && banners.length === 0 && (
-              <ActivityIndicator
-                size="small"
-                color={colors.primary}
-                style={{ marginVertical: 15 }}
-              />
-            )}
+            {bannersLoading &&
+              banners.length ===
+                0 && (
+                <ActivityIndicator
+                  size="small"
+                  color={
+                    colors.primary
+                  }
+                  style={{
+                    marginVertical: 15,
+                  }}
+                />
+              )}
 
-            {bannersError !== "" && banners.length === 0 && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{bannersError}</Text>
-
-                <TouchableOpacity
-                  style={styles.retryButton}
-                  onPress={retryBanners}
-                  activeOpacity={0.8}
+            {bannersError !== "" &&
+              banners.length ===
+                0 && (
+                <View
+                  style={
+                    styles.errorContainer
+                  }
                 >
-                  <Text style={styles.retryText}>Try Again</Text>
-                </TouchableOpacity>
-              </View>
-            )}
+                  <Text
+                    style={
+                      styles.errorText
+                    }
+                  >
+                    {bannersError}
+                  </Text>
 
-            {banners.length > 0 && (
-              <BannersScreen banners={banners} />
+                  <TouchableOpacity
+                    style={
+                      styles.retryButton
+                    }
+                    onPress={
+                      retryBanners
+                    }
+                    activeOpacity={
+                      0.8
+                    }
+                  >
+                    <Text
+                      style={
+                        styles.retryText
+                      }
+                    >
+                      Try Again
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+            {banners.length >
+              0 && (
+              <BannersScreen
+                banners={banners}
+              />
             )}
           </View>
         )}
 
-        {/* CATEGORIES */}
+        {/* =================================================
+            CATEGORIES
+        ================================================= */}
 
         {!hasSearchQuery && (
-          <View style={styles.cuisineTopSection}>
-            <Text style={styles.categoriesTitle}>
-                  Categories
-                </Text>
+          <View
+            style={
+              styles.cuisineTopSection
+            }
+          >
+            <Text
+              style={
+                styles.productsTitle
+              }
+            >
+              Categories
+            </Text>
 
             {renderCategoryStatus(
               categoriesLoading,
@@ -1054,35 +2045,67 @@ const HomeScreen = () => {
               "No categories available."
             )}
 
-            {categories.length > 0 &&
-              renderCategoryList(categories)}
+            {categories.length >
+              0 &&
+              renderCategoryList(
+                categories
+              )}
           </View>
         )}
 
-       
-
-        {/* PRODUCTS */}
+        {/* =================================================
+            PRODUCTS
+        ================================================= */}
 
         {!hasSearchQuery && (
-          <View style={styles.productsSection}>
-            <View style={styles.productsHeader}>
-              <View style={styles.productsHeadingText}>
-                <Text style={styles.productsTitle}>
+          <View
+            style={
+              styles.productsSection
+            }
+          >
+            <View
+              style={
+                styles.productsHeader
+              }
+            >
+              <View
+                style={
+                  styles.productsHeadingText
+                }
+              >
+                <Text
+                  style={
+                    styles.productsTitle
+                  }
+                >
                   Popular Products
                 </Text>
 
-                <Text style={styles.productsSubtitle}>
-                  Discover something delicious
+                <Text
+                  style={
+                    styles.productsSubtitle
+                  }
+                >
+                  Discover something
+                  delicious
                 </Text>
               </View>
 
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() =>
-                  router.push("/(tabs)/ExploreScreen")
+                  router.push(
+                    "/(tabs)/ExploreScreen"
+                  )
                 }
               >
-                <Text style={styles.viewAllText}>View All</Text>
+                <Text
+                  style={
+                    styles.viewAllText
+                  }
+                >
+                  View All
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -1090,39 +2113,106 @@ const HomeScreen = () => {
           </View>
         )}
 
-        {/* RESTAURANTS / SEARCH RESULTS */}
+        {/* =================================================
+            RESTAURANTS / SEARCH RESULTS
+        ================================================= */}
 
-        <View style={styles.restaurantSection}>
+        <View
+          style={
+            styles.restaurantSection
+          }
+        >
           {hasSearchQuery ? (
             <HomeSearchResults
-              searchText={searchText.trim()}
+              searchText={
+                searchText.trim()
+              }
             />
           ) : (
-            <RestaurantCard />
+            <>
+              <View
+                style={
+                  styles.restaurantHeader
+                }
+              >
+                <View>
+                  <Text
+                    style={
+                      styles.restaurantSectionTitle
+                    }
+                  >
+                    Restaurants
+                  </Text>
+
+                  <Text
+                    style={
+                      styles.restaurantSectionSubtitle
+                    }
+                  >
+                    Explore restaurants near you
+                  </Text>
+                </View>
+
+                {restaurants.length >
+                  0 && (
+                  <Text
+                    style={
+                      styles.restaurantCount
+                    }
+                  >
+                    {restaurants.length}{" "}
+                    {restaurants.length ===
+                    1
+                      ? "place"
+                      : "places"}
+                  </Text>
+                )}
+              </View>
+
+              {renderRestaurantsSection()}
+            </>
           )}
         </View>
 
-        {/* TABLE BOOKING */}
+        {/* =================================================
+            TABLE BOOKING
+        ================================================= */}
 
         {!hasSearchQuery && (
-          <View style={styles.bookingCard}>
+          <View
+            style={
+              styles.bookingCard
+            }
+          >
             <Image
               source={require("../../../assets/images/book_table.jpg")}
-              style={styles.bookingImage}
+              style={
+                styles.bookingImage
+              }
               resizeMode="cover"
             />
 
             <TouchableOpacity
-              style={styles.findTableButton}
+              style={
+                styles.findTableButton
+              }
               activeOpacity={0.8}
               accessibilityRole="button"
               accessibilityLabel="Find a table"
-              onPress={() => router.push("/table-booking")}
+              onPress={() =>
+                router.push(
+                  "/table-booking"
+                )
+              }
             />
           </View>
         )}
 
-        <View style={styles.bottomSpacing} />
+        <View
+          style={
+            styles.bottomSpacing
+          }
+        />
       </ScrollView>
     </View>
   );
@@ -1136,14 +2226,17 @@ const makeStyles = (colors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor:
+        colors.background,
     },
 
     scrollContent: {
       paddingBottom: 20,
     },
 
+    // =================================================
     // HEADER
+    // =================================================
 
     headerWrapper: {
       position: "relative",
@@ -1168,12 +2261,14 @@ const makeStyles = (colors) =>
       minWidth: 19,
       height: 19,
       borderRadius: 10,
-      backgroundColor: colors.primary,
+      backgroundColor:
+        colors.primary,
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: 4,
       borderWidth: 1,
-      borderColor: colors.background,
+      borderColor:
+        colors.background,
     },
 
     notificationBadgeText: {
@@ -1191,7 +2286,8 @@ const makeStyles = (colors) =>
     },
 
     notificationLoadingText: {
-      color: colors.textSecondary,
+      color:
+        colors.textSecondary,
       fontSize: 12,
     },
 
@@ -1201,7 +2297,8 @@ const makeStyles = (colors) =>
       marginBottom: 5,
       padding: 10,
       borderRadius: 10,
-      backgroundColor: colors.surface,
+      backgroundColor:
+        colors.surface,
       alignItems: "center",
     },
 
@@ -1211,7 +2308,9 @@ const makeStyles = (colors) =>
       textAlign: "center",
     },
 
+    // =================================================
     // STATUS
+    // =================================================
 
     statusContainer: {
       flexDirection: "row",
@@ -1223,24 +2322,29 @@ const makeStyles = (colors) =>
     },
 
     statusText: {
-      color: colors.textSecondary,
+      color:
+        colors.textSecondary,
       fontSize: 13,
       textAlign: "center",
     },
 
+    // =================================================
     // ERROR
+    // =================================================
 
     errorContainer: {
       marginHorizontal: 16,
       marginVertical: 10,
       padding: 14,
       borderRadius: 10,
-      backgroundColor: colors.surface,
+      backgroundColor:
+        colors.surface,
       alignItems: "center",
     },
 
     errorTitle: {
-      color: colors.textPrimary,
+      color:
+        colors.textPrimary,
       fontSize: 15,
       fontWeight: "600",
       textAlign: "center",
@@ -1258,7 +2362,8 @@ const makeStyles = (colors) =>
       paddingHorizontal: 22,
       paddingVertical: 10,
       borderRadius: 20,
-      backgroundColor: colors.primary,
+      backgroundColor:
+        colors.primary,
     },
 
     retryText: {
@@ -1268,16 +2373,22 @@ const makeStyles = (colors) =>
       textAlign: "center",
     },
 
+    // =================================================
     // SEARCH
+    // =================================================
 
     searchWrap: {
       marginTop: 4,
+      fontSize: 18,
     },
 
+    // =================================================
     // CATEGORIES
+    // =================================================
 
     cuisineTopSection: {
-      backgroundColor: colors.background,
+      backgroundColor:
+        colors.background,
       marginTop: 4,
       paddingVertical: 5,
     },
@@ -1289,7 +2400,8 @@ const makeStyles = (colors) =>
     cuisineTopItem: {
       width: 115,
       alignItems: "center",
-      justifyContent: "flex-start",
+      justifyContent:
+        "flex-start",
       marginRight: 5,
     },
 
@@ -1301,13 +2413,16 @@ const makeStyles = (colors) =>
 
     cuisineTopText: {
       width: 115,
-      color: colors.textPrimary,
+      color:
+        colors.textPrimary,
       fontSize: 18,
       fontWeight: "500",
       textAlign: "center",
     },
 
+    // =================================================
     // FEATURED CATEGORIES
+    // =================================================
 
     featuredSection: {
       marginTop: 16,
@@ -1315,7 +2430,8 @@ const makeStyles = (colors) =>
     },
 
     featuredTitle: {
-      color: colors.textPrimary,
+      color:
+        colors.textPrimary,
       fontSize: 20,
       fontWeight: "700",
       marginHorizontal: 16,
@@ -1336,19 +2452,23 @@ const makeStyles = (colors) =>
       width: 125,
       height: 100,
       borderRadius: 12,
-      backgroundColor: colors.surface,
+      backgroundColor:
+        colors.surface,
     },
 
     featuredName: {
       marginTop: 8,
       width: 125,
-      color: colors.textPrimary,
+      color:
+        colors.textPrimary,
       fontSize: 14,
       fontWeight: "600",
       textAlign: "center",
     },
 
+    // =================================================
     // PRODUCTS
+    // =================================================
 
     productsSection: {
       marginTop: 20,
@@ -1357,7 +2477,8 @@ const makeStyles = (colors) =>
 
     productsHeader: {
       flexDirection: "row",
-      justifyContent: "space-between",
+      justifyContent:
+        "space-between",
       alignItems: "center",
       marginHorizontal: 16,
       marginBottom: 14,
@@ -1368,13 +2489,17 @@ const makeStyles = (colors) =>
     },
 
     productsTitle: {
-      color: colors.textPrimary,
+      color:
+        colors.textPrimary,
       fontSize: 20,
       fontWeight: "700",
+      marginHorizontal: 16,
+      marginBottom: 10,
     },
 
     productsSubtitle: {
-      color: colors.textSecondary,
+      color:
+        colors.textSecondary,
       fontSize: 12,
       marginTop: 4,
     },
@@ -1396,15 +2521,20 @@ const makeStyles = (colors) =>
       width: 165,
       borderRadius: 14,
       overflow: "hidden",
-      backgroundColor: colors.surface,
+      backgroundColor:
+        colors.surface,
       borderWidth: 1,
-      borderColor: colors.border || "#292929",
+      borderColor:
+        colors.border ||
+        "#292929",
     },
 
     productImageContainer: {
       width: "100%",
       height: 130,
-      backgroundColor: colors.card || "#202020",
+      backgroundColor:
+        colors.card ||
+        "#202020",
       position: "relative",
     },
 
@@ -1420,7 +2550,8 @@ const makeStyles = (colors) =>
       paddingHorizontal: 8,
       paddingVertical: 5,
       borderRadius: 6,
-      backgroundColor: colors.primary,
+      backgroundColor:
+        colors.primary,
     },
 
     productDiscountText: {
@@ -1436,9 +2567,11 @@ const makeStyles = (colors) =>
       width: 30,
       height: 30,
       borderRadius: 15,
-      backgroundColor: colors.primary,
+      backgroundColor:
+        colors.primary,
       alignItems: "center",
-      justifyContent: "center",
+      justifyContent:
+        "center",
     },
 
     productDetails: {
@@ -1448,14 +2581,16 @@ const makeStyles = (colors) =>
     },
 
     productName: {
-      color: colors.textPrimary,
+      color:
+        colors.textPrimary,
       fontSize: 14,
       fontWeight: "600",
       lineHeight: 20,
     },
 
     productCategory: {
-      color: colors.textSecondary,
+      color:
+        colors.textSecondary,
       fontSize: 11,
       marginTop: 4,
     },
@@ -1475,9 +2610,11 @@ const makeStyles = (colors) =>
     },
 
     productOldPrice: {
-      color: colors.textSecondary,
+      color:
+        colors.textSecondary,
       fontSize: 11,
-      textDecorationLine: "line-through",
+      textDecorationLine:
+        "line-through",
     },
 
     productStatus: {
@@ -1485,16 +2622,221 @@ const makeStyles = (colors) =>
       paddingVertical: 20,
       paddingHorizontal: 12,
       alignItems: "center",
-      justifyContent: "center",
+      justifyContent:
+        "center",
     },
 
+    // =================================================
     // RESTAURANTS
+    // =================================================
 
     restaurantSection: {
-      marginTop: 2,
+      marginTop: 8,
+      marginBottom: 18,
     },
 
+    restaurantHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent:
+        "space-between",
+      marginHorizontal: 16,
+      marginBottom: 14,
+    },
+
+    restaurantSectionTitle: {
+      color:
+        colors.textPrimary,
+      fontSize: 20,
+      fontWeight: "700",
+    },
+
+    restaurantSectionSubtitle: {
+      color:
+        colors.textSecondary,
+      fontSize: 12,
+      marginTop: 4,
+    },
+
+    restaurantCount: {
+      color: colors.primary,
+      fontSize: 12,
+      fontWeight: "700",
+    },
+
+    restaurantStatus: {
+      marginHorizontal: 16,
+      minHeight: 120,
+      paddingVertical: 22,
+      paddingHorizontal: 16,
+      alignItems: "center",
+      justifyContent:
+        "center",
+      borderRadius: 16,
+      backgroundColor:
+        colors.surface,
+    },
+
+    restaurantErrorText: {
+      color: colors.primary,
+      fontSize: 13,
+      textAlign: "center",
+      marginTop: 8,
+    },
+
+    restaurantCard: {
+      marginHorizontal: 16,
+      marginBottom: 14,
+      borderRadius: 18,
+      overflow: "hidden",
+      backgroundColor:
+        colors.surface,
+      borderWidth: 1,
+      borderColor:
+        colors.border ||
+        "#292929",
+    },
+
+    restaurantImageWrapper: {
+      width: "100%",
+      height: 180,
+      position: "relative",
+      backgroundColor:
+        colors.card ||
+        "#202020",
+    },
+
+    restaurantImage: {
+      width: "100%",
+      height: "100%",
+    },
+
+    openBadge: {
+      position: "absolute",
+      top: 12,
+      left: 12,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 9,
+      paddingVertical: 6,
+      borderRadius: 20,
+      backgroundColor:
+        "rgba(0,0,0,0.72)",
+    },
+
+    openDot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      backgroundColor:
+        "#39D353",
+      marginRight: 5,
+    },
+
+    openBadgeText: {
+      color: "#FFFFFF",
+      fontSize: 10,
+      fontWeight: "700",
+    },
+
+    restaurantContent: {
+      padding: 13,
+    },
+
+    restaurantTopRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent:
+        "space-between",
+    },
+
+    restaurantName: {
+      flex: 1,
+      color:
+        colors.textPrimary,
+      fontSize: 17,
+      fontWeight: "700",
+      marginRight: 10,
+    },
+
+    ratingBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor:
+        colors.primary,
+      borderRadius: 7,
+      paddingHorizontal: 7,
+      paddingVertical: 5,
+      gap: 3,
+    },
+
+    ratingText: {
+      color: "#FFFFFF",
+      fontSize: 12,
+      fontWeight: "700",
+    },
+
+    restaurantCuisine: {
+      color:
+        colors.textSecondary,
+      fontSize: 12,
+      marginTop: 6,
+    },
+
+    restaurantInfoRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 10,
+      gap: 12,
+    },
+
+    restaurantInfoItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+      gap: 4,
+    },
+
+    restaurantInfoText: {
+      flex: 1,
+      color:
+        colors.textSecondary,
+      fontSize: 11,
+    },
+
+    restaurantBottomRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent:
+        "space-between",
+      marginTop: 12,
+      paddingTop: 10,
+      borderTopWidth: 1,
+      borderTopColor:
+        colors.border ||
+        "#292929",
+    },
+
+    restaurantDeliveryText: {
+      color: colors.primary,
+      fontSize: 11,
+      fontWeight: "600",
+    },
+
+    restaurantArrow: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      backgroundColor:
+        colors.primary,
+      alignItems: "center",
+      justifyContent:
+        "center",
+    },
+
+    // =================================================
     // TABLE BOOKING
+    // =================================================
 
     bookingCard: {
       marginHorizontal: 16,
@@ -1516,11 +2858,14 @@ const makeStyles = (colors) =>
       bottom: 18,
       width: 145,
       height: 42,
-      backgroundColor: "transparent",
+      backgroundColor:
+        "transparent",
       borderRadius: 22,
     },
 
-    // BOTTOM SPACING
+    // =================================================
+    // BOTTOM
+    // =================================================
 
     bottomSpacing: {
       height: 40,

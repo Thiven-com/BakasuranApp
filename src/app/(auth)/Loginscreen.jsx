@@ -122,7 +122,7 @@ const handleSendOTP = async () => {
             {/* MOBILE INPUT */}
             <View style={styles.mobileInputContainer}>
               <View style={styles.countrySection}>
-                <Text style={styles.indiaFlag}>🇮🇳</Text>
+                
                 <Text style={styles.countryCode}>+91</Text>
                 <Ionicons
                   name="chevron-down"
@@ -279,11 +279,11 @@ const createStyles = (colors) =>
     countrySection: {
       flexDirection: "row",
       alignItems: "center",
-      minWidth: 95,
+      minWidth: 60,
     },
     indiaFlag: {
       fontSize: 18,
-      marginRight: 6,
+      marginRight: 1,
     },
     countryCode: {
       color: colors.textPrimary,
