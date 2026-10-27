@@ -241,6 +241,13 @@ export default function ProfileScreen() {
       color: colors.primary,
       route: "/cancellation-refund",
     },
+    {
+      title: "FAQS",
+      subtitle: "How can I place a food order?",
+      icon: "receipt-outline",
+      color: colors.primary,
+      route: "/FAQScreen",
+    },
   ];
 
   const handleMenuPress = useCallback((route) => {
@@ -671,8 +678,8 @@ const makeStyles = (colors, isDark) =>
     },
 
     bakasuranBadge: {
-      height: 37,
-      paddingHorizontal: 12,
+      height: 35,
+      paddingHorizontal: 7,
       borderRadius: 20,
       backgroundColor: colors.primary,
       flexDirection: "row",
@@ -682,15 +689,15 @@ const makeStyles = (colors, isDark) =>
 
     bakasuranText: {
       color: "#FFFFFF",
-      fontFamily: Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: Fonts.size.xs,
-      marginLeft: 6,
+      marginLeft: 2,
       letterSpacing: 0.1,
     },
 
     goldBadge: {
-      height: 37,
-      paddingHorizontal: 11,
+      height: 35,
+      paddingHorizontal: 7,
       borderRadius: 20,
       backgroundColor: isDark ? "#241A11" : "#FFF4E0",
       borderWidth: 1,

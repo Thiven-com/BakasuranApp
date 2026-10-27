@@ -1,9 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useMemo, useState } from "react";
 
 import {
-  Alert,
+  ActivityIndicator,
   Image,
   Modal,
   ScrollView,
@@ -17,81 +17,101 @@ import {
 
 import Fonts from "../../constants/Fonts";
 import { useTheme } from "../../hooks/use-theme";
-import {
-  getProduct,
-  getWishlist,
-  toggleWishlist,
-} from "../../utils/Function";
+
+import { getCategories } from "../../utils/Function";
 
 // IMPORTANT:
 // Restaurant data stays inside ../Restaurant/[id].jsx
 import { restaurants } from "../Restaurant/[id]";
 
 /* ============================================================
-   CATEGORIES
+   FALLBACK CATEGORY IMAGES
 ============================================================ */
 
-const categories = [
+const FALLBACK_CATEGORY_IMAGES = {
+  all: require("../../../assets/images/all.png"),
+  dosa: require("../../../assets/images/dosa.png"),
+  "south indian": require("../../../assets/images/south_indian.png"),
+  "south-indian": require("../../../assets/images/south_indian.png"),
+  biryani: require("../../../assets/images/biryani.png"),
+  idli: require("../../../assets/images/idli.png"),
+  pizza: require("../../../assets/images/pizza.png"),
+  burgers: require("../../../assets/images/burgers.png"),
+  burger: require("../../../assets/images/burgers.png"),
+  chinese: require("../../../assets/images/chinese.png"),
+  chicken: require("../../../assets/images/fried_chicken.jpg"),
+  "fried chicken": require("../../../assets/images/fried_chicken.jpg"),
+  desserts: require("../../../assets/images/desserts.png"),
+  dessert: require("../../../assets/images/desserts.png"),
+  drinks: require("../../../assets/images/drinks.png"),
+  drink: require("../../../assets/images/drinks.png"),
+};
+
+/* ============================================================
+   DEFAULT / FALLBACK CATEGORIES
+============================================================ */
+
+const DEFAULT_CATEGORIES = [
   {
     id: "all",
     name: "All",
-    image: require("../../../assets/images/all.png"),
+    image: FALLBACK_CATEGORY_IMAGES.all,
   },
   {
     id: "dosa",
     name: "Dosa",
-    image: require("../../../assets/images/dosa.png"),
+    image: FALLBACK_CATEGORY_IMAGES.dosa,
   },
   {
     id: "south-indian",
     name: "South Indian",
-    image: require("../../../assets/images/south_indian.png"),
+    image: FALLBACK_CATEGORY_IMAGES["south indian"],
   },
   {
     id: "biryani",
     name: "Biryani",
-    image: require("../../../assets/images/biryani.png"),
+    image: FALLBACK_CATEGORY_IMAGES.biryani,
   },
   {
     id: "idli",
     name: "Idli",
-    image: require("../../../assets/images/idli.png"),
+    image: FALLBACK_CATEGORY_IMAGES.idli,
   },
   {
     id: "pizza",
     name: "Pizza",
-    image: require("../../../assets/images/pizza.png"),
+    image: FALLBACK_CATEGORY_IMAGES.pizza,
   },
   {
     id: "burgers",
     name: "Burgers",
-    image: require("../../../assets/images/burgers.png"),
+    image: FALLBACK_CATEGORY_IMAGES.burgers,
   },
   {
     id: "chinese",
     name: "Chinese",
-    image: require("../../../assets/images/chinese.png"),
+    image: FALLBACK_CATEGORY_IMAGES.chinese,
   },
   {
     id: "chicken",
     name: "Chicken",
-    image: require("../../../assets/images/fried_chicken.jpg"),
+    image: FALLBACK_CATEGORY_IMAGES.chicken,
   },
   {
     id: "desserts",
     name: "Desserts",
-    image: require("../../../assets/images/desserts.png"),
+    image: FALLBACK_CATEGORY_IMAGES.desserts,
   },
   {
     id: "drinks",
     name: "Drinks",
-    image: require("../../../assets/images/drinks.png"),
+    image: FALLBACK_CATEGORY_IMAGES.drinks,
   },
 ];
 
-// ============================================================
-// POPULAR CUISINES
-// ============================================================
+/* ============================================================
+   POPULAR CUISINES
+============================================================ */
 
 const popularCuisines = [
   {
@@ -162,46 +182,186 @@ const getPrice = (price) => {
   return match ? Number(match[0]) : 0;
 };
 
-// Local dish IDs are not backend variant IDs and must not be sent to the API.
-const getVariantId = (dish) => {
-  const value = dish?.variant_id ?? dish?.variantId;
-  const variantId =
-    typeof value === "number"
-      ? value
-      : typeof value === "string" && /^\d+$/.test(value.trim())
-        ? Number(value.trim())
-        : NaN;
+/* ============================================================
+   EXTRACT CATEGORY LIST
+============================================================ */
 
-  return Number.isSafeInteger(variantId) && variantId > 0 ? variantId : null;
+const extractCategoryList = (response) => {
+  if (!response) {
+    return [];
+  }
+
+  // Response itself is array
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  // { data: [] }
+  if (Array.isArray(response?.data)) {
+    return response.data;
+  }
+
+  // { data: { data: [] } }
+  if (Array.isArray(response?.data?.data)) {
+    return response.data.data;
+  }
+
+  // { categories: [] }
+  if (Array.isArray(response?.categories)) {
+    return response.categories;
+  }
+
+  // { data: { categories: [] } }
+  if (Array.isArray(response?.data?.categories)) {
+    return response.data.categories;
+  }
+
+  // { result: [] }
+  if (Array.isArray(response?.result)) {
+    return response.result;
+  }
+
+  return [];
 };
 
-// Pulls the saved variant ids out of the GET wishlist response.
-// Accepts { data: [...] } or { data: { wishlist | items | dishes | products: [...] } }.
-const extractSavedVariantIds = (res) => {
-  const data = res?.data;
+/* ============================================================
+   GET IMAGE URL
+============================================================ */
 
-  const list = Array.isArray(data)
-    ? data
-    : (data?.wishlist ?? data?.items ?? data?.dishes ?? data?.products ?? []);
+const getCategoryImage = (category) => {
+  if (!category) {
+    return FALLBACK_CATEGORY_IMAGES.all;
+  }
 
-  return (Array.isArray(list) ? list : []).map((entry) =>
-    String(entry?.variant?.id ?? entry?.variant_id ?? entry?.id),
+  const categoryName = normalize(
+    category?.name ||
+      category?.category_name ||
+      category?.title ||
+      category?.slug ||
+      "",
   );
+
+  const apiImage =
+    category?.image_url ||
+    category?.imageUrl ||
+    category?.image ||
+    category?.icon ||
+    category?.category_image ||
+    category?.categoryImage ||
+    category?.photo ||
+    category?.thumbnail ||
+    "";
+
+  /* ----------------------------------------------------------
+     ABSOLUTE IMAGE URL
+  ---------------------------------------------------------- */
+
+  if (typeof apiImage === "string" && /^https?:\/\//i.test(apiImage)) {
+    return {
+      uri: apiImage,
+    };
+  }
+
+  /* ----------------------------------------------------------
+     RELATIVE IMAGE URL
+  ---------------------------------------------------------- */
+
+  if (typeof apiImage === "string" && apiImage.trim().length > 0) {
+    let cleanPath = apiImage.trim().replace(/^\/+/, "");
+
+    /*
+     * APP_URL:
+     *
+     * http://192.168.x.x:8001/api/customer/
+     *
+     * We need only the base URL.
+     */
+
+    const baseUrl = String(APP_URL || "").replace(/\/api\/customer\/?$/, "");
+
+    if (cleanPath.startsWith("storage/")) {
+      return {
+        uri: `${baseUrl}/${cleanPath}`,
+      };
+    }
+
+    return {
+      uri: `${baseUrl}/${cleanPath}`,
+    };
+  }
+
+  /* ----------------------------------------------------------
+     LOCAL FALLBACK
+  ---------------------------------------------------------- */
+
+  if (FALLBACK_CATEGORY_IMAGES[categoryName]) {
+    return FALLBACK_CATEGORY_IMAGES[categoryName];
+  }
+
+  const fallbackKey = Object.keys(FALLBACK_CATEGORY_IMAGES).find(
+    (key) => categoryName.includes(key) || key.includes(categoryName),
+  );
+
+  if (fallbackKey) {
+    return FALLBACK_CATEGORY_IMAGES[fallbackKey];
+  }
+
+  return FALLBACK_CATEGORY_IMAGES.all;
+};
+
+/* ============================================================
+   NORMALIZE API CATEGORIES
+============================================================ */
+
+const normalizeCategories = (response) => {
+  const apiCategories = extractCategoryList(response);
+
+  console.log("CATEGORY ARRAY LENGTH:", apiCategories.length);
+
+  const validCategories = apiCategories
+    .filter((item) => item)
+    .filter((item) => {
+      const name =
+        item?.name || item?.category_name || item?.title || item?.slug;
+
+      return Boolean(name);
+    })
+    .map((item, index) => {
+      const id =
+        item?.id ??
+        item?.category_id ??
+        item?.categoryId ??
+        item?.slug ??
+        index + 1;
+
+      const name =
+        item?.name ||
+        item?.category_name ||
+        item?.title ||
+        item?.slug ||
+        `Category ${index + 1}`;
+
+      return {
+        id: String(id),
+        name: String(name),
+        image: getCategoryImage(item),
+        original: item,
+      };
+    });
+
+  return [
+    {
+      id: "all",
+      name: "All",
+      image: FALLBACK_CATEGORY_IMAGES.all,
+    },
+    ...validCategories,
+  ];
 };
 
 /* ============================================================
    RESTAURANT DATA
 ============================================================ */
-
-/*
-  IMPORTANT:
-
-  restaurants comes directly from:
-  app/Restaurant/[id].jsx
-
-  We are NOT creating another restaurant data file.
-  We are NOT duplicating restaurant names.
-*/
 
 const restaurantList = Object.values(restaurants || {}).map((restaurant) => {
   const menu =
@@ -231,100 +391,15 @@ const restaurantList = Object.values(restaurants || {}).map((restaurant) => {
   };
 });
 
-const getProductList = (response) => {
-  const data = response?.data;
-
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.data)) return data.data;
-
-  const products =
-    data?.products ??
-    data?.product ??
-    data?.data?.products ??
-    data?.data?.product ??
-    data?.data?.data?.products ??
-    response?.products ??
-    response?.product ??
-    [];
-
-  if (Array.isArray(products)) return products;
-  return products && typeof products === "object" ? [products] : [];
-};
-
-const getProductVariants = (product) => {
-  if (Array.isArray(product?.variants)) return product.variants;
-  if (product?.variants && typeof product.variants === "object") {
-    return [product.variants];
-  }
-  if (Array.isArray(product?.product_variants)) return product.product_variants;
-  if (Array.isArray(product?.variant)) return product.variant;
-  if (product?.variant && typeof product.variant === "object") {
-    return [product.variant];
-  }
-  return product?.variant_id != null || product?.variantId != null
-    ? [product]
-    : [];
-};
-
-const getWishlistDishes = (products) => {
-  const dishes = [];
-
-  for (const product of products) {
-    for (const variant of getProductVariants(product)) {
-      const variantId =
-        variant?.variant_id ??
-        variant?.variantId ??
-        (variant !== product ? variant?.id : undefined);
-      const id = getVariantId({ variant_id: variantId });
-
-      if (id === null) continue;
-
-      const details = variant?.product ?? product?.product ?? product;
-      const image =
-        variant?.image_url ??
-        variant?.image ??
-        details?.image_url ??
-        details?.image;
-
-      dishes.push({
-        id: String(id),
-        variant_id: id,
-        name:
-          variant?.name ??
-          details?.name ??
-          details?.product_name ??
-          "Food item",
-        restaurantName:
-          details?.restaurant?.name ??
-          details?.restaurant_name ??
-          details?.vendor?.name ??
-          "Restaurant",
-        price:
-          variant?.selling_price ??
-          variant?.price ??
-          details?.selling_price ??
-          details?.price,
-        image:
-          typeof image === "string"
-            ? { uri: image }
-            : image?.url
-              ? { uri: image.url }
-              : image,
-        isVeg: Boolean(details?.is_veg ?? details?.isVeg ?? details?.veg),
-      });
-    }
-  }
-
-  return dishes;
-};
-
 /* ============================================================
    SCREEN
 ============================================================ */
 
 export default function ExploreScreen() {
   const params = useLocalSearchParams();
+
   const { colors: Colors, isDark } = useTheme();
+
   const styles = useMemo(() => makeStyles(Colors, isDark), [Colors, isDark]);
 
   /* ==========================================================
@@ -336,6 +411,9 @@ export default function ExploreScreen() {
   const incomingCategory =
     typeof params.category === "string" ? params.category : "All";
 
+  const incomingCategoryId =
+    typeof params.categoryId === "string" ? params.categoryId : "";
+
   /* ==========================================================
      STATE
   ========================================================== */
@@ -344,18 +422,20 @@ export default function ExploreScreen() {
 
   const [selectedCategory, setSelectedCategory] = useState(incomingCategory);
 
+  const [selectedCategoryId, setSelectedCategoryId] =
+    useState(incomingCategoryId);
+
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+
+  const [categoriesError, setCategoriesError] = useState("");
+
   const [selectedFilter, setSelectedFilter] = useState("All");
 
   const [sortBy, setSortBy] = useState("default");
 
-  // Restaurant hearts: local only (backend wishlist saves dishes).
   const [favorites, setFavorites] = useState([]);
-
-  // Dish hearts: saved variant ids, synced with the wishlist API.
-  const [dishWishlist, setDishWishlist] = useState([]);
-  const [wishlistDishes, setWishlistDishes] = useState([]);
-  const [pendingWishlistIds, setPendingWishlistIds] = useState([]);
-  const [wishlistLoadError, setWishlistLoadError] = useState("");
 
   const [showFilterModal, setShowFilterModal] = useState(false);
 
@@ -364,7 +444,80 @@ export default function ExploreScreen() {
   const [tempSort, setTempSort] = useState("default");
 
   /* ==========================================================
-     UPDATE PARAMS
+     CATEGORIES GET API
+  ========================================================== */
+
+  const loadCategories = async () => {
+    try {
+      setCategoriesLoading(true);
+      setCategoriesError("");
+
+      console.log("====================================");
+      console.log("EXPLORE SCREEN - CATEGORIES API");
+      console.log("METHOD: GET");
+      console.log("FUNCTION: getCategories()");
+      console.log("====================================");
+
+      const response = await getCategories();
+
+      console.log("====================================");
+      console.log("CATEGORIES API RESPONSE");
+      console.log(JSON.stringify(response, null, 2));
+      console.log("====================================");
+
+      const apiCategories = normalizeCategories(response);
+
+      if (apiCategories.length > 1) {
+        console.log("API CATEGORIES USED:", apiCategories.length);
+
+        setCategories(apiCategories);
+
+        /*
+         * Match incoming categoryId from HomeScreen.
+         */
+
+        if (incomingCategoryId) {
+          const matchedCategory = apiCategories.find(
+            (item) => String(item.id) === String(incomingCategoryId),
+          );
+
+          if (matchedCategory) {
+            setSelectedCategory(matchedCategory.name);
+
+            setSelectedCategoryId(String(matchedCategory.id));
+          }
+        }
+      } else {
+        console.log("No API categories found.");
+
+        console.log("Using fallback categories.");
+
+        setCategories(DEFAULT_CATEGORIES);
+      }
+    } catch (error) {
+      console.log("====================================");
+      console.log("CATEGORIES API ERROR");
+      console.log("MESSAGE:", error?.message);
+      console.log("====================================");
+
+      setCategoriesError(error?.message || "Unable to load categories.");
+
+      setCategories(DEFAULT_CATEGORIES);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
+  /* ==========================================================
+     CALL CATEGORY API
+  ========================================================== */
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  /* ==========================================================
+     UPDATE ROUTE PARAMS
   ========================================================== */
 
   useEffect(() => {
@@ -375,90 +528,26 @@ export default function ExploreScreen() {
     if (typeof params.category === "string") {
       setSelectedCategory(params.category);
     }
-  }, [params.search, params.category]);
+
+    if (typeof params.categoryId === "string") {
+      setSelectedCategoryId(params.categoryId);
+    }
+  }, [params.search, params.category, params.categoryId]);
 
   /* ==========================================================
-     LOAD SAVED DISHES FROM WISHLIST API
+     SELECT CATEGORY
   ========================================================== */
 
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
+  const selectCategory = (categoryName, categoryId = "") => {
+    setSelectedCategory(categoryName);
 
-      const loadWishlistData = async () => {
-        const [wishlistResult, productsResult] = await Promise.allSettled([
-          getWishlist(),
-          getProduct(),
-        ]);
+    setSelectedCategoryId(String(categoryId || ""));
 
-        if (!active) return;
-
-        if (wishlistResult.status === "fulfilled") {
-          const response = wishlistResult.value;
-          const hasSuccessFlag = response?.success != null;
-          const requestSucceeded =
-            [1, true, "1"].includes(response?.success) ||
-            (!hasSuccessFlag &&
-              (Array.isArray(response?.data) ||
-                Array.isArray(response?.data?.data)));
-
-          if (requestSucceeded) {
-            setDishWishlist(extractSavedVariantIds(response));
-            setWishlistLoadError("");
-          } else if (response?.success !== 9) {
-            setWishlistLoadError(
-              response?.message || "Unable to load your saved items.",
-            );
-          }
-        } else {
-          setWishlistLoadError(
-            wishlistResult.reason?.message ||
-              "Unable to load your saved items.",
-          );
-        }
-
-        if (productsResult.status === "fulfilled") {
-          const response = productsResult.value;
-          if (
-            response?.success != null &&
-            ![1, true, "1"].includes(response.success)
-          ) {
-            console.error(
-              "EXPLORE PRODUCT LOAD ERROR:",
-              response?.message || "Unable to load products.",
-            );
-            setWishlistDishes([]);
-          } else {
-            setWishlistDishes(getWishlistDishes(getProductList(response)));
-          }
-        } else {
-          console.error(
-            "EXPLORE PRODUCT LOAD ERROR:",
-            productsResult.reason?.message || productsResult.reason,
-          );
-          setWishlistDishes([]);
-        }
-      };
-
-      loadWishlistData();
-
-      return () => {
-        active = false;
-      };
-    }, []),
-  );
-
-  /* ==========================================================
-     CATEGORY
-  ========================================================== */
-
-  const selectCategory = (category) => {
-    setSelectedCategory(category);
     setSearchText("");
   };
 
   /* ==========================================================
-     FAVORITE (restaurants, local only)
+     FAVORITE
   ========================================================== */
 
   const toggleFavorite = (id) => {
@@ -472,61 +561,7 @@ export default function ExploreScreen() {
   };
 
   /* ==========================================================
-     DISH WISHLIST (POST /api/customer/wishlist/toggle)
-  ========================================================== */
-
-  const toggleDishWishlist = async (dish) => {
-    const variantId = getVariantId(dish);
-
-    if (variantId === null) {
-      Alert.alert(
-        "Wishlist",
-        "This menu item is not linked to a valid backend variant yet.",
-      );
-      return;
-    }
-
-    const savedVariantId = String(variantId);
-    if (pendingWishlistIds.includes(savedVariantId)) return;
-
-    const wasSaved = dishWishlist.includes(savedVariantId);
-
-    const setSavedState = (saved) => {
-      setDishWishlist((previous) => {
-        const without = previous.filter((item) => item !== savedVariantId);
-        return saved ? [...without, savedVariantId] : without;
-      });
-    };
-
-    // optimistic update
-    setSavedState(!wasSaved);
-    setPendingWishlistIds((previous) => [...previous, savedVariantId]);
-
-    try {
-      const res = await toggleWishlist(variantId);
-
-      if (res?.success === 9) {
-        setSavedState(wasSaved);
-        router.push("/login");
-        return;
-      }
-
-      if (![1, true, "1"].includes(res?.success)) {
-        setSavedState(wasSaved);
-        Alert.alert("Wishlist", res?.message || "Unable to update wishlist.");
-      }
-    } catch (error) {
-      setSavedState(wasSaved);
-      Alert.alert("Wishlist", error?.message || "Unable to update wishlist.");
-    } finally {
-      setPendingWishlistIds((previous) =>
-        previous.filter((item) => item !== savedVariantId),
-      );
-    }
-  };
-
-  /* ==========================================================
-     FILTERED RESTAURANTS
+     FILTER RESTAURANTS
   ========================================================== */
 
   const filteredRestaurants = useMemo(() => {
@@ -537,6 +572,7 @@ export default function ExploreScreen() {
     -------------------------------------------------------- */
 
     const search = normalize(searchText);
+
     const isRestaurantBrowseQuery =
       search === "restaurant" || search === "restaurants";
 
@@ -670,8 +706,13 @@ export default function ExploreScreen() {
 
   const clearAll = () => {
     setSearchText("");
+
     setSelectedCategory("All");
+
+    setSelectedCategoryId("");
+
     setSelectedFilter("All");
+
     setSortBy("default");
   };
 
@@ -681,7 +722,9 @@ export default function ExploreScreen() {
 
   const openFilter = () => {
     setTempFilter(selectedFilter);
+
     setTempSort(sortBy);
+
     setShowFilterModal(true);
   };
 
@@ -691,7 +734,9 @@ export default function ExploreScreen() {
 
   const applyFilter = () => {
     setSelectedFilter(tempFilter);
+
     setSortBy(tempSort);
+
     setShowFilterModal(false);
   };
 
@@ -750,6 +795,7 @@ export default function ExploreScreen() {
             style={styles.favoriteButton}
             onPress={(event) => {
               event.stopPropagation?.();
+
               toggleFavorite(restaurant.id);
             }}
           >
@@ -896,7 +942,11 @@ export default function ExploreScreen() {
             </View>
           </View>
 
-          <TouchableOpacity style={styles.profileButton} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.profileButton}
+            activeOpacity={0.8}
+            onPress={() => router.push("/Profile")}
+          >
             <Ionicons
               name="person-outline"
               size={20}
@@ -947,10 +997,32 @@ export default function ExploreScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* CATEGORIES */}
+        {/* ====================================================
+            CATEGORIES
+        ==================================================== */}
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Eat what makes you happy</Text>
+          <View style={styles.categoryTitleRow}>
+            <Text style={styles.sectionTitle}>Eat what makes you happy</Text>
+
+            {categoriesLoading && (
+              <ActivityIndicator
+                size="small"
+                color={Colors.primary || "#E85D04"}
+              />
+            )}
+          </View>
+
+          {categoriesError ? (
+            <TouchableOpacity
+              onPress={loadCategories}
+              style={styles.retryCategory}
+            >
+              <Text style={styles.retryCategoryText}>
+                Unable to load categories. Tap to retry.
+              </Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         <ScrollView
@@ -964,10 +1036,10 @@ export default function ExploreScreen() {
 
             return (
               <TouchableOpacity
-                key={category.id}
+                key={String(category.id)}
                 activeOpacity={0.85}
                 style={styles.categoryItem}
-                onPress={() => selectCategory(category.name)}
+                onPress={() => selectCategory(category.name, category.id)}
               >
                 <View
                   style={[
@@ -987,6 +1059,7 @@ export default function ExploreScreen() {
                     styles.categoryText,
                     active && styles.categoryTextActive,
                   ]}
+                  numberOfLines={1}
                 >
                   {category.name}
                 </Text>
@@ -1074,122 +1147,6 @@ export default function ExploreScreen() {
             : renderEmpty()}
         </View>
 
-        {/* POPULAR DISHES */}
-
-        <View style={styles.dishesHeader}>
-          <View>
-            <Text style={styles.restaurantTitle}>Popular dishes</Text>
-            <Text style={styles.resultText}>
-              Explore dishes from our restaurants
-            </Text>
-            {wishlistLoadError ? (
-              <Text style={[styles.resultText, { color: Colors.error }]}>
-                Saved items unavailable: {wishlistLoadError}
-              </Text>
-            ) : null}
-          </View>
-        </View>
-
-        {wishlistDishes.length > 0 ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.dishesList}
-          >
-            {wishlistDishes.map((dish) => {
-              const variantId = getVariantId(dish);
-              const saved =
-                variantId !== null &&
-                dishWishlist.includes(String(variantId));
-
-              return (
-                <View key={dish.id} style={styles.dishCard}>
-                  <View style={styles.dishImageContainer}>
-                    {dish.image ? (
-                      <Image
-                        source={dish.image}
-                        style={styles.dishImage}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <View style={styles.dishImageFallback}>
-                        <Ionicons
-                          name="fast-food-outline"
-                          size={32}
-                          color={Colors.textMuted}
-                        />
-                      </View>
-                    )}
-                    <View style={styles.dishVegMark}>
-                      <View
-                        style={[
-                          styles.dishVegDot,
-                          {
-                            backgroundColor: dish.isVeg ? "#16803C" : "#C62828",
-                          },
-                        ]}
-                      />
-                    </View>
-                    <TouchableOpacity
-                      style={styles.dishWishlistButton}
-                      activeOpacity={0.8}
-                      onPress={() => toggleDishWishlist(dish)}
-                      disabled={pendingWishlistIds.includes(String(variantId))}
-                      accessibilityState={{
-                        disabled: pendingWishlistIds.includes(
-                          String(variantId),
-                        ),
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel={
-                        saved
-                          ? "Remove dish from wishlist"
-                          : "Add dish to wishlist"
-                      }
-                    >
-                      <Ionicons
-                        name={saved ? "heart" : "heart-outline"}
-                        size={21}
-                        color={
-                          saved
-                            ? Colors.error || "#E53935"
-                            : Colors.textSecondary || "#777777"
-                        }
-                      />
-                    </TouchableOpacity>
-                  </View>
-                  <View style={styles.dishDetails}>
-                    <Text style={styles.dishName} numberOfLines={1}>
-                      {dish.name || "Food item"}
-                    </Text>
-                    <Text style={styles.dishRestaurant} numberOfLines={1}>
-                      {dish.restaurantName}
-                    </Text>
-                    <View style={styles.dishBottomRow}>
-                      <Text style={styles.dishPrice}>
-                        {dish.price != null
-                          ? `₹${dish.price}`
-                          : "Price unavailable"}
-                      </Text>
-                      <Ionicons
-                        name="arrow-forward-circle"
-                        size={22}
-                        color={Colors.primary || "#E85D04"}
-                      />
-                    </View>
-                  </View>
-                </View>
-              );
-            })}
-          </ScrollView>
-        ) : (
-          <View style={styles.dishesEmpty}>
-            <Text style={styles.resultText}>
-              No products with a valid variant are available for wishlist yet.
-            </Text>
-          </View>
-        )}
-
         {/* POPULAR CUISINES */}
 
         <View style={styles.popularHeader}>
@@ -1228,7 +1185,9 @@ export default function ExploreScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* FILTER MODAL */}
+      {/* ====================================================
+          FILTER MODAL
+      ==================================================== */}
 
       <Modal
         visible={showFilterModal}
@@ -1245,6 +1204,8 @@ export default function ExploreScreen() {
                 <Ionicons name="close" size={25} color={Colors.textPrimary} />
               </TouchableOpacity>
             </View>
+
+            {/* FILTER */}
 
             <Text style={styles.modalHeading}>Filter by</Text>
 
@@ -1275,7 +1236,16 @@ export default function ExploreScreen() {
               },
             )}
 
-            <Text style={[styles.modalHeading, { marginTop: 16 }]}>
+            {/* SORT */}
+
+            <Text
+              style={[
+                styles.modalHeading,
+                {
+                  marginTop: 16,
+                },
+              ]}
+            >
               Sort by
             </Text>
 
@@ -1324,6 +1294,8 @@ export default function ExploreScreen() {
                 </TouchableOpacity>
               );
             })}
+
+            {/* BUTTONS */}
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
@@ -1483,13 +1455,6 @@ const makeStyles = (Colors, isDark) =>
       justifyContent: "center",
       alignItems: "center",
       elevation: 3,
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.12,
-      shadowRadius: 4,
     },
 
     /* SECTION */
@@ -1500,11 +1465,27 @@ const makeStyles = (Colors, isDark) =>
       marginBottom: 14,
     },
 
+    categoryTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+
     sectionTitle: {
       fontFamily: Fonts.bold,
       fontSize: 24,
       color: Colors.textPrimary,
       letterSpacing: -0.2,
+    },
+
+    retryCategory: {
+      marginTop: 6,
+    },
+
+    retryCategoryText: {
+      fontFamily: Fonts.medium,
+      fontSize: 11,
+      color: Colors.primary || "#E85D04",
     },
 
     /* CATEGORY */
@@ -1515,7 +1496,7 @@ const makeStyles = (Colors, isDark) =>
     },
 
     categoryItem: {
-      width: 72,
+      width: 82,
       alignItems: "center",
     },
 
@@ -1531,7 +1512,11 @@ const makeStyles = (Colors, isDark) =>
 
     categoryImageBoxActive: {
       borderColor: Colors.primary || "#E85D04",
-      transform: [{ scale: 1.04 }],
+      transform: [
+        {
+          scale: 1.04,
+        },
+      ],
     },
 
     categoryImage: {
@@ -1542,7 +1527,7 @@ const makeStyles = (Colors, isDark) =>
     categoryText: {
       marginTop: 8,
       fontFamily: Fonts.medium,
-      fontSize: 18,
+      fontSize: 14,
       color: Colors.textPrimary,
       textAlign: "center",
     },
@@ -1645,21 +1630,10 @@ const makeStyles = (Colors, isDark) =>
       backgroundColor: Colors.card,
       borderRadius: 20,
       overflow: "hidden",
-
       borderWidth: 1,
       borderColor: Colors.border,
-
       marginBottom: 18,
-
       elevation: 5,
-
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 4,
-      },
-      shadowOpacity: 0.35,
-      shadowRadius: 8,
     },
 
     imageContainer: {
@@ -1702,13 +1676,6 @@ const makeStyles = (Colors, isDark) =>
       alignItems: "center",
       justifyContent: "center",
       elevation: 2,
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 1,
-      },
-      shadowOpacity: 0.12,
-      shadowRadius: 3,
     },
 
     /* DETAILS */
@@ -1859,117 +1826,6 @@ const makeStyles = (Colors, isDark) =>
       fontSize: 12,
     },
 
-    /* POPULAR DISHES */
-
-    dishesHeader: {
-      paddingHorizontal: 18,
-      marginTop: 26,
-      marginBottom: 13,
-    },
-
-    dishesList: {
-      paddingHorizontal: 18,
-      gap: 12,
-    },
-
-    dishCard: {
-      width: 205,
-      borderRadius: 17,
-      overflow: "hidden",
-      backgroundColor: Colors.card,
-      borderWidth: 1,
-      borderColor: Colors.border,
-      marginBottom: 3,
-    },
-
-    dishImageContainer: {
-      height: 132,
-      width: "100%",
-      position: "relative",
-      backgroundColor: Colors.backgroundElement,
-    },
-
-    dishImage: {
-      width: "100%",
-      height: "100%",
-    },
-
-    dishImageFallback: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    dishVegMark: {
-      position: "absolute",
-      top: 9,
-      right: 9,
-      width: 18,
-      height: 18,
-      borderRadius: 4,
-      borderWidth: 1,
-      borderColor: "#FFFFFF",
-      backgroundColor: "#FFFFFF",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    dishVegDot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-    },
-
-    dishWishlistButton: {
-      position: "absolute",
-      top: 9,
-      right: 36,
-      width: 35,
-      height: 35,
-      borderRadius: 18,
-      backgroundColor: "rgba(255,255,255,0.96)",
-      alignItems: "center",
-      justifyContent: "center",
-      elevation: 2,
-    },
-
-    dishDetails: {
-      paddingHorizontal: 11,
-      paddingTop: 10,
-      paddingBottom: 11,
-    },
-
-    dishName: {
-      fontFamily: Fonts.bold,
-      fontSize: 15,
-      color: Colors.textPrimary,
-    },
-
-    dishRestaurant: {
-      fontFamily: Fonts.regular,
-      fontSize: 12,
-      color: Colors.textSecondary,
-      marginTop: 4,
-    },
-
-    dishBottomRow: {
-      marginTop: 9,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-    },
-
-    dishPrice: {
-      fontFamily: Fonts.bold,
-      fontSize: 14,
-      color: Colors.success,
-    },
-
-    dishesEmpty: {
-      paddingHorizontal: 18,
-      paddingVertical: 14,
-    },
-
     /* POPULAR CUISINES */
 
     popularHeader: {
@@ -2001,13 +1857,6 @@ const makeStyles = (Colors, isDark) =>
       borderColor: Colors.border,
       paddingBottom: 11,
       elevation: 2,
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 1,
-      },
-      shadowOpacity: 0.06,
-      shadowRadius: 4,
     },
 
     popularImage: {
