@@ -1395,6 +1395,23 @@ export default function RestaurantDetails() {
               </TouchableOpacity>
             ) : null}
           </View>
+          <TouchableOpacity
+            style={[
+              styles.actionButton,
+              { borderColor: colors.border || "#333333" },
+            ]}
+            onPress={() => router.push("/DineInScreen")}
+          >
+            <Ionicons
+              name="restaurant-outline"
+              size={18}
+              color={colors.primary || "#F9080C"}
+            />
+
+            <Text style={[styles.actionText, { color: colors.text }]}>
+              Table Booking
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* OFFER */}

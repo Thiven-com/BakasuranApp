@@ -18,10 +18,11 @@ import {
 import Fonts from "../../constants/Fonts";
 import { useTheme } from "../../hooks/use-theme";
 
-import { getCategories } from "../../utils/Function";
+import { APP_URL, getCategories, getRestaurants } from "../../utils/Function";
 
 // IMPORTANT:
-// Restaurant data stays inside ../Restaurant/[id].jsx
+// Local restaurant data in ../Restaurant/[id].jsx is now ONLY a fallback
+// (used when the API fails or returns an empty list).
 import { restaurants } from "../Restaurant/[id]";
 
 /* ============================================================
@@ -182,6 +183,9 @@ const getPrice = (price) => {
   return match ? Number(match[0]) : 0;
 };
 
+const getBaseUrl = () =>
+  String(APP_URL || "").replace(/\/api\/customer\/?$/, "");
+
 /* ============================================================
    EXTRACT CATEGORY LIST
 ============================================================ */
@@ -267,26 +271,10 @@ const getCategoryImage = (category) => {
   ---------------------------------------------------------- */
 
   if (typeof apiImage === "string" && apiImage.trim().length > 0) {
-    let cleanPath = apiImage.trim().replace(/^\/+/, "");
-
-    /*
-     * APP_URL:
-     *
-     * http://192.168.x.x:8001/api/customer/
-     *
-     * We need only the base URL.
-     */
-
-    const baseUrl = String(APP_URL || "").replace(/\/api\/customer\/?$/, "");
-
-    if (cleanPath.startsWith("storage/")) {
-      return {
-        uri: `${baseUrl}/${cleanPath}`,
-      };
-    }
+    const cleanPath = apiImage.trim().replace(/^\/+/, "");
 
     return {
-      uri: `${baseUrl}/${cleanPath}`,
+      uri: `${getBaseUrl()}/${cleanPath}`,
     };
   }
 
@@ -360,10 +348,104 @@ const normalizeCategories = (response) => {
 };
 
 /* ============================================================
-   RESTAURANT DATA
+   RESTAURANT HELPERS (API)
 ============================================================ */
 
-const restaurantList = Object.values(restaurants || {}).map((restaurant) => {
+const isPlainObject = (value) =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+
+const looksLikeRestaurant = (value) =>
+  isPlainObject(value) &&
+  ("name" in value || "restaurant_name" in value || "id" in value);
+
+/*
+ * Finds the restaurant array no matter how the API wraps it:
+ *   [...]                         { data: [...] }
+ *   { data: { data: [...] } }     (Laravel pagination)
+ *   { data: { restaurants: [...] } }
+ *   { data: { 1: {...}, 2: {...} } }   (object keyed by id)
+ */
+const extractRestaurantList = (value, depth = 0) => {
+  if (!value || depth > 4) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (!isPlainObject(value)) {
+    return [];
+  }
+
+  // Object keyed by id: { "1": {...}, "2": {...} }
+  const values = Object.values(value);
+
+  if (values.length > 0 && values.every(looksLikeRestaurant)) {
+    return values;
+  }
+
+  const preferredKeys = [
+    "restaurants",
+    "data",
+    "result",
+    "results",
+    "items",
+    "list",
+  ];
+
+  for (const key of preferredKeys) {
+    if (key in value) {
+      const found = extractRestaurantList(value[key], depth + 1);
+
+      if (found.length > 0) {
+        return found;
+      }
+    }
+  }
+
+  for (const item of values) {
+    if (Array.isArray(item) && item.some(looksLikeRestaurant)) {
+      return item;
+    }
+  }
+
+  return [];
+};
+
+const getRestaurantId = (item) =>
+  item?.id ?? item?.restaurant_id ?? item?.restaurantId ?? item?.slug ?? null;
+
+const getRestaurantImage = (item) => {
+  // Local fallback data already holds a require() image (number) or { uri }
+  if (item?.image && typeof item.image !== "string") {
+    return item.image;
+  }
+
+  const img =
+    (typeof item?.image === "string" ? item.image : "") ||
+    item?.image_url ||
+    item?.imageUrl ||
+    item?.logo ||
+    item?.banner ||
+    item?.thumbnail ||
+    "";
+
+  if (typeof img === "string" && /^https?:\/\//i.test(img)) {
+    return { uri: img };
+  }
+
+  if (typeof img === "string" && img.trim().length > 0) {
+    return {
+      uri: `${getBaseUrl()}/${img.trim().replace(/^\/+/, "")}`,
+    };
+  }
+
+  // Replace with a dedicated restaurant placeholder if you have one
+  return FALLBACK_CATEGORY_IMAGES.all;
+};
+
+const buildRestaurant = (restaurant) => {
   const menu =
     restaurant?.menu && typeof restaurant.menu === "object"
       ? restaurant.menu
@@ -371,25 +453,62 @@ const restaurantList = Object.values(restaurants || {}).map((restaurant) => {
 
   const menuItems = Object.values(menu).flat();
 
-  const allVeg =
+  const isVeg =
     typeof restaurant?.isVeg === "boolean"
       ? restaurant.isVeg
-      : menuItems.length > 0 && menuItems.every((item) => item?.isVeg === true);
+      : typeof restaurant?.is_veg === "boolean"
+        ? restaurant.is_veg
+        : menuItems.length > 0 &&
+          menuItems.every((item) => item?.isVeg === true);
+
+  const cuisine = Array.isArray(restaurant?.cuisines)
+    ? restaurant.cuisines
+        .map((c) => (typeof c === "string" ? c : c?.name))
+        .filter(Boolean)
+        .join(" • ")
+    : typeof restaurant?.cuisine === "string"
+      ? restaurant.cuisine
+      : "";
 
   return {
     ...restaurant,
 
-    isVeg: allVeg,
+    id: getRestaurantId(restaurant),
 
-    categories:
-      typeof restaurant?.cuisine === "string"
-        ? restaurant.cuisine
-            .split("•")
-            .map((item) => item.trim())
-            .filter(Boolean)
-        : [],
+    name: restaurant?.name || restaurant?.restaurant_name || "Restaurant",
+
+    image: getRestaurantImage(restaurant),
+
+    cuisine,
+
+    address: restaurant?.address || "",
+
+    rating: restaurant?.rating ?? restaurant?.avg_rating,
+
+    time: restaurant?.time || restaurant?.delivery_time,
+
+    price: restaurant?.price || restaurant?.cost_for_two,
+
+    offer: restaurant?.offer || restaurant?.discount,
+
+    reviews: restaurant?.reviews ?? restaurant?.reviews_count,
+
+    isVeg,
+
+    categories: cuisine
+      .split("•")
+      .map((item) => item.trim())
+      .filter(Boolean),
   };
-});
+};
+
+/* ============================================================
+   FALLBACK RESTAURANT DATA (local)
+============================================================ */
+
+const FALLBACK_RESTAURANTS = Object.values(restaurants || {}).map(
+  buildRestaurant,
+);
 
 /* ============================================================
    SCREEN
@@ -431,6 +550,12 @@ export default function ExploreScreen() {
 
   const [categoriesError, setCategoriesError] = useState("");
 
+  const [restaurantList, setRestaurantList] = useState(FALLBACK_RESTAURANTS);
+
+  const [restaurantsLoading, setRestaurantsLoading] = useState(false);
+
+  const [restaurantsError, setRestaurantsError] = useState("");
+
   const [selectedFilter, setSelectedFilter] = useState("All");
 
   const [sortBy, setSortBy] = useState("default");
@@ -460,11 +585,6 @@ export default function ExploreScreen() {
 
       const response = await getCategories();
 
-      console.log("====================================");
-      console.log("CATEGORIES API RESPONSE");
-      console.log(JSON.stringify(response, null, 2));
-      console.log("====================================");
-
       const apiCategories = normalizeCategories(response);
 
       if (apiCategories.length > 1) {
@@ -488,9 +608,7 @@ export default function ExploreScreen() {
           }
         }
       } else {
-        console.log("No API categories found.");
-
-        console.log("Using fallback categories.");
+        console.log("No API categories found. Using fallback categories.");
 
         setCategories(DEFAULT_CATEGORIES);
       }
@@ -509,11 +627,66 @@ export default function ExploreScreen() {
   };
 
   /* ==========================================================
-     CALL CATEGORY API
+     RESTAURANTS GET API
+     NOTE: getRestaurants() never throws. It returns
+     { success: 0, message } on failure, so we check the list
+     instead of relying only on catch.
+  ========================================================== */
+
+  const loadRestaurants = async () => {
+    try {
+      setRestaurantsLoading(true);
+      setRestaurantsError("");
+
+      console.log("====================================");
+      console.log("EXPLORE SCREEN - RESTAURANTS API");
+      console.log("METHOD: GET");
+      console.log("FUNCTION: getRestaurants()");
+      console.log("====================================");
+
+      const response = await getRestaurants();
+
+      const rawList = extractRestaurantList(response);
+
+      console.log("RAW RESTAURANTS COUNT:", rawList.length);
+      console.log("FIRST RESTAURANT KEYS:", Object.keys(rawList[0] || {}));
+
+      const apiRestaurants = rawList.filter(
+        (item) => item && getRestaurantId(item) !== null,
+      );
+
+      console.log("API RESTAURANTS COUNT:", apiRestaurants.length);
+
+      if (apiRestaurants.length > 0) {
+        setRestaurantList(apiRestaurants.map(buildRestaurant));
+      } else {
+        console.log("No API restaurants found. Using fallback restaurants.");
+
+        setRestaurantsError(response?.message || "No restaurants available.");
+
+        setRestaurantList(FALLBACK_RESTAURANTS);
+      }
+    } catch (error) {
+      console.log("====================================");
+      console.log("RESTAURANTS API ERROR");
+      console.log("MESSAGE:", error?.message);
+      console.log("====================================");
+
+      setRestaurantsError(error?.message || "Unable to load restaurants.");
+
+      setRestaurantList(FALLBACK_RESTAURANTS);
+    } finally {
+      setRestaurantsLoading(false);
+    }
+  };
+
+  /* ==========================================================
+     CALL APIS ON MOUNT
   ========================================================== */
 
   useEffect(() => {
     loadCategories();
+    loadRestaurants();
   }, []);
 
   /* ==========================================================
@@ -698,7 +871,7 @@ export default function ExploreScreen() {
     }
 
     return result;
-  }, [searchText, selectedCategory, selectedFilter, sortBy]);
+  }, [restaurantList, searchText, selectedCategory, selectedFilter, sortBy]);
 
   /* ==========================================================
      CLEAR ALL
@@ -915,7 +1088,7 @@ export default function ExploreScreen() {
       >
         {/* HEADER */}
 
-        <View style={styles.header}>
+        {/*<View style={styles.header}>
           <View style={styles.locationWrapper}>
             <View style={styles.locationIcon}>
               <Ionicons
@@ -941,19 +1114,7 @@ export default function ExploreScreen() {
               <Text style={styles.city}>Hyderabad</Text>
             </View>
           </View>
-
-          <TouchableOpacity
-            style={styles.profileButton}
-            activeOpacity={0.8}
-            onPress={() => router.push("/Profile")}
-          >
-            <Ionicons
-              name="person-outline"
-              size={20}
-              color={Colors.textPrimary}
-            />
-          </TouchableOpacity>
-        </View>
+        </View>*/}
 
         {/* TITLE */}
 
@@ -1138,6 +1299,27 @@ export default function ExploreScreen() {
             <Text style={styles.sortText}>Sort</Text>
           </TouchableOpacity>
         </View>
+
+        {/* RESTAURANTS LOADING / ERROR */}
+
+        {restaurantsLoading && (
+          <ActivityIndicator
+            size="small"
+            style={styles.restaurantLoader}
+            color={Colors.primary || "#E85D04"}
+          />
+        )}
+
+        {restaurantsError ? (
+          <TouchableOpacity
+            onPress={loadRestaurants}
+            style={styles.retryRestaurants}
+          >
+            <Text style={styles.retryCategoryText}>
+              Unable to load restaurants. Tap to retry.
+            </Text>
+          </TouchableOpacity>
+        ) : null}
 
         {/* RESTAURANTS */}
 
@@ -1616,6 +1798,17 @@ const makeStyles = (Colors, isDark) =>
       fontFamily: Fonts.semiBold,
       fontSize: 11,
       color: Colors.textSecondary,
+    },
+
+    /* RESTAURANT LOADING / ERROR */
+
+    restaurantLoader: {
+      marginVertical: 16,
+    },
+
+    retryRestaurants: {
+      paddingHorizontal: 18,
+      marginBottom: 12,
     },
 
     /* RESTAURANT LIST */

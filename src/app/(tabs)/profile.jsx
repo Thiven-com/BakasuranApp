@@ -27,6 +27,102 @@ const showMessage = (title, message) => {
   }
 };
 
+const extractProfileData = (response) => {
+  const profileFields = [
+    "name",
+    "full_name",
+    "fullname",
+    "customer_name",
+    "customerName",
+    "first_name",
+    "firstName",
+    "username",
+    "mobile",
+    "phone",
+    "phone_number",
+    "mobile_number",
+    "mobile_no",
+    "contact_number",
+    "email",
+    "email_address",
+    "points",
+    "reward_points",
+    "wallet_points",
+    "loyalty_points",
+    "membership",
+    "membership_type",
+    "member_type",
+    "membership_name",
+  ];
+
+  const pending = [{ value: response, depth: 0 }];
+  const visited = new Set();
+  let fallback = null;
+
+  while (pending.length > 0) {
+    const { value, depth } = pending.shift();
+
+    if (!value || typeof value !== "object" || visited.has(value)) {
+      continue;
+    }
+
+    visited.add(value);
+
+    if (Array.isArray(value)) {
+      pending.push(...value.map((item) => ({ value: item, depth: depth + 1 })));
+      continue;
+    }
+
+    if (
+      profileFields.some(
+        (field) => value[field] !== undefined && value[field] !== null,
+      )
+    ) {
+      return value;
+    }
+
+    if (
+      !fallback &&
+      Object.keys(value).some(
+        (key) => !["success", "message", "status"].includes(key),
+      )
+    ) {
+      fallback = value;
+    }
+
+    if (depth < 6) {
+      const wrapperKeys = [
+        "profile",
+        "user",
+        "customer",
+        "customer_data",
+        "profile_data",
+        "result",
+        "details",
+        "data",
+      ];
+      const children = wrapperKeys
+        .map((key) => value[key])
+        .filter((child) => child && typeof child === "object");
+      const otherChildren = Object.entries(value)
+        .filter(
+          ([key, child]) =>
+            !wrapperKeys.includes(key) && child && typeof child === "object",
+        )
+        .map(([, child]) => child);
+
+      pending.push(
+        ...[...children, ...otherChildren].map((child) => ({
+          value: child,
+          depth: depth + 1,
+        })),
+      );
+    }
+  }
+
+  return fallback;
+};
+
 export default function ProfileScreen() {
   const { isDark, toggleTheme, colors } = useTheme();
 
@@ -50,16 +146,11 @@ export default function ProfileScreen() {
 
       console.log("PROFILE API RESPONSE:", JSON.stringify(response, null, 2));
 
-      const profileData =
-        response?.data?.data ??
-        response?.data?.user ??
-        response?.data ??
-        response?.user ??
-        response;
-
       if (response?.success === 0 || response?.success === false) {
         throw new Error(response?.message || "Unable to load profile.");
       }
+
+      const profileData = extractProfileData(response);
 
       setProfile(profileData);
     } catch (error) {
@@ -92,7 +183,15 @@ export default function ProfileScreen() {
     profile?.name ||
     profile?.full_name ||
     profile?.fullname ||
+    profile?.customer_name ||
+    profile?.customerName ||
     profile?.username ||
+    [
+      profile?.first_name || profile?.firstName,
+      profile?.last_name || profile?.lastName,
+    ]
+      .filter(Boolean)
+      .join(" ") ||
     "User";
 
   const profilePhone =
@@ -100,6 +199,8 @@ export default function ProfileScreen() {
     profile?.phone ||
     profile?.phone_number ||
     profile?.mobile_number ||
+    profile?.mobile_no ||
+    profile?.contact_number ||
     "";
 
   const profileEmail = profile?.email || profile?.email_address || "";
