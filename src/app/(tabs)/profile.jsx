@@ -199,13 +199,7 @@ export default function ProfileScreen() {
       color: colors.primary,
       route: "/payments",
     },
-    {
-      title: "Favourite Restaurants",
-      subtitle: "Your saved restaurants",
-      icon: "heart",
-      color: colors.favourite || colors.primary,
-      route: "/favourites",
-    },
+   
     {
       title: "Offers & Rewards",
       subtitle: "Exclusive offers and rewards",

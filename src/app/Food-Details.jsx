@@ -27,6 +27,7 @@ import { useTheme } from "../hooks/use-theme";
 
 import {
   addToCart,
+  addToWishlist,
   getProductById,
 } from "../utils/Function";
 
@@ -157,6 +158,19 @@ const isSuccessResponse = (response) => {
 };
 
 // =========================================================
+// AUTH ERROR
+// =========================================================
+
+const isAuthError = (response) => {
+  return (
+    response?.success === 9 ||
+    response?.success === "9" ||
+    response?.status === 401 ||
+    response?.status === 403
+  );
+};
+
+// =========================================================
 // NORMALIZE PRODUCT
 // =========================================================
 
@@ -275,7 +289,8 @@ const getProductPrice = (product) => {
     return 0;
   }
 
-  const variant = getSelectedVariant(product);
+  const variant =
+    getSelectedVariant(product);
 
   return getNumber(
     variant?.price,
@@ -307,7 +322,8 @@ const getOriginalPrice = (product) => {
     return 0;
   }
 
-  const variant = getSelectedVariant(product);
+  const variant =
+    getSelectedVariant(product);
 
   return getNumber(
     variant?.actual_price,
@@ -356,29 +372,40 @@ export default function FoodDetailsScreen() {
   // PARAMS
   // =======================================================
 
-  const params = useLocalSearchParams();
+  const params =
+    useLocalSearchParams();
 
-  const itemId = Array.isArray(params?.itemId)
+  const itemId = Array.isArray(
+    params?.itemId
+  )
     ? params.itemId[0]
     : params?.itemId;
 
-  const restaurantId = Array.isArray(
-    params?.restaurantId
-  )
-    ? params.restaurantId[0]
-    : params?.restaurantId;
+  const restaurantId =
+    Array.isArray(
+      params?.restaurantId
+    )
+      ? params.restaurantId[0]
+      : params?.restaurantId;
 
   // =======================================================
   // STATES
   // =======================================================
 
-  const [food, setFood] = useState(null);
+  const [food, setFood] =
+    useState(null);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
 
   const [
     addingToCart,
     setAddingToCart,
+  ] = useState(false);
+
+  const [
+    wishlistLoading,
+    setWishlistLoading,
   ] = useState(false);
 
   const [
@@ -395,7 +422,6 @@ export default function FoodDetailsScreen() {
     isFavourite,
     setIsFavourite,
   ] = useState(false);
-
   // =======================================================
   // STYLES
   // =======================================================
@@ -413,8 +439,8 @@ export default function FoodDetailsScreen() {
   // LOAD PRODUCT
   // =======================================================
 
-  const loadProduct = useCallback(
-    async () => {
+  const loadProduct =
+    useCallback(async () => {
       try {
         if (
           itemId === undefined ||
@@ -469,14 +495,41 @@ export default function FoodDetailsScreen() {
         );
 
         if (
-          !isSuccessResponse(response)
+          isAuthError(response)
+        ) {
+          Alert.alert(
+            "Login Required",
+            "Please login to continue.",
+            [
+              {
+                text: "Cancel",
+                style: "cancel",
+              },
+              {
+                text: "Login",
+                onPress: () =>
+                  router.replace(
+                    "/(auth)/Loginscreen"
+                  ),
+              },
+            ]
+          );
+
+          setFood(null);
+          return;
+        }
+
+        if (
+          !isSuccessResponse(
+            response
+          )
         ) {
           setFood(null);
 
           Alert.alert(
             "Product",
             response?.message ||
-              "Unable to load product details."
+            "Unable to load product details."
           );
 
           return;
@@ -509,7 +562,9 @@ export default function FoodDetailsScreen() {
         );
 
         const variant =
-          getSelectedVariant(product);
+          getSelectedVariant(
+            product
+          );
 
         console.log(
           "SELECTED VARIANT:",
@@ -542,6 +597,24 @@ export default function FoodDetailsScreen() {
             ? minimumOrder
             : 1
         );
+
+        // ---------------------------------------------------
+        // CHECK EXISTING WISHLIST STATUS
+        // ---------------------------------------------------
+
+        const wishlistStatus =
+          product?.is_wishlist ??
+          product?.is_wishlisted ??
+          product?.isFavourite ??
+          product?.is_favourite ??
+          product?.wishlist ??
+          false;
+
+        setIsFavourite(
+          wishlistStatus === true ||
+          wishlistStatus === 1 ||
+          wishlistStatus === "1"
+        );
       } catch (error) {
         console.log(
           "LOAD PRODUCT ERROR:",
@@ -553,17 +626,15 @@ export default function FoodDetailsScreen() {
         Alert.alert(
           "Error",
           error?.message ||
-            "Unable to load product details."
+          "Unable to load product details."
         );
       } finally {
         setLoading(false);
       }
-    },
-    [
+    }, [
       itemId,
       restaurantId,
-    ]
-  );
+    ]);
 
   // =======================================================
   // LOAD
@@ -577,11 +648,14 @@ export default function FoodDetailsScreen() {
   // SELECTED VARIANT
   // =======================================================
 
-  const selectedVariant = useMemo(
-    () =>
-      getSelectedVariant(food),
-    [food]
-  );
+  const selectedVariant =
+    useMemo(
+      () =>
+        getSelectedVariant(
+          food
+        ),
+      [food]
+    );
 
   // =======================================================
   // PRODUCT NAME
@@ -608,21 +682,23 @@ export default function FoodDetailsScreen() {
   // PRICE
   // =======================================================
 
-  const foodPrice = useMemo(
-    () =>
-      getProductPrice(food),
-    [food]
-  );
+  const foodPrice =
+    useMemo(
+      () =>
+        getProductPrice(food),
+      [food]
+    );
 
   // =======================================================
   // ORIGINAL PRICE
   // =======================================================
 
-  const originalPrice = useMemo(
-    () =>
-      getOriginalPrice(food),
-    [food]
-  );
+  const originalPrice =
+    useMemo(
+      () =>
+        getOriginalPrice(food),
+      [food]
+    );
 
   // =======================================================
   // DISCOUNT
@@ -630,13 +706,13 @@ export default function FoodDetailsScreen() {
 
   const discountValue =
     originalPrice > foodPrice &&
-    originalPrice > 0
+      originalPrice > 0
       ? Math.round(
-          ((originalPrice -
-            foodPrice) /
-            originalPrice) *
-            100
-        )
+        ((originalPrice -
+          foodPrice) /
+          originalPrice) *
+        100
+      )
       : 0;
 
   // =======================================================
@@ -662,11 +738,12 @@ export default function FoodDetailsScreen() {
   // IMAGE
   // =======================================================
 
-  const foodImage = useMemo(
-    () =>
-      getProductImage(food),
-    [food]
-  );
+  const foodImage =
+    useMemo(
+      () =>
+        getProductImage(food),
+      [food]
+    );
 
   // =======================================================
   // STOCK
@@ -690,10 +767,11 @@ export default function FoodDetailsScreen() {
   // MAX ORDER
   // =======================================================
 
-  const maxOrder = getNumber(
-    selectedVariant
-      ?.product_max_order
-  );
+  const maxOrder =
+    getNumber(
+      selectedVariant
+        ?.product_max_order
+    );
 
   // =======================================================
   // EFFECTIVE MAX
@@ -702,14 +780,14 @@ export default function FoodDetailsScreen() {
   const effectiveMax =
     maxOrder > 0 && stock > 0
       ? Math.min(
-          maxOrder,
-          stock
-        )
+        maxOrder,
+        stock
+      )
       : maxOrder > 0
-      ? maxOrder
-      : stock > 0
-      ? stock
-      : 999;
+        ? maxOrder
+        : stock > 0
+          ? stock
+          : 999;
 
   // =======================================================
   // TOTAL
@@ -781,16 +859,295 @@ export default function FoodDetailsScreen() {
     ]);
 
   // =======================================================
-  // FAVOURITE
+  // ADD TO WISHLIST
   // =======================================================
 
   const handleFavourite =
-    useCallback(() => {
-      setIsFavourite(
-        (previous) =>
-          !previous
-      );
-    }, []);
+    useCallback(async () => {
+      try {
+        // ---------------------------------------------------
+        // ALREADY ADDED
+        // ---------------------------------------------------
+
+        if (isFavourite) {
+          Alert.alert(
+            "Wishlist",
+            "This product is already in your wishlist."
+          );
+
+          return;
+        }
+
+        // ---------------------------------------------------
+        // PRODUCT VALIDATION
+        // ---------------------------------------------------
+
+        if (!food) {
+          Alert.alert(
+            "Wishlist",
+            "Product details are not available."
+          );
+
+          return;
+        }
+
+        // ---------------------------------------------------
+        // PRODUCT ID
+        // ---------------------------------------------------
+
+        const productId =
+          food?.id ?? itemId;
+
+        if (
+          productId === undefined ||
+          productId === null ||
+          String(
+            productId
+          ).trim() === ""
+        ) {
+          Alert.alert(
+            "Wishlist",
+            "Product ID is not available."
+          );
+
+          return;
+        }
+
+        // ---------------------------------------------------
+        // VARIANT ID
+        // ---------------------------------------------------
+
+        const variantId =
+          selectedVariant?.id;
+
+        if (
+          variantId === undefined ||
+          variantId === null ||
+          String(
+            variantId
+          ).trim() === ""
+        ) {
+          Alert.alert(
+            "Wishlist",
+            "Product variant is not available."
+          );
+
+          return;
+        }
+
+        // ---------------------------------------------------
+        // RESTAURANT ID
+        // ---------------------------------------------------
+
+        const currentRestaurantId =
+          food?.restaurant_id ??
+          food?.restaurant?.id ??
+          restaurantId;
+
+        if (
+          currentRestaurantId ===
+          undefined ||
+          currentRestaurantId ===
+          null ||
+          String(
+            currentRestaurantId
+          ).trim() === ""
+        ) {
+          Alert.alert(
+            "Wishlist",
+            "Restaurant ID is not available."
+          );
+
+          return;
+        }
+
+        // ---------------------------------------------------
+        // PAYLOAD
+        // ---------------------------------------------------
+
+        const wishlistData = {
+          product_id: Number(productId),
+          variant_id: Number(variantId),
+          restaurant_id: Number(currentRestaurantId),
+        };
+
+
+
+        console.log(
+          "================================="
+        );
+
+        console.log(
+          "ADD TO WISHLIST API"
+        );
+
+        console.log(
+          "PRODUCT ID:",
+          productId
+        );
+
+        console.log(
+          "VARIANT ID:",
+          variantId
+        );
+
+        console.log(
+          "RESTAURANT ID:",
+          currentRestaurantId
+        );
+
+        console.log(
+          "WISHLIST PAYLOAD:",
+          JSON.stringify(
+            wishlistData,
+            null,
+            2
+          )
+        );
+
+        console.log(
+          "================================="
+        );
+
+        // ---------------------------------------------------
+        // START LOADING
+        // ---------------------------------------------------
+
+        setWishlistLoading(
+          true
+        );
+
+        // ---------------------------------------------------
+        // API CALL
+        // ---------------------------------------------------
+
+        const response =
+          await addToWishlist(
+            wishlistData
+          );
+
+        console.log(
+          "================================="
+        );
+
+        console.log(
+          "ADD TO WISHLIST RESPONSE"
+        );
+
+        console.log(
+          JSON.stringify(
+            response,
+            null,
+            2
+          )
+        );
+
+        console.log(
+          "================================="
+        );
+
+        // ---------------------------------------------------
+        // AUTH ERROR
+        // ---------------------------------------------------
+
+        if (
+          isAuthError(response)
+        ) {
+          Alert.alert(
+            "Login Required",
+            "Please login to add this product to your wishlist.",
+            [
+              {
+                text: "Cancel",
+                style: "cancel",
+              },
+              {
+                text: "Login",
+                onPress: () =>
+                  router.replace(
+                    "/(auth)/Loginscreen"
+                  ),
+              },
+            ]
+          );
+
+          return;
+        }
+
+        // ---------------------------------------------------
+        // SUCCESS
+        // ---------------------------------------------------
+
+        const success =
+          response?.success === 1 ||
+          response?.success === true ||
+          response?.success === "1";
+
+        // ---------------------------------------------------
+        // FAILED
+        // ---------------------------------------------------
+
+        if (!success) {
+          Alert.alert(
+            "Wishlist",
+            response?.message ||
+            "Unable to add this product to wishlist."
+          );
+
+          return;
+        }
+
+        // ---------------------------------------------------
+        // UPDATE UI
+        // ---------------------------------------------------
+
+        setIsFavourite(
+          true
+        );
+
+        Alert.alert(
+          "Wishlist",
+          `${foodName} has been added to your wishlist.`
+        );
+      } catch (error) {
+        console.log(
+          "================================="
+        );
+
+        console.log(
+          "ADD TO WISHLIST SCREEN ERROR"
+        );
+
+        console.log(
+          error
+        );
+
+        console.log(
+          error?.message
+        );
+
+        console.log(
+          "================================="
+        );
+
+        Alert.alert(
+          "Wishlist",
+          error?.message ||
+          "Something went wrong while adding to wishlist."
+        );
+      } finally {
+        setWishlistLoading(
+          false
+        );
+      }
+    }, [
+      food,
+      itemId,
+      selectedVariant,
+      restaurantId,
+      isFavourite,
+      foodName,
+    ]);
 
   // =======================================================
   // DECREASE
@@ -831,40 +1188,24 @@ export default function FoodDetailsScreen() {
   // OPEN CART
   // =======================================================
 
-  const openCart = useCallback(() => {
-    console.log(
-      "================================="
-    );
+  const openCart =
+    useCallback(() => {
+      try {
+        router.push(
+          "/(tabs)/CartScreen"
+        );
+      } catch (error) {
+        console.log(
+          "CART ROUTE ERROR:",
+          error?.message
+        );
 
-    console.log(
-      "OPEN CART PRESSED"
-    );
-
-    console.log(
-      "CART ROUTE:",
-      "/(tabs)/CartScreen"
-    );
-
-    console.log(
-      "================================="
-    );
-
-    try {
-      router.push(
-        "/(tabs)/CartScreen"
-      );
-    } catch (error) {
-      console.log(
-        "CART ROUTE ERROR:",
-        error?.message
-      );
-
-      Alert.alert(
-        "Cart",
-        "Unable to open Cart screen."
-      );
-    }
-  }, []);
+        Alert.alert(
+          "Cart",
+          "Unable to open Cart screen."
+        );
+      }
+    }, []);
 
   // =======================================================
   // ADD TO CART
@@ -883,6 +1224,7 @@ export default function FoodDetailsScreen() {
               "Product",
               "Product details are not available."
             );
+
             return;
           }
 
@@ -904,6 +1246,7 @@ export default function FoodDetailsScreen() {
               "Product",
               "Product ID is not available."
             );
+
             return;
           }
 
@@ -925,6 +1268,7 @@ export default function FoodDetailsScreen() {
               "Product",
               "Product variant is not available."
             );
+
             return;
           }
 
@@ -939,9 +1283,9 @@ export default function FoodDetailsScreen() {
 
           if (
             currentRestaurantId ===
-              undefined ||
+            undefined ||
             currentRestaurantId ===
-              null ||
+            null ||
             String(
               currentRestaurantId
             ).trim() === ""
@@ -950,6 +1294,7 @@ export default function FoodDetailsScreen() {
               "Restaurant",
               "Restaurant ID is not available."
             );
+
             return;
           }
 
@@ -970,18 +1315,20 @@ export default function FoodDetailsScreen() {
               "Quantity",
               `Minimum quantity is ${minOrder}.`
             );
+
             return;
           }
 
           if (
             effectiveMax > 0 &&
             numericQuantity >
-              effectiveMax
+            effectiveMax
           ) {
             Alert.alert(
               "Quantity",
               `Maximum quantity is ${effectiveMax}.`
             );
+
             return;
           }
 
@@ -999,11 +1346,12 @@ export default function FoodDetailsScreen() {
               "Price unavailable",
               "This product does not have a valid price."
             );
+
             return;
           }
 
           // ===============================================
-          // PAYLOAD
+          // CART PAYLOAD
           // ===============================================
 
           const cartData = {
@@ -1050,7 +1398,9 @@ export default function FoodDetailsScreen() {
           // START LOADING
           // ===============================================
 
-          setAddingToCart(true);
+          setAddingToCart(
+            true
+          );
 
           // ===============================================
           // API
@@ -1082,6 +1432,34 @@ export default function FoodDetailsScreen() {
           );
 
           // ===============================================
+          // AUTH ERROR
+          // ===============================================
+
+          if (
+            isAuthError(response)
+          ) {
+            Alert.alert(
+              "Login Required",
+              "Please login to add products to your cart.",
+              [
+                {
+                  text: "Cancel",
+                  style: "cancel",
+                },
+                {
+                  text: "Login",
+                  onPress: () =>
+                    router.replace(
+                      "/(auth)/Loginscreen"
+                    ),
+                },
+              ]
+            );
+
+            return;
+          }
+
+          // ===============================================
           // SUCCESS
           // ===============================================
 
@@ -1098,7 +1476,7 @@ export default function FoodDetailsScreen() {
             Alert.alert(
               "Add to Cart",
               response?.message ||
-                "Unable to add this product to cart."
+              "Unable to add this product to cart."
             );
 
             return;
@@ -1120,7 +1498,8 @@ export default function FoodDetailsScreen() {
               },
               {
                 text: "View Cart",
-                onPress: openCart,
+                onPress:
+                  openCart,
               },
             ]
           );
@@ -1148,10 +1527,12 @@ export default function FoodDetailsScreen() {
           Alert.alert(
             "Add to Cart",
             error?.message ||
-              "Something went wrong while adding the product."
+            "Something went wrong while adding the product."
           );
         } finally {
-          setAddingToCart(false);
+          setAddingToCart(
+            false
+          );
         }
       },
       [
@@ -1375,7 +1756,7 @@ export default function FoodDetailsScreen() {
             />
           </TouchableOpacity>
 
-          {/* FAVOURITE */}
+          {/* WISHLIST */}
 
           <TouchableOpacity
             style={[
@@ -1386,20 +1767,30 @@ export default function FoodDetailsScreen() {
               handleFavourite
             }
             activeOpacity={0.8}
+            disabled={
+              wishlistLoading
+            }
           >
-            <Ionicons
-              name={
-                isFavourite
-                  ? "heart"
-                  : "heart-outline"
-              }
-              size={27}
-              color={
-                isFavourite
-                  ? "#FF2028"
-                  : "#FFFFFF"
-              }
-            />
+            {wishlistLoading ? (
+              <ActivityIndicator
+                size="small"
+                color="#FFFFFF"
+              />
+            ) : (
+              <Ionicons
+                name={
+                  isFavourite
+                    ? "heart"
+                    : "heart-outline"
+                }
+                size={27}
+                color={
+                  isFavourite
+                    ? "#FF2028"
+                    : "#FFFFFF"
+                }
+              />
+            )}
           </TouchableOpacity>
         </View>
 
@@ -1490,9 +1881,7 @@ export default function FoodDetailsScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* =================================================
-              PRICE
-          ================================================= */}
+          {/* PRICE */}
 
           <View
             style={styles.priceRow}
@@ -1509,33 +1898,33 @@ export default function FoodDetailsScreen() {
 
             {originalPrice >
               foodPrice && (
-              <Text
-                style={
-                  styles.originalPrice
-                }
-              >
-                ₹{formatPrice(
-                  originalPrice
-                )}
-              </Text>
-            )}
+                <Text
+                  style={
+                    styles.originalPrice
+                  }
+                >
+                  ₹{formatPrice(
+                    originalPrice
+                  )}
+                </Text>
+              )}
 
             {discountValue >
               0 && (
-              <View
-                style={
-                  styles.discountBadge
-                }
-              >
-                <Text
+                <View
                   style={
-                    styles.discountText
+                    styles.discountBadge
                   }
                 >
-                  {discountValue}% OFF
-                </Text>
-              </View>
-            )}
+                  <Text
+                    style={
+                      styles.discountText
+                    }
+                  >
+                    {discountValue}% OFF
+                  </Text>
+                </View>
+              )}
           </View>
 
           {/* STOCK */}
@@ -1560,9 +1949,7 @@ export default function FoodDetailsScreen() {
             {foodDescription}
           </Text>
 
-          {/* =================================================
-              CUSTOMIZE
-          ================================================= */}
+          {/* CUSTOMIZE */}
 
           <View
             style={
@@ -1602,7 +1989,7 @@ export default function FoodDetailsScreen() {
                       style={[
                         styles.spiceButton,
                         selected &&
-                          styles.spiceButtonSelected,
+                        styles.spiceButtonSelected,
                       ]}
                       onPress={() =>
                         setSpiceLevel(
@@ -1617,7 +2004,7 @@ export default function FoodDetailsScreen() {
                         style={[
                           styles.spiceText,
                           selected &&
-                            styles.spiceTextSelected,
+                          styles.spiceTextSelected,
                         ]}
                       >
                         {level}
@@ -1629,9 +2016,7 @@ export default function FoodDetailsScreen() {
             </View>
           </View>
 
-          {/* =================================================
-              QUANTITY
-          ================================================= */}
+          {/* QUANTITY */}
 
           <View
             style={
@@ -1656,7 +2041,7 @@ export default function FoodDetailsScreen() {
                 size={25}
                 color={
                   quantity <=
-                  minOrder
+                    minOrder
                     ? "#666666"
                     : "#FFFFFF"
                 }
@@ -1695,7 +2080,7 @@ export default function FoodDetailsScreen() {
                 size={27}
                 color={
                   quantity >=
-                  effectiveMax
+                    effectiveMax
                     ? "#666666"
                     : "#FFFFFF"
                 }
@@ -1703,21 +2088,21 @@ export default function FoodDetailsScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* =================================================
-              ADD TO CART
-          ================================================= */}
+          {/* ADD TO CART */}
 
           <TouchableOpacity
             style={[
               styles.addToCartButton,
               addingToCart &&
-                styles.addToCartButtonDisabled,
+              styles.addToCartButtonDisabled,
             ]}
             onPress={
               handleAddToCart
             }
             activeOpacity={0.85}
-            disabled={addingToCart}
+            disabled={
+              addingToCart
+            }
           >
             {addingToCart ? (
               <>

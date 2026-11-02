@@ -1,3 +1,4 @@
+
 import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
@@ -16,188 +17,333 @@ import {
 import BASE_URL from "../../constants/AppUrls";
 import Fonts from "../../constants/Fonts";
 import { useTheme } from "../../hooks/use-theme";
+
 import {
-  getProduct,
   getWishlist,
   removeFromWishlist,
 } from "../../utils/Function";
 
-// ============================================================
-// RESPONSE MAPPERS
-//
-// The backend wishlist stores product VARIANTS (dishes).
-// The mappers below accept the common Laravel shapes:
-//   { success: 1, data: [ ... ] }
-//   { success: 1, data: { wishlist: [ ... ] } }
-//   { success: 1, data: { items | dishes | products: [ ... ] } }
-// and items shaped like { id, variant: {...}, product: {...} }
-// or flat objects.
-//
-// If your dishes show blank fields, open the "wishlist" request in
-// the Network tab, copy one item, and adjust mapDish() below.
-// ============================================================
+import { postMethod } from "../../utils/APIServices";
 
 const FALLBACK_IMAGE = require("../../../assets/images/Restaurant1.png");
 
-const normalizeImageUri = (image) => {
-  const value =
-    typeof image === "string"
-      ? image
-      : (image?.url ?? image?.path ?? image?.image_url ?? image?.image);
-  if (typeof value !== "string" || !value.trim()) return null;
+// ============================================================
+// RESPONSE HELPERS
+// ============================================================
 
-  const uri = value.trim();
-  if (/^https?:\/\//i.test(uri)) {
-    try {
-      const parsed = new URL(uri);
-      return parsed.pathname !== "/" ? uri : null;
-    } catch {
-      return null;
-    }
-  }
-
-  return `${BASE_URL.replace(/\/+$/, "")}/${uri.replace(/^\/+/, "")}`;
+const isSuccess = (response) => {
+  const result = response?.success ?? response?.data?.success;
+  return [1, "1", true].includes(result);
 };
 
-const formatPrice = (value) =>
-  value === undefined || value === null || value === ""
-    ? ""
-    : `₹${String(value).replace(/^₹/, "")}`;
+const isLoginRequired = (response) => {
+  const result = response?.success ?? response?.data?.success;
+  return [9, "9"].includes(result);
+};
 
-const extractList = (res, keys) => {
-  const data = res?.data;
+// ============================================================
+// IMAGE HELPER
+// ============================================================
 
-  if (Array.isArray(data)) {
-    return data;
+const normalizeImageUri = (image) => {
+  if (!image) return null;
+
+  let value = image;
+
+  if (typeof image === "object") {
+    value =
+      image?.url ??
+      image?.path ??
+      image?.image_url ??
+      image?.image ??
+      image?.src ??
+      null;
   }
 
-  if (Array.isArray(data?.data)) {
-    return data.data;
+  if (typeof value !== "string" || !value.trim()) {
+    return null;
   }
 
-  for (const key of keys) {
-    if (Array.isArray(data?.[key])) {
-      return data[key];
+  const uri = value.trim();
+
+  if (/^https?:\/\//i.test(uri)) {
+    return uri;
+  }
+
+  return `${String(BASE_URL).replace(/\/+$/, "")}/${uri.replace(/^\/+/, "")}`;
+};
+
+// ============================================================
+// PRICE HELPER
+// ============================================================
+
+const formatPrice = (value) => {
+  if (value === undefined || value === null || value === "") {
+    return "";
+  }
+
+  const stringValue = String(value).replace(/^₹/, "");
+  return `₹${stringValue}`;
+};
+
+// ============================================================
+// ID HELPER
+// ============================================================
+
+const getValidId = (...values) => {
+  for (const value of values) {
+    if (
+      value !== undefined &&
+      value !== null &&
+      String(value).trim() !== ""
+    ) {
+      return String(value).trim();
     }
+  }
 
-    if (Array.isArray(data?.data?.[key])) {
-      return data.data[key];
+  return "";
+};
+
+// ============================================================
+// EXTRACT WISHLIST ARRAY
+// ============================================================
+
+const extractWishlistArray = (response) => {
+  if (!response) return [];
+
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  const possibleArrays = [
+    response?.data,
+    response?.wishlist,
+    response?.items,
+    response?.products,
+
+    response?.data?.data,
+    response?.data?.wishlist,
+    response?.data?.items,
+    response?.data?.products,
+
+    response?.data?.data?.wishlist,
+    response?.data?.data?.items,
+    response?.data?.data?.products,
+  ];
+
+  for (const value of possibleArrays) {
+    if (Array.isArray(value)) {
+      return value;
     }
   }
 
   return [];
 };
 
-const extractProducts = (res) => {
-  const data = res?.data;
-  const products = Array.isArray(data)
-    ? data
-    : Array.isArray(data?.data)
-      ? data.data
-      : (data?.products ??
-        data?.product ??
-        data?.data?.products ??
-        data?.data?.product ??
-        res?.products ??
-        res?.product ??
-        []);
+// ============================================================
+// DISH IMAGE
+// ============================================================
 
-  return Array.isArray(products) ? products : [];
-};
-
-const getProductImage = (product, variantId) => {
-  if (!product) return null;
-
-  const variants = [
-    ...(Array.isArray(product?.variants) ? product.variants : []),
-    ...(Array.isArray(product?.product_variants)
-      ? product.product_variants
-      : []),
-  ];
-  const matchingVariant = variants.find(
-    (variant) =>
-      String(variant?.id ?? variant?.variant_id ?? "") === String(variantId),
-  );
+const getDishImage = (entry, variant, product) => {
   const candidates = [
-    matchingVariant?.image,
-    matchingVariant?.image_url,
-    product?.image,
+    entry?.image_url,
+    entry?.image,
+    entry?.product_image,
+    entry?.product_image_url,
+    entry?.thumbnail,
+    entry?.thumbnail_url,
+
+    variant?.image_url,
+    variant?.image,
+    variant?.product_image,
+    variant?.product_image_url,
+    variant?.thumbnail,
+    variant?.thumbnail_url,
+
     product?.image_url,
+    product?.image,
     product?.product_image,
     product?.product_image_url,
     product?.thumbnail,
     product?.thumbnail_url,
+
     product?.images?.[0]?.image_url,
     product?.images?.[0]?.url,
     product?.images?.[0]?.image,
+
+    variant?.images?.[0]?.image_url,
+    variant?.images?.[0]?.url,
+    variant?.images?.[0]?.image,
   ];
 
-  return candidates.map(normalizeImageUri).find(Boolean) ?? null;
+  for (const candidate of candidates) {
+    const imageUri = normalizeImageUri(candidate);
+
+    if (imageUri) {
+      return { uri: imageUri };
+    }
+  }
+
+  return FALLBACK_IMAGE;
 };
 
-const mapDish = (entry, products = []) => {
-  const variant = entry?.variant ?? entry;
-  const product = entry?.product ?? variant?.product ?? entry;
+// ============================================================
+// MAP WISHLIST ITEM
+// ============================================================
 
-  // id sent to DELETE wishlist/{item}
-  const variantId = variant?.id ?? entry?.variant_id ?? entry?.id;
-  const matchingProduct = products.find(
-    (item) =>
-      String(item?.id ?? item?.product_id ?? "") ===
-      String(product?.id ?? entry?.product_id ?? ""),
+const mapWishlistItem = (entry) => {
+  if (!entry) return null;
+
+  const variant =
+    entry?.variant ??
+    entry?.product_variant ??
+    entry?.productVariant ??
+    {};
+
+  const product =
+    entry?.product ??
+    variant?.product ??
+    entry?.item ??
+    {};
+
+  // IMPORTANT:
+  // This must be the wishlist record ID.
+  // Do not use product ID or variant ID for DELETE.
+
+  const wishlistId = getValidId(
+    entry?.wishlist_id,
+    entry?.wishlistId,
+    entry?.wishlist_item_id,
+    entry?.wishlist_itemId,
+    entry?.wishlist?.id,
+    entry?.wishlist_item?.id,
+    entry?.id
   );
-  const imageUri =
-    [product?.image, product?.image_url, variant?.image, entry?.image]
-      .map(normalizeImageUri)
-      .find(Boolean) ?? getProductImage(matchingProduct, variantId);
+
+  const variantId = getValidId(
+    entry?.variant_id,
+    entry?.variantId,
+    variant?.id,
+    product?.variant_id,
+    product?.variantId
+  );
+
+  const productId = getValidId(
+    entry?.product_id,
+    entry?.productId,
+    product?.id,
+    variant?.product_id,
+    variant?.productId
+  );
+
+  const name =
+    product?.name ??
+    product?.product_name ??
+    product?.productName ??
+    product?.title ??
+    variant?.name ??
+    variant?.variant_name ??
+    entry?.name ??
+    entry?.product_name ??
+    entry?.title ??
+    "Dish";
+
+  const restaurant =
+    product?.restaurant?.name ??
+    product?.restaurant_name ??
+    product?.restaurantName ??
+    product?.vendor?.name ??
+    entry?.restaurant_name ??
+    entry?.restaurantName ??
+    variant?.restaurant?.name ??
+    "";
+
+  const rating =
+    product?.rating ??
+    product?.average_rating ??
+    product?.averageRating ??
+    entry?.rating ??
+    "0.0";
+
+  const price =
+    variant?.price ??
+    variant?.selling_price ??
+    variant?.sale_price ??
+    product?.selling_price ??
+    product?.sale_price ??
+    product?.price ??
+    entry?.price ??
+    0;
+
+  const oldPrice =
+    variant?.mrp ??
+    variant?.old_price ??
+    variant?.oldPrice ??
+    product?.mrp ??
+    product?.old_price ??
+    product?.oldPrice ??
+    entry?.old_price ??
+    entry?.oldPrice ??
+    "";
+
+  const time =
+    product?.time ??
+    product?.delivery_time ??
+    product?.deliveryTime ??
+    entry?.time ??
+    entry?.delivery_time ??
+    entry?.deliveryTime ??
+    "";
+
+  const isVeg =
+    product?.is_veg === 1 ||
+    product?.is_veg === true ||
+    product?.veg === 1 ||
+    product?.veg === true ||
+    product?.veg_type === "veg" ||
+    variant?.is_veg === 1 ||
+    variant?.is_veg === true ||
+    entry?.is_veg === 1 ||
+    entry?.is_veg === true;
 
   return {
-    id: String(variantId),
-    name:
-      product?.name ??
-      product?.title ??
-      variant?.name ??
-      entry?.name ??
-      entry?.title ??
-      "",
-    restaurant:
-      product?.restaurant?.name ??
-      product?.restaurant_name ??
-      product?.vendor?.name ??
-      entry?.restaurant_name ??
-      product?.category ??
-      "",
-    image: imageUri ? { uri: imageUri } : FALLBACK_IMAGE,
-    rating: String(product?.rating ?? entry?.rating ?? "0.0"),
-    price: formatPrice(
-      variant?.price ?? variant?.selling_price ?? product?.price,
-    ),
-    oldPrice: formatPrice(
-      variant?.mrp ?? variant?.old_price ?? product?.old_price,
-    ),
-    time: product?.time ?? product?.delivery_time ?? "",
-    isVeg:
-      product?.is_veg === 1 ||
-      product?.is_veg === true ||
-      product?.veg === 1 ||
-      product?.veg_type === "veg",
+    wishlistId,
+    variantId,
+    productId,
+    name: String(name),
+    restaurant: String(restaurant || ""),
+    image: getDishImage(entry, variant, product),
+    rating: String(rating ?? "0.0"),
+    price: formatPrice(price),
+    oldPrice: oldPrice !== "" ? formatPrice(oldPrice) : "",
+    time: String(time || ""),
+    isVeg,
+    original: entry,
   };
 };
 
 // ============================================================
-// WISHLIST SCREEN (dishes only)
+// SCREEN
 // ============================================================
 
-const Wishlist = () => {
+const WishlistScreen = () => {
   const { colors: Colors } = useTheme();
-  const styles = useMemo(() => makeStyles(Colors), [Colors]);
+
+  const styles = useMemo(
+    () => makeStyles(Colors),
+    [Colors]
+  );
 
   const [dishes, setDishes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const [removingId, setRemovingId] = useState(null);
+  const [addingCartId, setAddingCartId] = useState(null);
+  const [clearing, setClearing] = useState(false);
+
   // ==========================================================
-  // LOAD WISHLIST (GET /api/customer/wishlist)
+  // LOAD WISHLIST
   // ==========================================================
 
   const loadWishlist = useCallback(async (isRefresh = false) => {
@@ -208,309 +354,793 @@ const Wishlist = () => {
         setLoading(true);
       }
 
-      const [wishlistResult, productsResult] = await Promise.allSettled([
-        getWishlist(),
-        getProduct(),
-      ]);
+      console.log("====================================");
+      console.log("GET WISHLIST API");
+      console.log("GET /api/customer/wishlist");
+      console.log("====================================");
 
-      if (wishlistResult.status === "rejected") {
-        throw wishlistResult.reason;
-      }
+      const response = await getWishlist();
 
-      const res = wishlistResult.value;
-      const products =
-        productsResult.status === "fulfilled"
-          ? extractProducts(productsResult.value)
-          : [];
+      console.log(
+        "WISHLIST RESPONSE:",
+        JSON.stringify(response, null, 2)
+      );
 
-      // No token -> send to login
-      if (res?.success === 9) {
-        router.replace("/login"); // change to your login route
+      if (isLoginRequired(response)) {
+        setDishes([]);
+
+        if (!isRefresh) {
+          Alert.alert(
+            "Login Required",
+            "Please login to view your wishlist.",
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Login",
+                onPress: () =>
+                  router.replace("/(auth)/Loginscreen"),
+              },
+            ]
+          );
+        }
+
         return;
       }
 
-      const hasSuccessFlag = res?.success != null;
-      const requestSucceeded =
-        [1, true, "1"].includes(res?.success) ||
-        (!hasSuccessFlag &&
-          (Array.isArray(res?.data) || Array.isArray(res?.data?.data)));
-
-      if (requestSucceeded) {
-        setDishes(
-          extractList(res, ["wishlist", "items", "dishes", "products"]).map(
-            (entry) => mapDish(entry, products),
-          ),
+      if (
+        response?.success !== undefined &&
+        !isSuccess(response)
+      ) {
+        throw new Error(
+          response?.message || "Unable to load wishlist."
         );
-      } else {
-        Alert.alert("Wishlist", res?.message || "Unable to load wishlist.");
       }
+
+      const wishlistArray = extractWishlistArray(response);
+
+      console.log(
+        "WISHLIST ARRAY:",
+        JSON.stringify(wishlistArray, null, 2)
+      );
+
+      wishlistArray.forEach((item, index) => {
+        console.log(`WISHLIST ITEM ${index + 1} IDS:`, {
+          id: item?.id,
+          wishlist_id: item?.wishlist_id,
+          wishlist_item_id: item?.wishlist_item_id,
+          product_id: item?.product_id,
+          variant_id: item?.variant_id,
+        });
+      });
+
+      const mapped = wishlistArray
+        .map(mapWishlistItem)
+        .filter(Boolean);
+
+      console.log(
+        "MAPPED WISHLIST:",
+        JSON.stringify(mapped, null, 2)
+      );
+
+      setDishes(mapped);
     } catch (error) {
-      Alert.alert("Wishlist", error?.message || "Unable to load wishlist.");
+      console.log("GET WISHLIST ERROR:", error?.message);
+      console.log(
+        "SERVER RESPONSE:",
+        JSON.stringify(error?.response?.data ?? {}, null, 2)
+      );
+
+      if (!isRefresh) {
+        Alert.alert(
+          "Wishlist",
+          error?.response?.data?.message ||
+            error?.message ||
+            "Unable to load wishlist."
+        );
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
 
-  // Reload every time the screen comes into focus
+  // ==========================================================
+  // SCREEN FOCUS
+  // ==========================================================
+
   useFocusEffect(
     useCallback(() => {
-      loadWishlist();
-    }, [loadWishlist]),
+      loadWishlist(false);
+    }, [loadWishlist])
   );
 
   // ==========================================================
-  // REMOVE DISH (DELETE /api/customer/wishlist/{item})
+  // REFRESH
   // ==========================================================
 
-  const removeDish = async (id) => {
-    const previous = dishes;
+  const handleRefresh = useCallback(() => {
+    loadWishlist(true);
+  }, [loadWishlist]);
 
-    // optimistic update
-    setDishes((prev) => prev.filter((item) => item.id !== id));
+  // ==========================================================
+  // ADD TO CART
+  // ==========================================================
 
-    const res = await removeFromWishlist(id);
+  const handleAddToCart = async (item) => {
+  const cartKey = String(
+    item?.variantId || item?.productId || ""
+  );
 
-    if (res?.success === 9) {
-      router.replace("/login"); // change to your login route
+  try {
+    const productId = Number(item?.productId);
+    const variantId = Number(item?.variantId);
+
+    if (!Number.isFinite(productId) || productId <= 0) {
+      Alert.alert("Add to Cart", "Product ID is missing.");
       return;
     }
 
-    if (res?.success !== 1) {
-      setDishes(previous); // rollback
-      Alert.alert("Wishlist", res?.message || "Unable to remove dish.");
+    if (!Number.isFinite(variantId) || variantId <= 0) {
+      Alert.alert("Add to Cart", "Variant ID is missing.");
+      return;
+    }
+
+    const requestData = {
+      product_id: productId,
+      variant_id: variantId,
+      quantity: 1,
+    };
+
+    console.log("====================================");
+    console.log("ADD TO CART API");
+    console.log("REQUEST:", JSON.stringify(requestData, null, 2));
+    console.log("====================================");
+
+    setAddingCartId(cartKey);
+
+    const response = await postMethod(
+      "api/customer/cart/add",
+      requestData
+    );
+
+    console.log(
+      "ADD CART RESPONSE:",
+      JSON.stringify(response, null, 2)
+    );
+
+    // LOGIN REQUIRED
+    if (isLoginRequired(response)) {
+      Alert.alert(
+        "Login Required",
+        "Please login to add items to your cart.",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Login",
+            onPress: () =>
+              router.replace("/(auth)/Loginscreen"),
+          },
+        ]
+      );
+
+      return;
+    }
+
+    // SUCCESS
+    if (isSuccess(response)) {
+      console.log("PRODUCT ADDED TO CART SUCCESSFULLY");
+
+      // Open CartScreen directly
+      router.push("/CartScreen");
+
+      return;
+    }
+
+    // API FAILURE
+    Alert.alert(
+      "Add to Cart",
+      response?.message ||
+        response?.data?.message ||
+        "Unable to add item to cart."
+    );
+  } catch (error) {
+    console.log("====================================");
+    console.log("ADD CART ERROR");
+    console.log("MESSAGE:", error?.message);
+    console.log(
+      "SERVER:",
+      JSON.stringify(error?.response?.data ?? {}, null, 2)
+    );
+    console.log("====================================");
+
+    Alert.alert(
+      "Add to Cart",
+      error?.response?.data?.message ||
+        error?.message ||
+        "Unable to add item to cart."
+    );
+  } finally {
+    setAddingCartId(null);
+  }
+};
+
+  // ==========================================================
+  // REMOVE ONE WISHLIST ITEM
+  // ==========================================================
+
+  const removeDish = async (item) => {
+    const wishlistId = getValidId(item?.wishlistId);
+
+    console.log("====================================");
+    console.log("REMOVE WISHLIST ITEM");
+    console.log("Wishlist ID:", wishlistId);
+    console.log("Product ID:", item?.productId);
+    console.log("Variant ID:", item?.variantId);
+    console.log("====================================");
+
+    if (!wishlistId) {
+      Alert.alert(
+        "Remove Wishlist",
+        "Wishlist ID is missing. Check the GET wishlist response."
+      );
+      return;
+    }
+
+    if (removingId || clearing) {
+      return;
+    }
+
+    try {
+      setRemovingId(wishlistId);
+      const response = await removeFromWishlist(wishlistId);
+
+      console.log(
+        "DELETE WISHLIST RESPONSE:",
+        JSON.stringify(response, null, 2)
+      );
+
+      if (isLoginRequired(response)) {
+        Alert.alert(
+          "Login Required",
+          "Please login to continue.",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Login",
+              onPress: () =>
+                router.replace("/(auth)/Loginscreen"),
+            },
+          ]
+        );
+        return;
+      }
+
+      if (isSuccess(response)) {
+        setDishes((current) =>
+          current.filter(
+            (dish) =>
+              String(dish?.wishlistId) !== String(wishlistId)
+          )
+        );
+
+        Alert.alert(
+          "Success",
+          response?.message ||
+            response?.data?.message ||
+            "Item removed from wishlist."
+        );
+
+        await loadWishlist(true);
+        return;
+      }
+
+      Alert.alert(
+        "Remove Wishlist",
+        response?.message ||
+          response?.data?.message ||
+          "Unable to remove wishlist item."
+      );
+    } catch (error) {
+      console.log("====================================");
+      console.log("DELETE WISHLIST ERROR");
+      console.log("MESSAGE:", error?.message);
+      console.log("STATUS:", error?.response?.status);
+      console.log(
+        "SERVER:",
+        JSON.stringify(error?.response?.data ?? {}, null, 2)
+      );
+      console.log("====================================");
+
+      Alert.alert(
+        "Delete Failed",
+        error?.response?.data?.message ||
+          error?.message ||
+          "Unable to remove wishlist item."
+      );
+    } finally {
+      setRemovingId(null);
     }
   };
 
   // ==========================================================
-  // CLEAR ALL
+  // CLEAR ALL WISHLIST ITEMS
   // ==========================================================
 
-  const clearAll = () => {
-    if (dishes.length === 0) {
+  const clearWishlist = () => {
+    if (!dishes.length || clearing || removingId) {
       return;
     }
 
-    Alert.alert("Clear Wishlist", "Remove all saved dishes?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Clear All",
-        style: "destructive",
-        onPress: async () => {
-          const results = await Promise.all(
-            dishes.map((item) => removeFromWishlist(item.id)),
-          );
-
-          const failed = results.filter((r) => r?.success !== 1).length;
-
-          if (failed > 0) {
-            Alert.alert("Wishlist", `${failed} item(s) could not be removed.`);
-          }
-
-          // reload so the screen matches the backend
-          loadWishlist();
+    Alert.alert(
+      "Clear Wishlist",
+      "Are you sure you want to remove all wishlist items?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
         },
-      },
-    ]);
-  };
+        {
+          text: "Clear All",
+          style: "destructive",
+          onPress: async () => {
+            const previousDishes = [...dishes];
 
-  // ==========================================================
-  // DISH CARD
-  // ==========================================================
+            try {
+              setClearing(true);
 
-  const renderDish = ({ item }) => {
-    return (
-      <TouchableOpacity style={styles.dishCard} activeOpacity={0.9}>
-        {/* IMAGE */}
+              const validItems = previousDishes.filter(
+                (item) => !!getValidId(item?.wishlistId)
+              );
 
-        <View style={styles.dishImageContainer}>
-          <Image
-            source={item.image}
-            style={styles.dishImage}
-            resizeMode="cover"
-          />
+              if (validItems.length !== previousDishes.length) {
+                Alert.alert(
+                  "Wishlist",
+                  "One or more wishlist items are missing a wishlist ID. No items were removed."
+                );
+                return;
+              }
 
-          {/* VEG INDICATOR */}
+              for (const item of validItems) {
+                const wishlistId = getValidId(item?.wishlistId);
 
-          <View
-            style={[
-              styles.vegIndicator,
-              {
-                borderColor: item.isVeg ? Colors.success : Colors.primary,
-              },
-            ]}
-          >
-            <View
-              style={[
-                styles.vegDot,
-                {
-                  backgroundColor: item.isVeg ? Colors.success : Colors.primary,
-                },
-              ]}
-            />
-          </View>
-        </View>
+                console.log(
+                  "CLEAR WISHLIST - DELETING ID:",
+                  wishlistId
+                );
 
-        {/* DISH DETAILS */}
+                const response = await removeFromWishlist(wishlistId);
 
-        <View style={styles.dishDetails}>
-          <View style={styles.dishTopRow}>
-            <Text style={styles.dishName} numberOfLines={1}>
-              {item.name}
-            </Text>
+                console.log(
+                  "CLEAR DELETE RESPONSE:",
+                  JSON.stringify(response, null, 2)
+                );
 
-            <TouchableOpacity
-              style={styles.heartButton}
-              onPress={() => removeDish(item.id)}
-            >
-              <Ionicons name="heart" size={22} color={Colors.primary} />
-            </TouchableOpacity>
-          </View>
+                if (isLoginRequired(response)) {
+                  await loadWishlist(true);
 
-          {!!item.restaurant && (
-            <Text style={styles.dishRestaurant} numberOfLines={1}>
-              {item.restaurant}
-            </Text>
-          )}
+                  Alert.alert(
+                    "Login Required",
+                    "Please login to continue."
+                  );
 
-          <View style={styles.dishInfoRow}>
-            <View style={styles.ratingBadge}>
-              <Ionicons name="star" size={11} color={Colors.white} />
+                  router.replace("/(auth)/Loginscreen");
+                  return;
+                }
 
-              <Text style={styles.ratingText}>{item.rating}</Text>
-            </View>
+                if (!isSuccess(response)) {
+                  await loadWishlist(true);
 
-            {!!item.time && <Text style={styles.dishTime}>• {item.time}</Text>}
-          </View>
+                  Alert.alert(
+                    "Clear Wishlist",
+                    response?.message ||
+                      response?.data?.message ||
+                      `Unable to remove wishlist item ${wishlistId}.`
+                  );
+                  return;
+                }
+              }
 
-          <View style={styles.dishBottomRow}>
-            <View style={styles.priceContainer}>
-              <Text style={styles.dishPrice}>{item.price}</Text>
+              setDishes([]);
 
-              {!!item.oldPrice && (
-                <Text style={styles.dishOldPrice}>{item.oldPrice}</Text>
-              )}
-            </View>
+              Alert.alert(
+                "Success",
+                "All wishlist items removed successfully."
+              );
 
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => Alert.alert("Added", `${item.name} added to cart`)}
-            >
-              <Ionicons name="add" size={18} color={Colors.white} />
+              await loadWishlist(true);
+            } catch (error) {
+              console.log("CLEAR WISHLIST ERROR:", error?.message);
+              console.log(
+                "SERVER:",
+                JSON.stringify(error?.response?.data ?? {}, null, 2)
+              );
 
-              <Text style={styles.addText}>ADD</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </TouchableOpacity>
+              await loadWishlist(true);
+
+              Alert.alert(
+                "Clear Wishlist",
+                error?.response?.data?.message ||
+                  error?.message ||
+                  "Unable to clear wishlist."
+              );
+            } finally {
+              setClearing(false);
+            }
+          },
+        },
+      ]
     );
   };
 
   // ==========================================================
-  // EMPTY / LOADING STATE
+  // OPEN PRODUCT
+  // ==========================================================
+const openProduct = (item) => {
+  const productId = getValidId(
+    item?.productId,
+    item?.original?.product_id,
+    item?.original?.product?.id
+  );
+
+  const variantId = getValidId(
+    item?.variantId,
+    item?.original?.variant_id,
+    item?.original?.variant?.id
+  );
+
+  if (!productId) {
+    Alert.alert("Product", "Product ID is missing.");
+    return;
+  }
+
+  console.log("====================================");
+  console.log("OPEN FOOD DETAILS");
+  console.log("Product ID:", productId);
+  console.log("Variant ID:", variantId);
+  console.log("====================================");
+
+  router.push({
+    pathname: "/Food-Details",
+    params: {
+      itemId: String(productId),
+      restaurantId: item?.original?.restaurant_id
+        ? String(item.original.restaurant_id)
+        : "",
+      variantId: variantId || "",
+    },
+  });
+};
+
+  // ==========================================================
+  // RENDER ITEM
+  // ==========================================================
+
+  const renderItem = ({ item }) => {
+    const removing =
+      String(removingId) === String(item?.wishlistId);
+
+    const adding =
+      String(addingCartId) ===
+      String(item?.variantId || item?.productId || "");
+
+    return (
+      <View style={styles.card}>
+        {/* IMAGE */}
+
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => openProduct(item)}
+          style={styles.imageContainer}
+        >
+          <Image
+            source={item?.image || FALLBACK_IMAGE}
+            style={styles.productImage}
+            resizeMode="cover"
+          />
+
+          {item?.isVeg && (
+            <View style={styles.vegBadge}>
+              <View style={styles.vegDot} />
+            </View>
+          )}
+        </TouchableOpacity>
+
+        {/* CONTENT */}
+
+        <View style={styles.content}>
+          <View style={styles.titleRow}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => openProduct(item)}
+              style={styles.titleContainer}
+            >
+              <Text
+                numberOfLines={2}
+                style={styles.productName}
+              >
+                {item?.name}
+              </Text>
+            </TouchableOpacity>
+
+            {/* DELETE / HEART BUTTON */}
+
+            <TouchableOpacity
+              disabled={removing || clearing}
+              onPress={() => removeDish(item)}
+              style={styles.heartButton}
+            >
+              {removing ? (
+                <ActivityIndicator
+                  size="small"
+                  color={Colors.primary}
+                />
+              ) : (
+                <Ionicons
+                  name="heart"
+                  size={24}
+                  color={Colors.primary}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {!!item?.restaurant && (
+            <Text
+              numberOfLines={1}
+              style={styles.restaurant}
+            >
+              {item.restaurant}
+            </Text>
+          )}
+
+          <View style={styles.metaRow}>
+            {!!item?.rating && item.rating !== "0.0" && (
+              <View style={styles.ratingBox}>
+                <Ionicons
+                  name="star"
+                  size={12}
+                  color="#FFFFFF"
+                />
+                <Text style={styles.ratingText}>
+                  {item.rating}
+                </Text>
+              </View>
+            )}
+
+            {!!item?.time && (
+              <View style={styles.timeContainer}>
+                <Ionicons
+                  name="time-outline"
+                  size={14}
+                  color={Colors.textSecondary}
+                />
+                <Text style={styles.timeText}>
+                  {item.time}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.priceRow}>
+            {!!item?.price && (
+              <Text style={styles.price}>
+                {item.price}
+              </Text>
+            )}
+
+            {!!item?.oldPrice &&
+              item.oldPrice !== item.price && (
+                <Text style={styles.oldPrice}>
+                  {item.oldPrice}
+                </Text>
+              )}
+          </View>
+
+          {/* ADD TO CART */}
+
+          <TouchableOpacity
+            disabled={adding || removing || clearing}
+            onPress={() => handleAddToCart(item)}
+            style={[
+              styles.addButton,
+              {
+                opacity:
+                  adding || removing || clearing ? 0.6 : 1,
+              },
+            ]}
+          >
+            {adding ? (
+              <ActivityIndicator
+                size="small"
+                color="#FFFFFF"
+              />
+            ) : (
+              <>
+                <Ionicons
+                  name="cart-outline"
+                  size={17}
+                  color="#FFFFFF"
+                />
+                <Text style={styles.addButtonText}>
+                  Add to Cart
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  // ==========================================================
+  // EMPTY WISHLIST
   // ==========================================================
 
   const renderEmpty = () => {
     if (loading) {
-      return (
-        <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-        </View>
-      );
+      return null;
     }
 
     return (
       <View style={styles.emptyContainer}>
         <View style={styles.emptyIcon}>
-          <Ionicons name="fast-food-outline" size={55} color={Colors.primary} />
+          <Ionicons
+            name="heart-outline"
+            size={58}
+            color={Colors.primary}
+          />
         </View>
 
-        <Text style={styles.emptyTitle}>No saved dishes</Text>
+        <Text style={styles.emptyTitle}>
+          Your Wishlist is Empty
+        </Text>
 
-        <Text style={styles.emptyDescription}>
-          Save delicious dishes here and order them whenever your cravings hit.
+        <Text style={styles.emptyText}>
+          Save your favourite dishes here and order them whenever you want.
         </Text>
 
         <TouchableOpacity
           style={styles.exploreButton}
-          onPress={() => router.push("/ExploreScreen")} // change to your explore route
-          activeOpacity={0.85}
+          onPress={() =>
+            router.push("/(tabs)/ExploreScreen")
+          }
         >
-          <Text style={styles.exploreButtonText}>EXPLORE FOOD</Text>
-
-          <Ionicons name="arrow-forward" size={18} color={Colors.white} />
+          <Text style={styles.exploreButtonText}>
+            Explore Restaurants
+          </Text>
         </TouchableOpacity>
       </View>
     );
   };
 
   // ==========================================================
-  // MAIN UI
+  // LOADING SCREEN
+  // ==========================================================
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <Ionicons
+              name="arrow-back"
+              size={24}
+              color={Colors.text}
+            />
+          </TouchableOpacity>
+
+          <Text style={styles.headerTitle}>
+            Wishlist
+          </Text>
+
+          <View style={styles.headerRight} />
+        </View>
+
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator
+            size="large"
+            color={Colors.primary}
+          />
+
+          <Text style={styles.loadingText}>
+            Loading wishlist...
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // ==========================================================
+  // MAIN SCREEN
   // ==========================================================
 
   return (
     <View style={styles.container}>
-      {/* ====================================================
-          HEADER
-      ==================================================== */}
+      {/* HEADER */}
 
       <View style={styles.header}>
         <TouchableOpacity
-          style={styles.backButton}
           onPress={() => router.back()}
-          activeOpacity={0.8}
+          style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={Colors.text}
+          />
         </TouchableOpacity>
 
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>My Wishlist</Text>
-
-          <Text style={styles.headerSubtitle}>
-            {dishes.length} saved {dishes.length === 1 ? "dish" : "dishes"}
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>
+            Wishlist
           </Text>
+
+          {dishes.length > 0 && (
+            <Text style={styles.countText}>
+              {dishes.length}{" "}
+              {dishes.length === 1 ? "item" : "items"}
+            </Text>
+          )}
         </View>
 
-        <TouchableOpacity
-          style={styles.clearButton}
-          onPress={clearAll}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.clearText}>Clear All</Text>
-        </TouchableOpacity>
+        {dishes.length > 0 ? (
+          <TouchableOpacity
+            disabled={clearing || !!removingId}
+            onPress={clearWishlist}
+            style={styles.clearButton}
+          >
+            {clearing ? (
+              <ActivityIndicator
+                size="small"
+                color={Colors.primary}
+              />
+            ) : (
+              <Text style={styles.clearButtonText}>
+                Clear
+              </Text>
+            )}
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.headerRight} />
+        )}
       </View>
 
-      {/* ====================================================
-          LIST
-      ==================================================== */}
+      {/* WISHLIST LIST */}
 
       <FlatList
         data={dishes}
-        keyExtractor={(item) => item.id}
-        renderItem={renderDish}
+        keyExtractor={(item, index) =>
+          String(
+            item?.wishlistId ||
+              `${item?.productId || "wishlist"}-${index}`
+          )
+        }
+        renderItem={renderItem}
         ListEmptyComponent={renderEmpty}
+        contentContainerStyle={
+          dishes.length === 0
+            ? styles.emptyList
+            : styles.listContent
+        }
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => loadWishlist(true)}
+            onRefresh={handleRefresh}
             tintColor={Colors.primary}
             colors={[Colors.primary]}
           />
         }
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.listContent,
-          dishes.length === 0 && styles.emptyListContent,
-        ]}
       />
     </View>
   );
 };
-
-export default Wishlist;
 
 // ============================================================
 // STYLES
@@ -523,228 +1153,242 @@ const makeStyles = (Colors) =>
       backgroundColor: Colors.background,
     },
 
-    // ==========================================================
-    // HEADER
-    // ==========================================================
-
     header: {
-      height: 82,
-      paddingHorizontal: 15,
+      minHeight: 64,
+      paddingHorizontal: 16,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      borderBottomWidth: 1,
-      borderBottomColor: Colors.divider,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor:
+        Colors.border || Colors.divider || "#333333",
     },
 
     backButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 42,
+      height: 42,
+      borderRadius: 21,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: Colors.surface,
-      borderWidth: 1,
-      borderColor: Colors.border,
     },
 
-    headerCenter: {
+    headerTitleContainer: {
+      flex: 1,
       alignItems: "center",
+      justifyContent: "center",
     },
 
     headerTitle: {
-      color: Colors.textPrimary,
-      fontFamily: Fonts.regular,
-      fontSize: 27,
+      color: Colors.text,
+      fontSize: 20,
+      fontFamily: Fonts?.bold || Fonts?.semiBold || undefined,
+      fontWeight: "700",
     },
 
-    headerSubtitle: {
-      color: Colors.textSecondary,
-      fontFamily: Fonts.regular,
-      fontSize: 18,
-      marginTop: 3,
+    countText: {
+      marginTop: 2,
+      color: Colors.textSecondary || "#999999",
+      fontSize: 12,
+      fontFamily: Fonts?.regular || undefined,
     },
 
     clearButton: {
-      paddingVertical: 8,
-      paddingHorizontal: 3,
+      minWidth: 50,
+      height: 40,
+      alignItems: "center",
+      justifyContent: "center",
     },
 
-    clearText: {
+    clearButtonText: {
       color: Colors.primary,
-      fontFamily: Fonts.regular,
-      fontSize: 17,
+      fontSize: 14,
+      fontWeight: "700",
+      fontFamily: Fonts?.semiBold || undefined,
     },
 
-    // ==========================================================
-    // LIST
-    // ==========================================================
+    headerRight: {
+      width: 50,
+    },
 
     listContent: {
-      paddingHorizontal: 15,
-      paddingTop: 14,
+      padding: 14,
       paddingBottom: 30,
     },
 
-    heartButton: {
-      width: 35,
-      height: 35,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    ratingBadge: {
-      minWidth: 48,
-      height: 25,
-      paddingHorizontal: 7,
-      borderRadius: 6,
-      backgroundColor: "#168A3A",
+    card: {
       flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    ratingText: {
-      color: Colors.white,
-      fontFamily: Fonts.regular,
-      fontSize: 15,
-      marginLeft: 4,
-    },
-
-    // ==========================================================
-    // DISH CARD
-    // ==========================================================
-
-    dishCard: {
-      minHeight: 145,
-      marginBottom: 12,
+      backgroundColor: Colors.card || Colors.surface || "#202020",
+      borderRadius: 16,
+      marginBottom: 14,
       padding: 10,
-      borderRadius: 14,
-      backgroundColor: Colors.surface,
       borderWidth: 1,
-      borderColor: Colors.border,
-      flexDirection: "row",
+      borderColor: Colors.border || "#2B2B2B",
     },
 
-    dishImageContainer: {
+    imageContainer: {
       width: 125,
-      height: 125,
-      borderRadius: 11,
+      height: 145,
+      borderRadius: 12,
       overflow: "hidden",
+      backgroundColor: Colors.surface || "#181818",
       position: "relative",
     },
 
-    dishImage: {
+    productImage: {
       width: "100%",
       height: "100%",
     },
 
-    vegIndicator: {
+    vegBadge: {
       position: "absolute",
-      left: 7,
-      top: 7,
-      width: 17,
-      height: 17,
+      top: 8,
+      left: 8,
+      width: 20,
+      height: 20,
       borderRadius: 4,
-      borderWidth: 1,
-      backgroundColor: "rgba(0,0,0,0.7)",
+      backgroundColor: "#FFFFFF",
       alignItems: "center",
       justifyContent: "center",
+      borderWidth: 1,
+      borderColor: "#168A37",
     },
 
     vegDot: {
-      width: 7,
-      height: 7,
-      borderRadius: 4,
+      width: 9,
+      height: 9,
+      borderRadius: 5,
+      backgroundColor: "#168A37",
     },
 
-    dishDetails: {
+    content: {
       flex: 1,
-      paddingLeft: 11,
+      marginLeft: 12,
+      paddingVertical: 2,
     },
 
-    dishTopRow: {
+    titleRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+    },
+
+    titleContainer: {
+      flex: 1,
+      paddingRight: 4,
+    },
+
+    productName: {
+      color: Colors.text,
+      fontSize: 16,
+      lineHeight: 21,
+      fontWeight: "700",
+      fontFamily: Fonts?.semiBold || undefined,
+    },
+
+    heartButton: {
+      width: 36,
+      height: 36,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: -4,
+      marginRight: -4,
+    },
+
+    restaurant: {
+      marginTop: 3,
+      color: Colors.textSecondary || "#999999",
+      fontSize: 12,
+      lineHeight: 17,
+      fontFamily: Fonts?.regular || undefined,
+    },
+
+    metaRow: {
       flexDirection: "row",
       alignItems: "center",
+      marginTop: 7,
+      gap: 10,
     },
 
-    dishName: {
-      flex: 1,
-      color: Colors.goldDark,
-      fontFamily: Fonts.regular,
-      fontSize: 25,
-    },
-
-    dishRestaurant: {
-      color: Colors.textSecondary,
-      fontFamily: Fonts.regular,
-      fontSize: 17,
-      marginTop: 4,
-    },
-
-    dishInfoRow: {
+    ratingBox: {
       flexDirection: "row",
       alignItems: "center",
-      marginTop: 9,
+      backgroundColor: "#168A37",
+      paddingHorizontal: 6,
+      paddingVertical: 3,
+      borderRadius: 5,
+      gap: 3,
     },
 
-    dishTime: {
-      color: Colors.textSecondary,
-      fontFamily: Fonts.regular,
-      fontSize: 15,
-      marginLeft: 7,
+    ratingText: {
+      color: "#FFFFFF",
+      fontSize: 11,
+      fontWeight: "700",
     },
 
-    dishBottomRow: {
-      flex: 1,
-      marginTop: 10,
-      flexDirection: "row",
-      alignItems: "flex-end",
-      justifyContent: "space-between",
-    },
-
-    priceContainer: {
+    timeContainer: {
       flexDirection: "row",
       alignItems: "center",
+      gap: 4,
     },
 
-    dishPrice: {
-      color: Colors.textPrimary,
-      fontFamily: Fonts.regular,
-      fontSize: 18,
+    timeText: {
+      color: Colors.textSecondary || "#999999",
+      fontSize: 11,
     },
 
-    dishOldPrice: {
-      color: Colors.textMuted,
-      fontFamily: Fonts.regular,
-      fontSize: 13,
+    priceRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 7,
+      gap: 8,
+    },
+
+    price: {
+      color: Colors.text,
+      fontSize: 16,
+      fontWeight: "800",
+      fontFamily: Fonts?.bold || undefined,
+    },
+
+    oldPrice: {
+      color: Colors.textSecondary || "#888888",
+      fontSize: 12,
       textDecorationLine: "line-through",
-      marginLeft: 6,
     },
 
     addButton: {
-      height: 32,
-      minWidth: 62,
-      paddingHorizontal: 9,
-      borderRadius: 7,
-      backgroundColor: Colors.primary,
+      height: 36,
+      marginTop: 9,
+      borderRadius: 9,
+      backgroundColor: Colors.primary || "#F9080C",
       flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 12,
+      gap: 6,
+      alignSelf: "flex-start",
+    },
+
+    addButtonText: {
+      color: "#FFFFFF",
+      fontSize: 12,
+      fontWeight: "700",
+      fontFamily: Fonts?.semiBold || undefined,
+    },
+
+    loadingContainer: {
+      flex: 1,
       alignItems: "center",
       justifyContent: "center",
     },
 
-    addText: {
-      color: Colors.white,
-      fontFamily: Fonts.regular,
-      fontSize: 15,
-      marginLeft: 3,
+    loadingText: {
+      marginTop: 12,
+      color: Colors.textSecondary || "#999999",
+      fontSize: 14,
+      fontFamily: Fonts?.regular || undefined,
     },
 
-    // ==========================================================
-    // EMPTY
-    // ==========================================================
-
-    emptyListContent: {
+    emptyList: {
       flexGrow: 1,
     },
 
@@ -752,7 +1396,7 @@ const makeStyles = (Colors) =>
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
-      paddingHorizontal: 35,
+      paddingHorizontal: 30,
       paddingBottom: 80,
     },
 
@@ -760,44 +1404,48 @@ const makeStyles = (Colors) =>
       width: 110,
       height: 110,
       borderRadius: 55,
-      backgroundColor: "rgba(255,32,40,0.10)",
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 1,
-      borderColor: "rgba(255,32,40,0.18)",
+      backgroundColor: Colors.primary
+        ? `${Colors.primary}18`
+        : "#F9080C18",
+      marginBottom: 22,
     },
 
     emptyTitle: {
-      color: Colors.textPrimary,
-      fontFamily: Fonts.extraBold,
+      color: Colors.text,
       fontSize: 20,
-      marginTop: 18,
+      fontWeight: "800",
+      textAlign: "center",
+      fontFamily: Fonts?.bold || undefined,
     },
 
-    emptyDescription: {
-      color: Colors.textMuted,
-      fontFamily: Fonts.regular,
+    emptyText: {
+      marginTop: 9,
+      color: Colors.textSecondary || "#999999",
       fontSize: 14,
-      lineHeight: 20,
+      lineHeight: 21,
       textAlign: "center",
-      marginTop: 7,
+      maxWidth: 310,
+      fontFamily: Fonts?.regular || undefined,
     },
 
     exploreButton: {
-      height: 45,
-      marginTop: 20,
-      paddingHorizontal: 20,
-      borderRadius: 23,
-      backgroundColor: Colors.primary,
-      flexDirection: "row",
+      marginTop: 24,
+      minHeight: 45,
+      paddingHorizontal: 22,
+      borderRadius: 10,
+      backgroundColor: Colors.primary || "#F9080C",
       alignItems: "center",
       justifyContent: "center",
     },
 
     exploreButtonText: {
-      color: Colors.white,
-      fontFamily: Fonts.bold,
+      color: "#FFFFFF",
       fontSize: 14,
-      marginRight: 7,
+      fontWeight: "700",
+      fontFamily: Fonts?.semiBold || undefined,
     },
   });
+
+export default WishlistScreen;

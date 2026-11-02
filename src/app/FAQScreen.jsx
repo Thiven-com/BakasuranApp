@@ -1,8 +1,11 @@
+
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
+  Platform,
   Pressable,
   ScrollView,
   StatusBar,
@@ -18,26 +21,32 @@ import { getFAQs } from "../utils/Function";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-const scale = (size) => Math.round(size * Math.min(SCREEN_WIDTH / 375, 1.12));
+const scale = (size) =>
+  Math.round(size * Math.min(SCREEN_WIDTH / 375, 1.12));
 
 export default function FAQScreen() {
   const [expandedId, setExpandedId] = useState(null);
   const [faqs, setFaqs] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(true);
 
   // =========================================================
   // GET FAQ API
   // =========================================================
 
   const loadFAQs = useCallback(async () => {
-    try {
-      setErrorMessage("");
+    setLoading(true);
+    setErrorMessage("");
 
+    try {
       const response = await getFAQs();
 
-      console.log("FAQ API RESPONSE:", JSON.stringify(response, null, 2));
+      console.log(
+        "FAQ API RESPONSE:",
+        JSON.stringify(response, null, 2)
+      );
 
-      // Support common API response formats
+      // Support common API response formats.
       const candidates = [
         response?.data?.data,
         response?.data?.faqs,
@@ -52,7 +61,11 @@ export default function FAQScreen() {
 
       const formattedFAQs = list
         .map((item, index) => ({
-          id: item?.id ?? item?.faq_id ?? item?.faqId ?? index + 1,
+          id:
+            item?.id ??
+            item?.faq_id ??
+            item?.faqId ??
+            index + 1,
 
           question:
             item?.question ??
@@ -69,26 +82,32 @@ export default function FAQScreen() {
             "",
         }))
         .filter(
-          (item) => String(item.question).trim() && String(item.answer).trim(),
+          (item) =>
+            String(item.question).trim() !== "" &&
+            String(item.answer).trim() !== ""
         );
 
       setFaqs(formattedFAQs);
     } catch (error) {
       console.error(
         "FAQ GET API ERROR:",
-        error?.response?.data || error?.message || error,
+        error?.response?.data || error?.message || error
       );
+
+      setFaqs([]);
 
       setErrorMessage(
         error?.response?.data?.message ||
           error?.message ||
-          "Unable to load FAQs. Please try again.",
+          "Unable to load FAQs. Please try again."
       );
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   // =========================================================
-  // CALL API WHEN SCREEN MOUNTS
+  // LOAD FAQS WHEN SCREEN MOUNTS
   // =========================================================
 
   useEffect(() => {
@@ -112,7 +131,9 @@ export default function FAQScreen() {
   // =========================================================
 
   const toggleFAQ = (id) => {
-    setExpandedId((currentId) => (currentId === id ? null : id));
+    setExpandedId((currentId) =>
+      currentId === id ? null : id
+    );
   };
 
   // =========================================================
@@ -124,25 +145,33 @@ export default function FAQScreen() {
   };
 
   // =========================================================
+  // STYLES
+  // =========================================================
+
+  const styles = useMemo(() => createStyles(), []);
+
+  // =========================================================
   // SCREEN UI
   // =========================================================
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={["top", "bottom"]}
+    >
       <StatusBar
         barStyle="light-content"
         backgroundColor={Colors.backgroundDark}
         translucent={false}
       />
 
-      {/* =====================================================
-          HEADER
-      ====================================================== */}
-
+      {/* HEADER */}
       <View style={styles.header}>
         <Pressable
           onPress={handleBack}
           hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
           style={({ pressed }) => [
             styles.backButton,
             pressed && styles.backButtonPressed,
@@ -155,26 +184,34 @@ export default function FAQScreen() {
           />
         </Pressable>
 
-        <Text style={styles.headerTitle}>Frequently Asked Questions</Text>
+        <Text style={styles.headerTitle}>
+          Frequently Asked Questions
+        </Text>
 
         <View style={styles.headerRightSpace} />
       </View>
 
-      {/* =====================================================
-          FAQ CONTENT
-      ====================================================== */}
-
+      {/* FAQ CONTENT */}
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
         bounces
       >
-        {/* ===================================================
-            ERROR STATE
-        ==================================================== */}
+        {/* LOADING STATE */}
+        {loading ? (
+          <View style={styles.statusContainer}>
+            <ActivityIndicator
+              size="large"
+              color={Colors.primary}
+            />
 
-        {errorMessage ? (
+            <Text style={styles.statusText}>
+              Loading FAQs...
+            </Text>
+          </View>
+        ) : errorMessage ? (
+          /* ERROR STATE */
           <View style={styles.statusContainer}>
             <Ionicons
               name="alert-circle-outline"
@@ -182,7 +219,9 @@ export default function FAQScreen() {
               color={Colors.primary}
             />
 
-            <Text style={styles.statusText}>{errorMessage}</Text>
+            <Text style={styles.statusText}>
+              {errorMessage}
+            </Text>
 
             <Pressable
               onPress={loadFAQs}
@@ -191,14 +230,13 @@ export default function FAQScreen() {
                 pressed && styles.retryButtonPressed,
               ]}
             >
-              <Text style={styles.retryButtonText}>Try Again</Text>
+              <Text style={styles.retryButtonText}>
+                Try Again
+              </Text>
             </Pressable>
           </View>
         ) : faqs.length === 0 ? (
-          /* =================================================
-             EMPTY DATA
-          ================================================== */
-
+          /* EMPTY STATE */
           <View style={styles.statusContainer}>
             <Ionicons
               name="help-circle-outline"
@@ -217,97 +255,97 @@ export default function FAQScreen() {
                 pressed && styles.retryButtonPressed,
               ]}
             >
-              <Text style={styles.retryButtonText}>Refresh</Text>
+              <Text style={styles.retryButtonText}>
+                Refresh
+              </Text>
             </Pressable>
           </View>
         ) : (
-          /* =================================================
-             FAQ LIST
-          ================================================== */
-
+          /* FAQ LIST */
           <View style={styles.faqContainer}>
             {faqs.map((item, index) => {
               const isExpanded = expandedId === item.id;
 
               return (
-                <View key={String(item.id)} style={styles.faqItem}>
-                  {/* =========================================
-                      QUESTION
-                  ========================================== */}
-
+                <View
+                  key={String(item.id)}
+                  style={styles.faqItem}
+                >
+                  {/* QUESTION */}
                   <Pressable
                     onPress={() => toggleFAQ(item.id)}
+                    accessibilityRole="button"
+                    accessibilityState={{
+                      expanded: isExpanded,
+                    }}
                     style={({ pressed }) => [
                       styles.questionRow,
-                      isExpanded && styles.questionRowActive,
+                      isExpanded &&
+                        styles.questionRowActive,
                       pressed && styles.questionRowPressed,
                     ]}
                   >
-                    {/* QUESTION NUMBER */}
-
                     <View style={styles.numberContainer}>
                       <Text style={styles.numberText}>
                         {String(index + 1).padStart(2, "0")}
                       </Text>
                     </View>
 
-                    {/* QUESTION TEXT */}
-
                     <View style={styles.questionContent}>
                       <Text
                         style={[
                           styles.questionText,
-                          isExpanded && styles.questionTextActive,
+                          isExpanded &&
+                            styles.questionTextActive,
                         ]}
                       >
                         {item.question}
                       </Text>
                     </View>
 
-                    {/* EXPAND ICON */}
-
                     <View
                       style={[
                         styles.expandButton,
-                        isExpanded && styles.expandButtonActive,
+                        isExpanded &&
+                          styles.expandButtonActive,
                       ]}
                     >
                       <Ionicons
                         name={isExpanded ? "remove" : "add"}
                         size={scale(16)}
-                        color={isExpanded ? Colors.white : Colors.iconSecondary}
+                        color={
+                          isExpanded
+                            ? Colors.white
+                            : Colors.iconSecondary
+                        }
                       />
                     </View>
                   </Pressable>
 
-                  {/* =========================================
-                      ANSWER
-                  ========================================== */}
-
+                  {/* ANSWER */}
                   {isExpanded && (
                     <View style={styles.answerContainer}>
-                      <Text style={styles.answerText}>{item.answer}</Text>
+                      <Text style={styles.answerText}>
+                        {item.answer}
+                      </Text>
                     </View>
                   )}
 
-                  {/* =========================================
-                      DIVIDER
-                  ========================================== */}
-
-                  {index < faqs.length - 1 && <View style={styles.divider} />}
+                  {/* DIVIDER */}
+                  {index < faqs.length - 1 && (
+                    <View style={styles.divider} />
+                  )}
                 </View>
               );
             })}
           </View>
         )}
 
-        {/* ===================================================
-            HELP AND SUPPORT CARD
-        ==================================================== */}
-
+        {/* HELP AND SUPPORT CARD */}
         <View style={styles.helpSection}>
           <Pressable
             onPress={handleSupport}
+            accessibilityRole="button"
             style={({ pressed }) => [
               styles.helpCard,
               pressed && styles.helpCardPressed,
@@ -327,15 +365,20 @@ export default function FAQScreen() {
               <View style={styles.helpLine} />
             </View>
 
-            <Text style={styles.helpTitle}>Need More Help?</Text>
+            <Text style={styles.helpTitle}>
+              Need More Help?
+            </Text>
 
             <Text style={styles.helpDescription}>
-              Have a question about your food, restaurant, payment or delivery?
-              BAKASURAN is here to help you with your ordering journey.
+              Have a question about your food, restaurant,
+              payment or delivery? BAKASURAN is here to help
+              you with your ordering journey.
             </Text>
 
             <View style={styles.helpButton}>
-              <Text style={styles.helpButtonText}>Visit Help & Support</Text>
+              <Text style={styles.helpButtonText}>
+                Visit Help &amp; Support
+              </Text>
 
               <Ionicons
                 name="arrow-forward"
@@ -356,345 +399,316 @@ export default function FAQScreen() {
 // STYLES
 // ===========================================================
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-
-  contentContainer: {
-    paddingHorizontal: scale(15),
-    paddingTop: scale(16),
-    paddingBottom: scale(25),
-  },
-
-  // =========================================================
-  // HEADER
-  // =========================================================
-
-  header: {
-    height: scale(54),
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: scale(15),
-    backgroundColor: Colors.backgroundDark,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.divider,
-  },
-
-  backButton: {
-    width: scale(34),
-    height: scale(34),
-    borderRadius: scale(17),
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-
-  backButtonPressed: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-
-  headerTitle: {
-    flex: 1,
-    fontFamily: Fonts.regular,
-    fontSize: scale(17),
-    lineHeight: scale(22),
-    color: Colors.textPrimary,
-    textAlign: "center",
-    marginHorizontal: scale(8),
-  },
-
-  headerRightSpace: {
-    width: scale(34),
-  },
-
-  // =========================================================
-  // ERROR / EMPTY STATE
-  // =========================================================
-
-  statusContainer: {
-    minHeight: scale(150),
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: scale(20),
-    paddingVertical: scale(24),
-    backgroundColor: Colors.card,
-    borderRadius: scale(11),
-    borderWidth: 1,
-    borderColor: Colors.border,
-    gap: scale(10),
-  },
-
-  statusText: {
-    fontFamily: Fonts.regular,
-    fontSize: scale(13),
-    lineHeight: scale(19),
-    color: Colors.textSecondary,
-    textAlign: "center",
-  },
-
-  retryButton: {
-    marginTop: scale(4),
-    paddingHorizontal: scale(18),
-    paddingVertical: scale(9),
-    borderRadius: scale(20),
-    backgroundColor: Colors.primary,
-  },
-
-  retryButtonPressed: {
-    opacity: 0.75,
-  },
-
-  retryButtonText: {
-    fontFamily: Fonts.semiBold,
-    fontSize: scale(12),
-    color: Colors.white,
-  },
-
-  // =========================================================
-  // FAQ CONTAINER
-  // =========================================================
-
-  faqContainer: {
-    width: "100%",
-    backgroundColor: Colors.card,
-    borderRadius: scale(11),
-    borderWidth: 1,
-    borderColor: Colors.border,
-    overflow: "hidden",
-  },
-
-  faqItem: {
-    width: "100%",
-    backgroundColor: Colors.card,
-  },
-
-  // =========================================================
-  // QUESTION ROW
-  // =========================================================
-
-  questionRow: {
-    width: "100%",
-    minHeight: scale(60),
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: scale(12),
-    paddingVertical: scale(9),
-    backgroundColor: Colors.card,
-  },
-
-  questionRowActive: {
-    backgroundColor: Colors.backgroundLight,
-  },
-
-  questionRowPressed: {
-    opacity: 0.7,
-  },
-
-  // =========================================================
-  // NUMBER
-  // =========================================================
-
-  numberContainer: {
-    width: scale(29),
-    alignItems: "flex-start",
-    justifyContent: "center",
-  },
-
-  numberText: {
-    fontFamily: Fonts.semiBold,
-    fontSize: scale(16),
-    letterSpacing: 0.5,
-    color: Colors.gold,
-  },
-
-  // =========================================================
-  // QUESTION TEXT
-  // =========================================================
-
-  questionContent: {
-    flex: 1,
-    paddingRight: scale(8),
-    justifyContent: "center",
-  },
-
-  questionText: {
-    fontFamily: Fonts.regular,
-    fontSize: scale(16),
-    lineHeight: scale(20),
-    color: Colors.textPrimary,
-  },
-
-  questionTextActive: {
-    color: Colors.primaryLight,
-  },
-
-  // =========================================================
-  // EXPAND BUTTON
-  // =========================================================
-
-  expandButton: {
-    width: scale(28),
-    height: scale(28),
-    borderRadius: scale(14),
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.backgroundLight,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-  },
-
-  expandButtonActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-
-  // =========================================================
-  // ANSWER
-  // =========================================================
-
-  answerContainer: {
-    paddingLeft: scale(41),
-    paddingRight: scale(38),
-    paddingTop: scale(1),
-    paddingBottom: scale(14),
-    backgroundColor: Colors.backgroundLight,
-  },
-
-  answerText: {
-    fontFamily: Fonts.regular,
-    fontSize: scale(15),
-    lineHeight: scale(18),
-    color: Colors.textSecondary,
-  },
-
-  // =========================================================
-  // DIVIDER
-  // =========================================================
-
-  divider: {
-    width: "100%",
-    height: 1,
-    backgroundColor: Colors.divider,
-  },
-
-  // =========================================================
-  // HELP SECTION
-  // =========================================================
-
-  helpSection: {
-    marginTop: scale(20),
-  },
-
-  helpCard: {
-    width: "100%",
-    borderRadius: scale(13),
-    paddingHorizontal: scale(17),
-    paddingVertical: scale(15),
-    backgroundColor: Colors.gradientEnd,
-    borderWidth: 1,
-    borderColor: "rgba(245,181,27,0.22)",
-    alignItems: "center",
-
-    shadowColor: Colors.logoBlack,
-
-    shadowOffset: {
-      width: 0,
-      height: 4,
+const createStyles = () =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: Colors.background,
     },
 
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 5,
-  },
+    container: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
 
-  helpCardPressed: {
-    opacity: 0.88,
-    transform: [
-      {
-        scale: 0.985,
-      },
-    ],
-  },
+    contentContainer: {
+      paddingHorizontal: scale(15),
+      paddingTop: scale(16),
+      paddingBottom: scale(25),
+    },
 
-  helpTopRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: scale(3),
-  },
+    // HEADER
+    header: {
+      height: scale(54),
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: scale(15),
+      backgroundColor: Colors.backgroundDark,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.divider,
+    },
 
-  helpLine: {
-    width: scale(25),
-    height: 1,
-    backgroundColor: Colors.goldDark,
-    opacity: 0.7,
-  },
+    backButton: {
+      width: scale(34),
+      height: scale(34),
+      borderRadius: scale(17),
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
 
-  helpIcon: {
-    width: scale(29),
-    height: scale(29),
-    borderRadius: scale(15),
-    alignItems: "center",
-    justifyContent: "center",
-    marginHorizontal: scale(7),
-    backgroundColor: Colors.primary,
-    borderWidth: 1,
-    borderColor: Colors.goldDark,
-  },
+    backButtonPressed: {
+      backgroundColor: Colors.primary,
+      borderColor: Colors.primary,
+    },
 
-  helpTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: scale(17),
-    lineHeight: scale(18),
-    color: Colors.gold,
-    textAlign: "center",
-    marginBottom: scale(4),
-  },
+    headerTitle: {
+      flex: 1,
+      fontFamily: Fonts.regular,
+      fontSize: scale(17),
+      lineHeight: scale(22),
+      color: Colors.textPrimary,
+      textAlign: "center",
+      marginHorizontal: scale(8),
+    },
 
-  helpDescription: {
-    fontFamily: Fonts.regular,
-    fontSize: scale(14),
-    lineHeight: scale(15),
-    color: Colors.white,
-    opacity: 0.92,
-    textAlign: "center",
-    maxWidth: scale(310),
-  },
+    headerRightSpace: {
+      width: scale(34),
+    },
 
-  helpButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: scale(9),
-    paddingHorizontal: scale(12),
-    paddingVertical: scale(6),
-    borderRadius: scale(20),
-    backgroundColor: Colors.primary,
-  },
+    // LOADING / ERROR / EMPTY STATE
+    statusContainer: {
+      minHeight: scale(150),
+      width: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: scale(20),
+      paddingVertical: scale(24),
+      backgroundColor: Colors.card,
+      borderRadius: scale(11),
+      borderWidth: 1,
+      borderColor: Colors.border,
+      gap: scale(10),
+    },
 
-  helpButtonText: {
-    fontFamily: Fonts.regular,
-    fontSize: scale(14),
-    color: Colors.white,
-    marginRight: scale(5),
-  },
+    statusText: {
+      fontFamily: Fonts.regular,
+      fontSize: scale(13),
+      lineHeight: scale(19),
+      color: Colors.textSecondary,
+      textAlign: "center",
+    },
 
-  // =========================================================
-  // BOTTOM SPACE
-  // =========================================================
+    retryButton: {
+      marginTop: scale(4),
+      paddingHorizontal: scale(18),
+      paddingVertical: scale(9),
+      borderRadius: scale(20),
+      backgroundColor: Colors.primary,
+    },
 
-  bottomSpace: {
-    height: scale(12),
-  },
-});
+    retryButtonPressed: {
+      opacity: 0.75,
+    },
+
+    retryButtonText: {
+      fontFamily: Fonts.semiBold,
+      fontSize: scale(12),
+      color: Colors.white,
+    },
+
+    // FAQ CONTAINER
+    faqContainer: {
+      width: "100%",
+      backgroundColor: Colors.card,
+      borderRadius: scale(11),
+      borderWidth: 1,
+      borderColor: Colors.border,
+      overflow: "hidden",
+    },
+
+    faqItem: {
+      width: "100%",
+      backgroundColor: Colors.card,
+    },
+
+    // QUESTION ROW
+    questionRow: {
+      width: "100%",
+      minHeight: scale(60),
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: scale(12),
+      paddingVertical: scale(9),
+      backgroundColor: Colors.card,
+    },
+
+    questionRowActive: {
+      backgroundColor: Colors.backgroundLight,
+    },
+
+    questionRowPressed: {
+      opacity: 0.7,
+    },
+
+    // QUESTION NUMBER
+    numberContainer: {
+      width: scale(29),
+      alignItems: "flex-start",
+      justifyContent: "center",
+    },
+
+    numberText: {
+      fontFamily: Fonts.semiBold,
+      fontSize: scale(16),
+      letterSpacing: 0.5,
+      color: Colors.gold,
+    },
+
+    // QUESTION TEXT
+    questionContent: {
+      flex: 1,
+      paddingRight: scale(8),
+      justifyContent: "center",
+    },
+
+    questionText: {
+      fontFamily: Fonts.regular,
+      fontSize: scale(16),
+      lineHeight: scale(20),
+      color: Colors.textPrimary,
+    },
+
+    questionTextActive: {
+      color: Colors.primaryLight,
+    },
+
+    // EXPAND BUTTON
+    expandButton: {
+      width: scale(28),
+      height: scale(28),
+      borderRadius: scale(14),
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: Colors.backgroundLight,
+      borderWidth: 1,
+      borderColor: Colors.borderLight,
+    },
+
+    expandButtonActive: {
+      backgroundColor: Colors.primary,
+      borderColor: Colors.primary,
+    },
+
+    // ANSWER
+    answerContainer: {
+      paddingLeft: scale(41),
+      paddingRight: scale(38),
+      paddingTop: scale(1),
+      paddingBottom: scale(14),
+      backgroundColor: Colors.backgroundLight,
+    },
+
+    answerText: {
+      fontFamily: Fonts.regular,
+      fontSize: scale(15),
+      lineHeight: scale(20),
+      color: Colors.textSecondary,
+    },
+
+    // DIVIDER
+    divider: {
+      width: "100%",
+      height: 1,
+      backgroundColor: Colors.divider,
+    },
+
+    // HELP SECTION
+    helpSection: {
+      marginTop: scale(20),
+    },
+
+    helpCard: {
+      width: "100%",
+      borderRadius: scale(13),
+      paddingHorizontal: scale(17),
+      paddingVertical: scale(15),
+      backgroundColor: Colors.gradientEnd,
+      borderWidth: 1,
+      borderColor: "rgba(245,181,27,0.22)",
+      alignItems: "center",
+
+      // Use boxShadow on web to avoid the shadow* deprecation.
+      // Native platforms retain their standard shadow properties.
+      ...Platform.select({
+        web: {
+          boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.35)",
+        },
+        default: {
+          shadowColor: Colors.logoBlack,
+          shadowOffset: {
+            width: 0,
+            height: 4,
+          },
+          shadowOpacity: 0.35,
+          shadowRadius: 8,
+          elevation: 5,
+        },
+      }),
+    },
+
+    helpCardPressed: {
+      opacity: 0.88,
+      transform: [{ scale: 0.985 }],
+    },
+
+    helpTopRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: scale(3),
+    },
+
+    helpLine: {
+      width: scale(25),
+      height: 1,
+      backgroundColor: Colors.goldDark,
+      opacity: 0.7,
+    },
+
+    helpIcon: {
+      width: scale(29),
+      height: scale(29),
+      borderRadius: scale(15),
+      alignItems: "center",
+      justifyContent: "center",
+      marginHorizontal: scale(7),
+      backgroundColor: Colors.primary,
+      borderWidth: 1,
+      borderColor: Colors.goldDark,
+    },
+
+    helpTitle: {
+      fontFamily: Fonts.bold,
+      fontSize: scale(17),
+      lineHeight: scale(22),
+      color: Colors.gold,
+      textAlign: "center",
+      marginBottom: scale(4),
+    },
+
+    helpDescription: {
+      fontFamily: Fonts.regular,
+      fontSize: scale(14),
+      lineHeight: scale(20),
+      color: Colors.white,
+      opacity: 0.92,
+      textAlign: "center",
+      maxWidth: scale(310),
+    },
+
+    helpButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: scale(9),
+      paddingHorizontal: scale(12),
+      paddingVertical: scale(6),
+      borderRadius: scale(20),
+      backgroundColor: Colors.primary,
+    },
+
+    helpButtonText: {
+      fontFamily: Fonts.regular,
+      fontSize: scale(14),
+      color: Colors.white,
+      marginRight: scale(5),
+    },
+
+    // BOTTOM SPACE
+    bottomSpace: {
+      height: scale(12),
+    },
+  });

@@ -2,7 +2,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import BASE_URL from "../constants/AppUrls";
 
-// =========================================================
+import {
+  deleteMethod,
+  getMethod
+} from "./APIServices";
+
+// =========================================================a
 // BASE URL CONFIGURATION
 // =========================================================
 
@@ -806,27 +811,35 @@ export const checkoutOrder = async (payload) => {
 export const checkoutPreview = async (payload) => {
   try {
     const token = await AsyncStorage.getItem(TOKEN_KEY);
-    const response = await axios.post(`${APP_URL}checkout/preview`, payload, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: "Bearer ".concat(token) } : {}),
-      },
-      timeout: 30000,
-    });
+
+    const response = await axios.post(
+      `${APP_URL}checkout/preview`,
+      payload,
+      {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          ...(token
+            ? { Authorization: `Bearer ${token}` }
+            : {}),
+        },
+        timeout: 30000,
+      }
+    );
+
+    console.log("CHECKOUT PREVIEW RESPONSE:", response.data);
 
     return response.data;
   } catch (error) {
-    console.error(
-      "CHECKOUT PREVIEW API ERROR:",
-      error?.response?.data ?? error?.message,
+    console.log(
+      "CHECKOUT PREVIEW ERROR:",
+      error?.response?.data || error.message
     );
 
     throw new Error(
       error?.response?.data?.message ||
-        error?.response?.data?.error ||
-        error?.message ||
-        "Unable to preview your checkout.",
+      error?.message ||
+      "Unable to preview checkout."
     );
   }
 };
@@ -856,20 +869,24 @@ const wishlistError = (error, fallback) => {
   };
 };
 
-// =========================================================
-// GET WISHLIST API
-// GET: /api/customer/wishlist
-// =========================================================
+// ============================================================
+// GET WISHLIST
+// GET /api/customer/wishlist
+// ============================================================
+
 export const getWishlist = async () => {
-  const url = `${APP_URL}wishlist`;
-
   try {
-    const token = await AsyncStorage.getItem(TOKEN_KEY);
+    const token = await getAuthToken();
 
-    console.log("========== WISHLIST API ==========");
+    console.log("====================================");
+    console.log("GET WISHLIST API");
     console.log("METHOD: GET");
-    console.log("URL:", url);
-    console.log("TOKEN:", token ? "Token available" : "Token not found");
+    console.log("URL:", `${APP_URL}wishlist`);
+    console.log(
+      "TOKEN:",
+      token ? "AVAILABLE" : "NOT AVAILABLE"
+    );
+    console.log("====================================");
 
     if (!token) {
       return {
@@ -878,125 +895,235 @@ export const getWishlist = async () => {
       };
     }
 
-    const response = await axios.get(url, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      timeout: 20000,
-    });
-
-    console.log("WISHLIST HTTP STATUS:", response.status);
-    console.log(
-      "WISHLIST API RESPONSE:",
-      JSON.stringify(response.data, null, 2),
+    const response = await axios.get(
+      `${APP_URL}wishlist`,
+      {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: REQUEST_TIMEOUT,
+      }
     );
 
-    return response.data;
+    console.log("====================================");
+    console.log("GET WISHLIST RESPONSE");
+    console.log("STATUS:", response.status);
+    console.log(
+      JSON.stringify(response.data, null, 2)
+    );
+    console.log("====================================");
+
+    return (
+      response.data || {
+        success: 0,
+        message: "Empty wishlist response.",
+      }
+    );
   } catch (error) {
-    console.log("========== WISHLIST API ERROR ==========");
-    console.log("URL:", url);
-    console.log("HTTP STATUS:", error?.response?.status ?? "No response");
+    console.log("====================================");
+    console.log("GET WISHLIST ERROR");
+    console.log("MESSAGE:", error?.message);
+    console.log("STATUS:", error?.response?.status);
     console.log(
-      "SERVER ERROR:",
-      JSON.stringify(error?.response?.data ?? error?.message, null, 2),
+      "SERVER RESPONSE:",
+      JSON.stringify(
+        error?.response?.data || {},
+        null,
+        2
+      )
     );
+    console.log("====================================");
 
-    return wishlistError(error, "Unable to load wishlist.");
+    if (error?.response?.status === 401) {
+      return {
+        success: 9,
+        message: "Your session has expired. Please login again.",
+      };
+    }
+
+    if (error?.response?.data) {
+      return error.response.data;
+    }
+
+    return {
+      success: 0,
+      message: getApiErrorMessage(
+        error,
+        "Unable to load wishlist."
+      ),
+    };
   }
 };
 
-// =========================================================
-// ADD TO WISHLIST API
-// POST: /api/customer/wishlist/add
-// Body: { variant_id }
-// =========================================================
-export const addToWishlist = async (variantId) => {
-  const url = `${APP_URL}wishlist/add`;
-  const normalizedVariantId = normalizeVariantId(variantId);
 
-  if (normalizedVariantId === null) {
-    return { success: 0, message: "A valid integer variant ID is required." };
-  }
 
+export const addToWishlist = async (data) => {
   try {
-    const token = await AsyncStorage.getItem(TOKEN_KEY);
+    // Support both:
+    // addToWishlist(26)
+    // addToWishlist({ product_id: 14, variant_id: 26, restaurant_id: 1 })
 
-    if (!token) {
-      return { success: 9, message: "Please login to save items." };
+    const variantId =
+      typeof data === "object"
+        ? data?.variant_id
+        : data;
+
+    const normalizedVariantId = normalizeVariantId(variantId);
+
+    console.log("=================================");
+    console.log("ADD TO WISHLIST API");
+    console.log("ORIGINAL DATA:", JSON.stringify(data, null, 2));
+    console.log("VARIANT ID:", variantId);
+    console.log("NORMALIZED VARIANT ID:", normalizedVariantId);
+    console.log("=================================");
+
+    if (normalizedVariantId === null) {
+      return {
+        success: 0,
+        message: "A valid variant ID is required.",
+      };
     }
 
-    const payload = { variant_id: normalizedVariantId };
+    const token = await getAuthToken();
 
-    console.log("========== WISHLIST ADD API ==========");
+    if (!token) {
+      return {
+        success: 9,
+        message: "Please login to add items to your wishlist.",
+      };
+    }
+
+    // IMPORTANT:
+    // Backend only expects variant_id
+    const payload = {
+      variant_id: normalizedVariantId,
+    };
+
+    const url = `${APP_URL}wishlist/add`;
+
+    console.log("=================================");
+    console.log("ADD TO WISHLIST REQUEST");
     console.log("METHOD: POST");
     console.log("URL:", url);
-    console.log("REQUEST BODY:", JSON.stringify(payload, null, 2));
-
-    const response = await axios.post(url, payload, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      timeout: 20000,
-    });
-
     console.log(
-      "WISHLIST ADD RESPONSE:",
-      JSON.stringify(response.data, null, 2),
+      "PAYLOAD:",
+      JSON.stringify(payload, null, 2)
+    );
+    console.log("=================================");
+
+    const response = await axios.post(
+      url,
+      payload,
+      {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: REQUEST_TIMEOUT,
+      }
     );
 
-    return response.data;
+    console.log("=================================");
+    console.log("ADD TO WISHLIST RESPONSE");
+    console.log(
+      JSON.stringify(response.data, null, 2)
+    );
+    console.log("STATUS:", response.status);
+    console.log("=================================");
+
+    return (
+      response.data || {
+        success: 0,
+        message: "Empty response from server.",
+      }
+    );
   } catch (error) {
-    console.log("WISHLIST ADD ERROR:", error?.response?.data || error?.message);
-    return wishlistError(error, "Unable to add to wishlist.");
-  }
-};
+    console.log("=================================");
+    console.log("ADD TO WISHLIST ERROR");
+    console.log("MESSAGE:", error?.message);
+    console.log("STATUS:", error?.response?.status);
+    console.log(
+      "SERVER RESPONSE:",
+      JSON.stringify(
+        error?.response?.data || {},
+        null,
+        2
+      )
+    );
+    console.log("=================================");
 
-// =========================================================
-// REMOVE FROM WISHLIST API
-// DELETE: /api/customer/wishlist/{item}
-// {item} = the id the backend expects (variant id by default)
-// =========================================================
-export const removeFromWishlist = async (itemId) => {
-  const url = `${APP_URL}wishlist/${itemId}`;
-
-  try {
-    const token = await AsyncStorage.getItem(TOKEN_KEY);
-
-    if (!token) {
-      return { success: 9, message: "Please login to manage your wishlist." };
+    if (error?.response?.status === 401) {
+      return {
+        success: 9,
+        message: "Your session has expired. Please login again.",
+      };
     }
 
-    console.log("========== WISHLIST REMOVE API ==========");
-    console.log("METHOD: DELETE");
-    console.log("URL:", url);
+    if (error?.response?.data) {
+      return error.response.data;
+    }
 
-    const response = await axios.delete(url, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      timeout: 20000,
-    });
-
-    console.log(
-      "WISHLIST REMOVE RESPONSE:",
-      JSON.stringify(response.data, null, 2),
-    );
-
-    return response.data;
-  } catch (error) {
-    console.log(
-      "WISHLIST REMOVE ERROR:",
-      error?.response?.data || error?.message,
-    );
-    return wishlistError(error, "Unable to remove from wishlist.");
+    return {
+      success: 0,
+      message: getApiErrorMessage(
+        error,
+        "Unable to add item to wishlist."
+      ),
+    };
   }
 };
+
+// =========================================================
+// REMOVE ITEM FROM WISHLIST
+// DELETE: /api/customer/wishlist/{wishlistId}
+// =========================================================
+
+
+export const removeFromWishlist = async (wishlistId) => {
+  try {
+    const id = String(wishlistId ?? "").trim();
+
+    if (!id) {
+      return {
+        success: 0,
+        message: "Wishlist ID is required.",
+      };
+    }
+
+    const endpoint = `api/customer/wishlist/${encodeURIComponent(id)}`;
+
+    console.log("WISHLIST DELETE ENDPOINT:", endpoint);
+
+    const response = await deleteMethod(endpoint);
+
+    console.log(
+      "WISHLIST DELETE RESULT:",
+      JSON.stringify(response, null, 2)
+    );
+
+    return response;
+  } catch (error) {
+    console.log("WISHLIST DELETE ERROR:", error?.message);
+    console.log("STATUS:", error?.response?.status);
+    console.log(
+      "SERVER RESPONSE:",
+      JSON.stringify(error?.response?.data ?? {}, null, 2)
+    );
+
+    return {
+      success: 0,
+      message:
+        error?.response?.data?.message ||
+        error?.message ||
+        "Unable to remove wishlist item.",
+      status: error?.response?.status,
+    };
+  }
+};
+
 
 // =========================================================
 // TOGGLE WISHLIST API
@@ -1892,3 +2019,140 @@ export const getFAQs = async () => {
     throw new Error(getApiErrorMessage(error, "Unable to load FAQs."));
   }
 };
+
+
+export const getRestaurantCategories = async () => {
+  try {
+    const response = await getMethod(`${APP_URL}restaurant-categories`);
+
+    console.log(
+      "GET RESTAURANT CATEGORIES:",
+      JSON.stringify(response, null, 2)
+    );
+
+    return response;
+  } catch (error) {
+    console.log(
+      "GET RESTAURANT CATEGORIES ERROR:",
+      error?.message
+    );
+
+    throw error;
+  }
+};
+
+// =========================================================
+// GET RESTAURANTS BY CATEGORY
+// GET: /api/customer/categories/{categoryId}/restaurants
+// =========================================================
+export const getCategoryRestaurants = async (categoryId) => {
+  try {
+    if (
+      categoryId === undefined ||
+      categoryId === null ||
+      String(categoryId).trim() === "" ||
+      String(categoryId).toLowerCase() === "all"
+    ) {
+      throw new Error("Valid category ID is required.");
+    }
+
+    const cleanCategoryId = String(categoryId).trim();
+
+    const endpoint = `${APP_URL}categories/${encodeURIComponent(
+      cleanCategoryId
+    )}/restaurants`;
+
+    console.log("====================================");
+    console.log("CATEGORY RESTAURANTS API");
+    console.log("METHOD: GET");
+    console.log("ENDPOINT:", endpoint);
+    console.log("CATEGORY ID:", cleanCategoryId);
+    console.log("====================================");
+
+    const response = await getMethod(endpoint);
+
+    console.log(
+      "CATEGORY RESTAURANTS RESPONSE:",
+      JSON.stringify(response, null, 2)
+    );
+
+    return response;
+  } catch (error) {
+    console.log("CATEGORY RESTAURANTS API ERROR:", error?.message);
+    throw error;
+  }
+};
+
+// ============================================================
+// GET RESTAURANT CATEGORY PRODUCTS
+// GET:
+// /api/customer/restaurant-category-products
+//
+// QUERY:
+// ?category_id=1&restaurant_id=1
+// ============================================================
+
+export const getRestaurantCategoryProducts = async (
+  categoryId,
+  restaurantId
+) => {
+  try {
+    if (
+      categoryId === undefined ||
+      categoryId === null ||
+      String(categoryId).trim() === "" ||
+      String(categoryId).toLowerCase() === "all"
+    ) {
+      throw new Error("Valid category ID is required.");
+    }
+
+    if (
+      restaurantId === undefined ||
+      restaurantId === null ||
+      String(restaurantId).trim() === ""
+    ) {
+      throw new Error("Valid restaurant ID is required.");
+    }
+
+    const cleanCategoryId = String(categoryId).trim();
+    const cleanRestaurantId = String(restaurantId).trim();
+
+    const endpoint =
+      `${APP_URL}restaurant-category-products` +
+      `?category_id=${encodeURIComponent(cleanCategoryId)}` +
+      `&restaurant_id=${encodeURIComponent(cleanRestaurantId)}`;
+
+    console.log("====================================");
+    console.log("RESTAURANT CATEGORY PRODUCTS API");
+    console.log("METHOD: GET");
+    console.log("ENDPOINT:", endpoint);
+    console.log("CATEGORY ID:", cleanCategoryId);
+    console.log("RESTAURANT ID:", cleanRestaurantId);
+    console.log("====================================");
+
+    const response = await getMethod(endpoint);
+
+    console.log(
+      "RESTAURANT CATEGORY PRODUCTS RESPONSE:",
+      JSON.stringify(response, null, 2)
+    );
+
+    return response;
+  } catch (error) {
+    console.log("====================================");
+    console.log("RESTAURANT CATEGORY PRODUCTS API ERROR");
+    console.log("MESSAGE:", error?.message);
+    console.log("STATUS:", error?.response?.status);
+    console.log(
+      "RESPONSE:",
+      JSON.stringify(error?.response?.data || {}, null, 2)
+    );
+    console.log("====================================");
+
+    throw error;
+  }
+};
+
+
+
+

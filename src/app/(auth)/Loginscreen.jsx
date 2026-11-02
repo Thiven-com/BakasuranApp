@@ -275,16 +275,15 @@ const createStyles = (colors) =>
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: 15,
+      paddingLeft: 7,
+      paddingRight: 5,
     },
     countrySection: {
       flexDirection: "row",
       alignItems: "center",
       minWidth: 60,
     },
-    indiaFlag: {
-      fontSize: 18,
-      marginRight: 1,
-    },
+    
     countryCode: {
       color: colors.textPrimary,
       fontSize: Fonts.size.base,
@@ -303,7 +302,7 @@ const createStyles = (colors) =>
       color: colors.textPrimary,
       fontSize: Fonts.size.base,
       fontFamily: Fonts.regular,
-      paddingVertical: 8,
+      paddingVertical: 9,
     },
     otpButton: {
       height: 60,
@@ -328,7 +327,7 @@ const createStyles = (colors) =>
     },
     otpButtonText: {
       color: colors.white,
-      fontSize: Fonts.size.lg,
+      fontSize: Fonts.size.xl,
       fontFamily: Fonts.regular,
     },
     arrow: {
