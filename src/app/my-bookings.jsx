@@ -1,78 +1,122 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-    Alert,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import Fonts from "../constants/Fonts";
+import BASE_URL from "../constants/AppUrls";
 import { useTheme } from "../hooks/use-theme";
+import {
+  cancelRestaurantTableBooking,
+  getRestaurantTableBookings,
+} from "../utils/Function";
 
-const initialBookings = [
-  {
-    id: "BAKA1001",
-    restaurant: "Spice House",
-    cuisine: "Biryani • North Indian • Mughlai",
-    date: "13 Oct 2026",
-    time: "07:30 PM",
-    guests: 4,
-    table: "03",
-    capacity: 4,
-    status: "upcoming",
-    rating: "4.7",
-    location: "Hitech City",
-    specialRequest: "Window seat preferred",
-  },
-  {
-    id: "BAKA1002",
-    restaurant: "Pizza Planet",
-    cuisine: "Pizza • Italian • Fast Food",
-    date: "19 Oct 2026",
-    time: "08:00 PM",
-    guests: 2,
-    table: "01",
-    capacity: 2,
-    status: "upcoming",
-    rating: "4.6",
-    location: "Gachibowli",
-    specialRequest: "",
-  },
-  {
-    id: "BAKA1003",
-    restaurant: "Burger Mania",
-    cuisine: "Burgers • Fast Food",
-    date: "05 Oct 2026",
-    time: "01:00 PM",
-    guests: 3,
-    table: "05",
-    capacity: 6,
-    status: "completed",
-    rating: "4.5",
-    location: "Madhapur",
-    specialRequest: "",
-  },
-  {
-    id: "BAKA1004",
-    restaurant: "Crispy Bowl",
-    cuisine: "Chinese • Asian",
-    date: "01 Oct 2026",
-    time: "08:30 PM",
-    guests: 6,
-    table: "07",
-    capacity: 8,
-    status: "completed",
-    rating: "4.4",
-    location: "Kondapur",
-    specialRequest: "",
-  },
-];
+const getBookingRecords = (response) => {
+  if (Array.isArray(response)) return response;
+  if (!response || typeof response !== "object") return [];
+
+  for (const key of [
+    "bookings",
+    "table_bookings",
+    "restaurant_table_bookings",
+    "items",
+    "results",
+    "data",
+  ]) {
+    const records = getBookingRecords(response[key]);
+    if (records.length > 0) return records;
+  }
+
+  return [];
+};
+
+const getRestaurantLogoUri = (logo) => {
+  if (typeof logo !== "string" || !logo.trim()) return null;
+
+  const cleanLogo = logo.trim();
+  if (/^https?:\/\//i.test(cleanLogo)) return cleanLogo;
+
+  return `${String(BASE_URL).replace(/\/+$/, "")}/${cleanLogo.replace(/^\/+/, "")}`;
+};
+
+const normalizeBooking = (booking, index) => {
+  const rawRestaurant =
+    booking?.restaurant?.name ??
+    booking?.restaurant_name ??
+    booking?.restaurant ??
+    "Restaurant";
+  const rawStatus = String(
+    booking?.status ?? booking?.booking_status ?? "upcoming",
+  ).toLowerCase();
+  const status = rawStatus.includes("cancel")
+    ? "cancelled"
+    : ["completed", "complete", "past", "visited"].includes(rawStatus)
+      ? "completed"
+      : "upcoming";
+
+  return {
+    id: String(
+      booking?.booking_id ??
+        booking?.id ??
+        booking?.reference_number ??
+        index + 1,
+    ),
+    restaurant:
+      typeof rawRestaurant === "string"
+        ? rawRestaurant
+        : (rawRestaurant?.name ?? "Restaurant"),
+    restaurantLogo:
+      booking?.restaurant?.logo ??
+      booking?.restaurant_logo ??
+      booking?.logo ??
+      null,
+    cuisine:
+      booking?.cuisine ??
+      booking?.cuisine_name ??
+      booking?.restaurant?.cuisine ??
+      "",
+    date: String(
+      booking?.booking_date ?? booking?.date ?? booking?.reservation_date ?? "",
+    ),
+    time: String(
+      booking?.booking_time ?? booking?.time ?? booking?.reservation_time ?? "",
+    ),
+    guests: Number(
+      booking?.guest_count ?? booking?.guests ?? booking?.number_of_guests ?? 0,
+    ),
+    table: String(
+      booking?.table?.table_number ??
+        booking?.table_number ??
+        booking?.table_no ??
+        booking?.table?.id ??
+        "-",
+    ),
+    capacity: Number(
+      booking?.table?.capacity ??
+        booking?.table_capacity ??
+        booking?.capacity ??
+        0,
+    ),
+    status,
+    rating: String(booking?.rating ?? ""),
+    location:
+      booking?.restaurant?.address ??
+      booking?.restaurant_address ??
+      booking?.location ??
+      "",
+    specialRequest: booking?.special_request ?? booking?.specialRequest ?? "",
+  };
+};
 
 const filters = [
   { id: "all", label: "All", icon: "calendar-outline" },
@@ -83,8 +127,48 @@ const filters = [
 export default function MyBookingsScreen() {
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const [bookings, setBookings] = useState(initialBookings);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
+  const [cancellingId, setCancellingId] = useState(null);
+  const [cancelConfirmationId, setCancelConfirmationId] = useState(null);
+  const [cancelFeedback, setCancelFeedback] = useState(null);
+  const [failedLogoIds, setFailedLogoIds] = useState(() => new Set());
+
+  useEffect(() => {
+    let active = true;
+
+    const loadBookings = async () => {
+      try {
+        const response = await getRestaurantTableBookings();
+        if (!active) return;
+
+        if (
+          response?.success === 0 ||
+          response?.success === false ||
+          response?.success === "0" ||
+          response?.success === 9
+        ) {
+          setLoadError(response?.message || "Unable to load your bookings.");
+          return;
+        }
+
+        setBookings(getBookingRecords(response).map(normalizeBooking));
+      } catch (error) {
+        if (active) {
+          setLoadError(error?.message || "Unable to load your bookings.");
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    loadBookings();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const filteredBookings = useMemo(() => {
     if (activeFilter === "all") return bookings;
@@ -158,38 +242,60 @@ export default function MyBookingsScreen() {
 
   const handleCancel = (booking) => {
     if (booking.status !== "upcoming") {
-      Alert.alert("Cannot Cancel", "This booking is no longer upcoming.");
+      setCancelFeedback({
+        bookingId: booking.id,
+        message: "This booking is no longer upcoming.",
+        success: false,
+      });
       return;
     }
 
-    Alert.alert(
-      "Cancel Booking",
-      `Are you sure you want to cancel your reservation at ${booking.restaurant}?`,
-      [
-        {
-          text: "Keep Booking",
-          style: "cancel",
-        },
-        {
-          text: "Cancel Reservation",
-          style: "destructive",
-          onPress: () => {
-            setBookings((currentBookings) =>
-              currentBookings.map((item) =>
-                item.id === booking.id
-                  ? { ...item, status: "cancelled" }
-                  : item,
-              ),
-            );
+    setCancelFeedback(null);
+    setCancelConfirmationId(booking.id);
+  };
 
-            Alert.alert(
-              "Booking Cancelled",
-              `Your booking ${booking.id} has been cancelled.`,
-            );
-          },
-        },
-      ],
-    );
+  const confirmCancel = async (booking) => {
+    if (cancellingId !== null) return;
+    setCancellingId(booking.id);
+    setCancelFeedback(null);
+
+    try {
+      const response = await cancelRestaurantTableBooking(booking.id);
+      const succeeded =
+        response?.success === 1 ||
+        response?.success === true ||
+        response?.success === "1";
+
+      if (!succeeded) {
+        setCancelFeedback({
+          bookingId: booking.id,
+          message: response?.message || "Unable to cancel your booking.",
+          success: false,
+        });
+        return;
+      }
+
+      setBookings((currentBookings) =>
+        currentBookings.map((item) =>
+          item.id === booking.id ? { ...item, status: "cancelled" } : item,
+        ),
+      );
+      setCancelConfirmationId(null);
+      setCancelFeedback({
+        bookingId: booking.id,
+        message:
+          response?.message || `Your booking ${booking.id} has been cancelled.`,
+        success: true,
+      });
+    } catch (error) {
+      setCancelFeedback({
+        bookingId: booking.id,
+        message: error?.message || "Unable to cancel your booking.",
+        success: false,
+      });
+    } finally {
+      setCancellingId(null);
+    }
   };
 
   const handleRebook = (booking) => {
@@ -239,14 +345,36 @@ export default function MyBookingsScreen() {
 
   const renderBookingCard = (booking) => {
     const isUpcoming = booking.status === "upcoming";
+    const isConfirmingCancel = cancelConfirmationId === booking.id;
+    const restaurantLogoUri = getRestaurantLogoUri(booking.restaurantLogo);
+    const showRestaurantLogo =
+      restaurantLogoUri && !failedLogoIds.has(booking.id);
+    const feedback =
+      cancelFeedback?.bookingId === booking.id ? cancelFeedback : null;
     const statusColor = getStatusColor(booking.status);
 
     return (
       <View key={booking.id} style={styles.bookingCard}>
-        {/* Restaurant image placeholder */}
         <View style={styles.restaurantImage}>
-          <Ionicons name="restaurant" size={38} color={colors.primary} />
-          <Text style={styles.imageBrand}>BAKASURAN</Text>
+          {showRestaurantLogo ? (
+            <Image
+              source={{ uri: restaurantLogoUri }}
+              style={styles.restaurantLogo}
+              resizeMode="contain"
+              onError={() =>
+                setFailedLogoIds((currentIds) => {
+                  const nextIds = new Set(currentIds);
+                  nextIds.add(booking.id);
+                  return nextIds;
+                })
+              }
+            />
+          ) : (
+            <>
+              <Ionicons name="restaurant" size={38} color={colors.primary} />
+              <Text style={styles.imageBrand}>BAKASURAN</Text>
+            </>
+          )}
         </View>
 
         <View style={styles.bookingContent}>
@@ -297,27 +425,82 @@ export default function MyBookingsScreen() {
           {/* Reservation information */}
           <View style={styles.metadataGrid}>
             <View style={styles.metadataItem}>
-              <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />
+              <Ionicons
+                name="calendar-outline"
+                size={16}
+                color={colors.textSecondary}
+              />
               <Text style={styles.metadataText}>{booking.date}</Text>
             </View>
 
             <View style={styles.metadataItem}>
-              <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
+              <Ionicons
+                name="time-outline"
+                size={16}
+                color={colors.textSecondary}
+              />
               <Text style={styles.metadataText}>{booking.time}</Text>
             </View>
 
             <View style={styles.metadataItem}>
-              <Ionicons name="people-outline" size={16} color={colors.textSecondary} />
+              <Ionicons
+                name="people-outline"
+                size={16}
+                color={colors.textSecondary}
+              />
               <Text style={styles.metadataText}>{booking.guests} Guests</Text>
             </View>
 
             <View style={styles.metadataItem}>
-              <Ionicons name="grid-outline" size={16} color={colors.textSecondary} />
+              <Ionicons
+                name="grid-outline"
+                size={16}
+                color={colors.textSecondary}
+              />
               <Text style={styles.metadataText}>
                 Table {booking.table} ({booking.capacity} seats)
               </Text>
             </View>
           </View>
+
+          {isConfirmingCancel && isUpcoming && (
+            <View style={styles.cancelConfirmation}>
+              <Text style={styles.cancelConfirmationText}>
+                Cancel this reservation at {booking.restaurant}?
+              </Text>
+              {feedback && !feedback.success && (
+                <Text style={styles.cancelErrorText}>{feedback.message}</Text>
+              )}
+              <View style={styles.cancelConfirmationActions}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.keepBookingButton]}
+                  activeOpacity={0.8}
+                  disabled={cancellingId !== null}
+                  onPress={() => {
+                    setCancelConfirmationId(null);
+                    setCancelFeedback(null);
+                  }}
+                >
+                  <Text style={styles.keepBookingText}>Keep Booking</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.confirmCancelButton]}
+                  activeOpacity={0.8}
+                  disabled={cancellingId !== null}
+                  onPress={() => confirmCancel(booking)}
+                >
+                  <Text style={styles.confirmCancelText}>
+                    {cancellingId === booking.id
+                      ? "Cancelling..."
+                      : "Confirm Cancel"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+          {feedback?.success && (
+            <Text style={styles.cancelSuccessText}>{feedback.message}</Text>
+          )}
 
           {/* Actions */}
           <View style={styles.actionRow}>
@@ -330,7 +513,11 @@ export default function MyBookingsScreen() {
               activeOpacity={0.8}
               onPress={() => openBookingDetails(booking)}
             >
-              <Ionicons name="document-text-outline" size={18} color={colors.primary} />
+              <Ionicons
+                name="document-text-outline"
+                size={18}
+                color={colors.primary}
+              />
               <Text style={styles.detailsButtonText}>View Details</Text>
             </TouchableOpacity>
 
@@ -341,17 +528,32 @@ export default function MyBookingsScreen() {
                   activeOpacity={0.8}
                   onPress={() => handleModify(booking)}
                 >
-                  <Ionicons name="create-outline" size={19} color={colors.white} />
+                  <Ionicons
+                    name="create-outline"
+                    size={19}
+                    color={colors.white}
+                  />
                   <Text style={styles.modifyButtonText}>Modify</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.actionButton, styles.cancelButton]}
+                  style={[
+                    styles.actionButton,
+                    styles.cancelButton,
+                    cancellingId === booking.id && { opacity: 0.6 },
+                  ]}
                   activeOpacity={0.8}
+                  disabled={cancellingId !== null}
                   onPress={() => handleCancel(booking)}
                 >
-                  <Ionicons name="trash-outline" size={18} color={colors.white} />
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                  <Ionicons
+                    name="trash-outline"
+                    size={18}
+                    color={colors.white}
+                  />
+                  <Text style={styles.cancelButtonText}>
+                    {cancellingId === booking.id ? "Cancelling..." : "Cancel"}
+                  </Text>
                 </TouchableOpacity>
               </>
             ) : (
@@ -360,7 +562,11 @@ export default function MyBookingsScreen() {
                 activeOpacity={0.8}
                 onPress={() => handleRebook(booking)}
               >
-                <Ionicons name="refresh-outline" size={19} color={colors.white} />
+                <Ionicons
+                  name="refresh-outline"
+                  size={19}
+                  color={colors.white}
+                />
                 <Text style={styles.modifyButtonText}>Rebook</Text>
               </TouchableOpacity>
             )}
@@ -403,7 +609,7 @@ export default function MyBookingsScreen() {
             if (router.canGoBack()) {
               router.back();
             } else {
-              router.replace("/(tabs)");
+              router.replace("/(tabs)/ProfileScreen");
             }
           }}
         >
@@ -477,7 +683,11 @@ export default function MyBookingsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {activeFilter === "all" ? (
+        {loading ? (
+          <Text style={styles.emptyDescription}>Loading your bookings...</Text>
+        ) : loadError ? (
+          <Text style={styles.emptyDescription}>{loadError}</Text>
+        ) : activeFilter === "all" ? (
           <>
             {renderSection(
               "Upcoming Bookings",
@@ -501,10 +711,14 @@ export default function MyBookingsScreen() {
           )
         )}
 
-        {filteredBookings.length === 0 && (
+        {!loading && !loadError && filteredBookings.length === 0 && (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
-              <Ionicons name="calendar-outline" size={42} color={colors.primary} />
+              <Ionicons
+                name="calendar-outline"
+                size={42}
+                color={colors.primary}
+              />
             </View>
 
             <Text style={styles.emptyTitle}>No bookings found</Text>
@@ -544,368 +758,429 @@ export default function MyBookingsScreen() {
   );
 }
 
-const createStyles = (colors) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 20,
-    gap: 11,
-  },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 20,
+      gap: 11,
+    },
 
-  backButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    backButton: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  headerTextContainer: {
-    flex: 1,
-  },
+    headerTextContainer: {
+      flex: 1,
+    },
 
-  headerTitle: {
-    color: colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 25,
-  },
+    headerTitle: {
+      color: colors.textPrimary,
+      fontFamily: Fonts.bold,
+      fontSize: 25,
+    },
 
-  headerSubtitle: {
-    color: colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 11,
-    marginTop: 4,
-  },
+    headerSubtitle: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 11,
+      marginTop: 4,
+    },
 
-  headerLogo: {
-    alignItems: "center",
-    justifyContent: "center",
-    minWidth: 48,
-  },
+    headerLogo: {
+      alignItems: "center",
+      justifyContent: "center",
+      minWidth: 48,
+    },
 
-  logoText: {
-    color: colors.textPrimary,
-    fontFamily: Fonts.extraBold,
-    fontSize: 12,
-    letterSpacing: 1,
-  },
+    logoText: {
+      color: colors.textPrimary,
+      fontFamily: Fonts.extraBold,
+      fontSize: 12,
+      letterSpacing: 1,
+    },
 
-  filterContainer: {
-    flexDirection: "row",
-    marginHorizontal: 16,
-    marginBottom: 20,
-    padding: 4,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.backgroundElement,
-  },
+    filterContainer: {
+      flexDirection: "row",
+      marginHorizontal: 16,
+      marginBottom: 20,
+      padding: 4,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.backgroundElement,
+    },
 
-  filterButton: {
-    flex: 1,
-    minHeight: 43,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 5,
-    borderRadius: 12,
-    paddingHorizontal: 5,
-  },
+    filterButton: {
+      flex: 1,
+      minHeight: 43,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 5,
+      borderRadius: 12,
+      paddingHorizontal: 5,
+    },
 
-  filterButtonSelected: {
-    backgroundColor: colors.primary,
-  },
+    filterButtonSelected: {
+      backgroundColor: colors.primary,
+    },
 
-  filterText: {
-    color: colors.textSecondary,
-    fontFamily: Fonts.medium,
-    fontSize: 11,
-  },
+    filterText: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.medium,
+      fontSize: 11,
+    },
 
-  filterTextSelected: {
-    color: colors.white,
-    fontFamily: Fonts.semiBold,
-  },
+    filterTextSelected: {
+      color: colors.white,
+      fontFamily: Fonts.semiBold,
+    },
 
-  filterCount: {
-    color: colors.textSecondary,
-    fontFamily: Fonts.medium,
-    fontSize: 10,
-  },
+    filterCount: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.medium,
+      fontSize: 10,
+    },
 
-  filterCountSelected: {
-    color: colors.white,
-  },
+    filterCountSelected: {
+      color: colors.white,
+    },
 
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 15,
-  },
+    scrollContent: {
+      paddingHorizontal: 16,
+      paddingBottom: 15,
+    },
 
-  section: {
-    marginBottom: 20,
-  },
+    section: {
+      marginBottom: 20,
+    },
 
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-    paddingHorizontal: 2,
-  },
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12,
+      paddingHorizontal: 2,
+    },
 
-  sectionTitle: {
-    color: colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 18,
-  },
+    sectionTitle: {
+      color: colors.textPrimary,
+      fontFamily: Fonts.bold,
+      fontSize: 24,
+    },
 
-  sectionCount: {
-    color: colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-  },
+    sectionCount: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
+    },
 
-  bookingCard: {
-    backgroundColor: colors.card,
-    borderRadius: 17,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 12,
-    marginBottom: 13,
-  },
+    bookingCard: {
+      backgroundColor: colors.card,
+      borderRadius: 17,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 12,
+      marginBottom: 13,
+    },
 
-  restaurantImage: {
-    height: 125,
-    width: "100%",
-    borderRadius: 12,
-    backgroundColor: `${colors.primary}18`,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 13,
-    overflow: "hidden",
-  },
+    restaurantImage: {
+      height: 125,
+      width: "100%",
+      borderRadius: 12,
+      backgroundColor: `${colors.primary}18`,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 13,
+      overflow: "hidden",
+    },
 
-  imageBrand: {
-    color: colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 13,
-    letterSpacing: 2,
-    marginTop: 5,
-  },
+    restaurantLogo: {
+      width: "100%",
+      height: "100%",
+    },
 
-  bookingContent: {
-    flex: 1,
-  },
+    imageBrand: {
+      color: colors.textPrimary,
+      fontFamily: Fonts.bold,
+      fontSize: 13,
+      letterSpacing: 2,
+      marginTop: 5,
+    },
 
-  restaurantHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: 8,
-    marginBottom: 13,
-  },
+    bookingContent: {
+      flex: 1,
+    },
 
-  restaurantInfo: {
-    flex: 1,
-  },
+    restaurantHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: 8,
+      marginBottom: 13,
+    },
 
-  restaurantName: {
-    color: colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 17,
-    marginBottom: 5,
-  },
+    restaurantInfo: {
+      flex: 1,
+    },
 
-  cuisine: {
-    color: colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 11,
-    lineHeight: 17,
-  },
+    restaurantName: {
+      color: colors.textPrimary,
+      fontFamily: Fonts.bold,
+      fontSize: 19,
+      marginBottom: 5,
+    },
 
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 5,
-    paddingHorizontal: 9,
-    paddingVertical: 7,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
+    cuisine: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 13,
+      lineHeight: 17,
+    },
 
-  statusText: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 10,
-  },
+    statusBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 5,
+      paddingHorizontal: 9,
+      paddingVertical: 7,
+      borderRadius: 20,
+      borderWidth: 1,
+    },
 
-  metadataGrid: {
-    gap: 11,
-    marginBottom: 15,
-  },
+    statusText: {
+      fontFamily: Fonts.semiBold,
+      fontSize: 12,
+    },
 
-  metadataItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
+    metadataGrid: {
+      gap: 11,
+      marginBottom: 15,
+    },
 
-  metadataText: {
-    color: colors.textPrimary,
-    fontFamily: Fonts.regular,
-    fontSize: 11,
-    flexShrink: 1,
-  },
+    metadataItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
 
-  actionRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
+    metadataText: {
+      color: colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 14,
+      flexShrink: 1,
+    },
 
-  actionButton: {
-    minHeight: 43,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    paddingHorizontal: 10,
-    borderRadius: 24,
-    borderWidth: 1,
-  },
+    actionRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+    },
 
-  detailsButton: {
-    flex: 1,
-    borderColor: colors.primary,
-  },
+    actionButton: {
+      minHeight: 43,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      paddingHorizontal: 10,
+      borderRadius: 24,
+      borderWidth: 1,
+    },
 
-  upcomingDetailsButton: {
-    flexBasis: "100%",
-  },
+    detailsButton: {
+      flex: 1,
+      borderColor: colors.primary,
+    },
 
-  detailsButtonText: {
-    color: colors.primary,
-    fontFamily: Fonts.semiBold,
-    fontSize: 11,
-  },
+    upcomingDetailsButton: {
+      flexBasis: "100%",
+    },
 
-  modifyButton: {
-    flex: 1,
-    borderColor: colors.borderLight,
-  },
+    detailsButtonText: {
+      color: colors.primary,
+      fontFamily: Fonts.semiBold,
+      fontSize: 14,
+    },
 
-  modifyButtonText: {
-    color: colors.textPrimary,
-    fontFamily: Fonts.semiBold,
-    fontSize: 11,
-  },
+    modifyButton: {
+      flex: 1,
+      borderColor: colors.borderLight,
+    },
 
-  cancelButton: {
-    flex: 1,
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
+    modifyButtonText: {
+      color: colors.textPrimary,
+      fontFamily: Fonts.semiBold,
+      fontSize: 14,
+    },
 
-  cancelButtonText: {
-    color: colors.white,
-    fontFamily: Fonts.semiBold,
-    fontSize: 10,
-  },
+    cancelButton: {
+      flex: 1,
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
 
-  rebookButton: {
-    flex: 1,
-    borderColor: colors.borderLight,
-  },
+    cancelButtonText: {
+      color: colors.white,
+      fontFamily: Fonts.semiBold,
+      fontSize: 12,
+    },
 
-  emptyState: {
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 50,
-    backgroundColor: colors.card,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
+    cancelConfirmation: {
+      gap: 10,
+      marginBottom: 12,
+      padding: 12,
+      borderRadius: 12,
+      backgroundColor: colors.backgroundElement,
+    },
 
-  emptyIcon: {
-    width: 78,
-    height: 78,
-    borderRadius: 39,
-    backgroundColor: `${colors.primary}18`,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 18,
-  },
+    cancelConfirmationText: {
+      color: colors.textPrimary,
+      fontFamily: Fonts.semiBold,
+      fontSize: 14,
+    },
 
-  emptyTitle: {
-    color: colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: 19,
-    marginBottom: 9,
-  },
+    cancelConfirmationActions: {
+      flexDirection: "row",
+      gap: 8,
+    },
 
-  emptyDescription: {
-    color: colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    textAlign: "center",
-    lineHeight: 19,
-    marginBottom: 20,
-  },
+    keepBookingButton: {
+      flex: 1,
+      borderColor: colors.border,
+    },
 
-  emptyButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingHorizontal: 24,
-    paddingVertical: 13,
-  },
+    keepBookingText: {
+      color: colors.textPrimary,
+      fontFamily: Fonts.semiBold,
+      fontSize: 13,
+    },
 
-  emptyButtonText: {
-    color: colors.white,
-    fontFamily: Fonts.semiBold,
-    fontSize: 13,
-  },
+    confirmCancelButton: {
+      flex: 1,
+      backgroundColor: colors.error,
+      borderColor: colors.error,
+    },
 
-  bottomSpacing: {
-    height: 15,
-  },
+    confirmCancelText: {
+      color: colors.white,
+      fontFamily: Fonts.semiBold,
+      fontSize: 13,
+    },
 
-  bottomContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 12,
-    backgroundColor: colors.background,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
+    cancelErrorText: {
+      color: colors.error,
+      fontFamily: Fonts.medium,
+      fontSize: 13,
+    },
 
-  newBookingButton: {
-    minHeight: 54,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 19,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-  },
+    cancelSuccessText: {
+      color: colors.success,
+      fontFamily: Fonts.medium,
+      fontSize: 13,
+      marginBottom: 12,
+    },
 
-  newBookingText: {
-    flex: 1,
-    textAlign: "center",
-    color: colors.white,
-    fontFamily: Fonts.bold,
-    fontSize: 14,
-    marginHorizontal: 10,
-  },
-});
+    rebookButton: {
+      flex: 1,
+      borderColor: colors.borderLight,
+    },
+
+    emptyState: {
+      alignItems: "center",
+      paddingHorizontal: 24,
+      paddingVertical: 50,
+      backgroundColor: colors.card,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    emptyIcon: {
+      width: 78,
+      height: 78,
+      borderRadius: 39,
+      backgroundColor: `${colors.primary}18`,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 18,
+    },
+
+    emptyTitle: {
+      color: colors.textPrimary,
+      fontFamily: Fonts.bold,
+      fontSize: 19,
+      marginBottom: 9,
+    },
+
+    emptyDescription: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 12,
+      textAlign: "center",
+      lineHeight: 19,
+      marginBottom: 20,
+    },
+
+    emptyButton: {
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingHorizontal: 24,
+      paddingVertical: 13,
+    },
+
+    emptyButtonText: {
+      color: colors.white,
+      fontFamily: Fonts.semiBold,
+      fontSize: 13,
+    },
+
+    bottomSpacing: {
+      height: 15,
+    },
+
+    bottomContainer: {
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 12,
+      backgroundColor: colors.background,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+
+    newBookingButton: {
+      minHeight: 54,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 19,
+      borderRadius: 28,
+      backgroundColor: colors.primary,
+    },
+
+    newBookingText: {
+      flex: 1,
+      textAlign: "center",
+      color: colors.white,
+      fontFamily: Fonts.bold,
+      fontSize: 14,
+      marginHorizontal: 10,
+    },
+  });

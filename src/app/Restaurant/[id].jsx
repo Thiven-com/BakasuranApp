@@ -1400,7 +1400,12 @@ export default function RestaurantDetails() {
               styles.actionButton,
               { borderColor: colors.border || "#333333" },
             ]}
-            onPress={() => router.push("/DineInScreen")}
+            onPress={() =>
+              router.push({
+                pathname: "/DineInScreen",
+                params: { restaurantId },
+              })
+            }
           >
             <Ionicons
               name="restaurant-outline"

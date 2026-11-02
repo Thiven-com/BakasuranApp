@@ -1,22 +1,29 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { createRestaurantTableBooking, getProfile } from "../utils/Function"; // adjust path if needed
 
 const COLORS = {
   background: "#050505",
   card: "#101010",
   tile: "#141414",
+  input: "#151515",
   border: "#292929",
   red: "#FF101C",
   white: "#FFFFFF",
@@ -24,30 +31,6 @@ const COLORS = {
   booked: "#6B6B6B",
   green: "#00C86B",
 };
-
-/* Replace with data from your API.
-   status: "available" | "booked"  (selected is handled by state) */
-const MAIN_TABLES = [
-  { id: "T1", seats: 4, status: "available" },
-  { id: "T2", seats: 2, status: "available" },
-  { id: "T3", seats: 4, status: "available" },
-  { id: "T4", seats: 6, status: "available" },
-  { id: "T5", seats: 4, status: "available" },
-  { id: "T6", seats: 4, status: "available" },
-  { id: "T7", seats: 2, status: "available" },
-  { id: "T8", seats: 4, status: "available" },
-  { id: "T9", seats: 6, status: "available" },
-  { id: "T10", seats: 4, status: "available" },
-  { id: "T11", seats: 4, status: "available" },
-  { id: "T12", seats: 2, status: "available" },
-];
-
-const WINDOW_TABLES = [
-  { id: "T13", seats: 2, status: "available" },
-  { id: "T14", seats: 4, status: "available" },
-  { id: "T15", seats: 4, status: "available" },
-  { id: "T16", seats: 6, status: "available" },
-];
 
 const COLUMNS = 4;
 const MAX_WIDTH = 480;
@@ -59,6 +42,79 @@ const chunk = (list, size) => {
     rows.push(list.slice(i, i + size));
   return rows;
 };
+
+const getTableList = (value) => {
+  if (Array.isArray(value)) return value;
+  if (!value || typeof value !== "object") return [];
+
+  for (const key of ["tables", "available_tables", "availableTables", "data"]) {
+    const list = getTableList(value[key]);
+    if (list.length) return list;
+  }
+
+  return [];
+};
+
+const normalizeTables = (rawTables, guests) =>
+  getTableList(rawTables)
+    .map((item, index) => {
+      const table = item?.table ?? item;
+      // `id` is the database id sent as restaurant_table_id when booking.
+      const id = table?.id ?? table?.table_id;
+      // `label` is what the customer sees on the tile.
+      const label =
+        table?.table_number ??
+        table?.table_no ??
+        table?.number ??
+        table?.name ??
+        id;
+      const key = id ?? label;
+      if (key === undefined || key === null || String(key).trim() === "") {
+        return null;
+      }
+
+      const capacity = Number(
+        table?.seats ??
+          table?.capacity ??
+          table?.guest_capacity ??
+          table?.seating_capacity ??
+          table?.max_guests,
+      );
+      const rawStatus = String(
+        table?.status ?? table?.availability ?? "",
+      ).toLowerCase();
+      const unavailable =
+        table?.is_available === false ||
+        table?.is_available === 0 ||
+        table?.is_available === "false" ||
+        table?.is_available === "0" ||
+        table?.is_booked === true ||
+        table?.is_booked === 1 ||
+        ["booked", "unavailable", "reserved", "occupied"].includes(rawStatus);
+      const section = String(
+        table?.section_name ??
+          table?.section ??
+          table?.area ??
+          table?.zone ??
+          "",
+      ).toLowerCase();
+
+      return {
+        id: String(key),
+        label: String(label ?? key),
+        seats: Number.isFinite(capacity) && capacity > 0 ? capacity : guests,
+        status: unavailable ? "booked" : "available",
+        isWindow: section.includes("window"),
+        order: index,
+      };
+    })
+    .filter(Boolean);
+
+const isFailure = (result) =>
+  !result ||
+  result.success === 0 ||
+  result.success === false ||
+  result.success === "0";
 
 /* Every size scales with screen width, so the layout works on a phone,
    a narrow web preview, and a desktop browser alike. */
@@ -99,7 +155,7 @@ function TableTile({ table, selected, tooSmall, onPress }) {
       onPress={() => onPress(table.id)}
       accessibilityRole="button"
       accessibilityState={{ selected, disabled }}
-      accessibilityLabel={`Table ${table.id}, ${table.seats} seats, ${
+      accessibilityLabel={`Table ${table.label}, ${table.seats} seats, ${
         booked
           ? "booked"
           : tooSmall
@@ -110,7 +166,7 @@ function TableTile({ table, selected, tooSmall, onPress }) {
       }`}
     >
       <Text style={[styles.tileId, disabled && styles.tileIdDisabled]}>
-        {table.id}
+        {table.label}
       </Text>
       <View style={styles.tileSeats}>
         <Ionicons
@@ -212,48 +268,172 @@ export default function SelectTableScreen() {
 
   const params = useLocalSearchParams();
   const restaurant = params.restaurant ?? "Bakasuran Restaurant";
-  const dateLabel = params.date ?? "26 Oct 2026";
-  const timeLabel = params.time ?? "08:00 PM";
-  const guests = Number(params.guests ?? 2) || 2;
+  const restaurantId = params.restaurant_id ?? params.restaurantId ?? 1;
+  const bookingDate = String(params.booking_date ?? params.date ?? "");
+  const bookingTime = String(params.booking_time ?? params.time ?? "");
+  const endTime = String(params.end_time ?? "");
+  const dateLabel = bookingDate || "Select date";
+  const timeLabel = bookingTime || "Select time";
+  const guests = Number(params.guest_count ?? params.guests ?? 2) || 2;
+  const tablesParam = Array.isArray(params.tables)
+    ? params.tables[0]
+    : params.tables;
+  let rawTables = [];
+  try {
+    rawTables = tablesParam ? JSON.parse(tablesParam) : [];
+  } catch (error) {
+    console.error("Unable to parse available tables:", error);
+  }
+  const allTables = useMemo(
+    () => normalizeTables(rawTables, guests),
+    [tablesParam, guests],
+  );
   const guestLabel = `${guests} ${guests === 1 ? "Guest" : "Guests"}`;
 
-  const [selectedId, setSelectedId] = useState("T6");
+  const [selectedId, setSelectedId] = useState(null);
+
+  // Customer details sheet
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [customerMobile, setCustomerMobile] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [specialRequests, setSpecialRequests] = useState("");
 
   const scrollRef = useRef(null);
   const [scrollY, setScrollY] = useState(0);
   const [contentH, setContentH] = useState(0);
   const [layoutH, setLayoutH] = useState(0);
 
-  const allTables = useMemo(() => [...MAIN_TABLES, ...WINDOW_TABLES], []);
-  const selectedTable = allTables.find((t) => t.id === selectedId);
+  // Pre-fill name / mobile / email from the logged-in customer's profile.
+  useEffect(() => {
+    let active = true;
 
-  const mainRows = useMemo(() => chunk(MAIN_TABLES, COLUMNS), []);
-  const windowRows = useMemo(() => chunk(WINDOW_TABLES, COLUMNS), []);
+    (async () => {
+      try {
+        const res = await getProfile();
+        if (!active || isFailure(res) || res?.success === 9) return;
+
+        const profile = res?.data?.user ?? res?.data ?? res?.user ?? {};
+        const name = profile?.name ?? profile?.customer_name;
+        const mobile =
+          profile?.mobile ?? profile?.phone ?? profile?.customer_mobile;
+        const email = profile?.email ?? profile?.customer_email;
+
+        if (name) setCustomerName((current) => current || String(name));
+        if (mobile) setCustomerMobile((current) => current || String(mobile));
+        if (email) setCustomerEmail((current) => current || String(email));
+      } catch (error) {
+        console.log("PROFILE PREFILL ERROR:", error?.message);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const mainTables = allTables.filter((table) => !table.isWindow);
+  const windowTables = allTables.filter((table) => table.isWindow);
+  const canSelectTable = (table) =>
+    table.status !== "booked" && table.seats >= guests;
+  const effectiveSelectedId = allTables.some(
+    (table) => table.id === selectedId && canSelectTable(table),
+  )
+    ? selectedId
+    : allTables.find(canSelectTable)?.id;
+  const selectedTable = allTables.find(
+    (table) => table.id === effectiveSelectedId,
+  );
+  const mainRows = useMemo(() => chunk(mainTables, COLUMNS), [allTables]);
+  const windowRows = useMemo(() => chunk(windowTables, COLUMNS), [allTables]);
 
   const goBack = () => {
     if (router.canGoBack()) router.back();
     else router.replace("/");
   };
 
-  const confirmBooking = () => {
+  const openDetails = () => {
     if (!selectedTable) {
       Alert.alert("Select a table", "Please choose an available table first.");
       return;
     }
 
+    if (!bookingDate || !bookingTime || !endTime) {
+      Alert.alert(
+        "Missing booking details",
+        "Please go back and pick the date and time again.",
+      );
+      return;
+    }
+
+    setDetailsOpen(true);
+  };
+
+  const submitBooking = async () => {
+    if (submitting || !selectedTable) return;
+
+    const name = customerName.trim();
+    const mobile = customerMobile.replace(/\D/g, "").slice(-10);
+    const email = customerEmail.trim();
+
+    if (!name) {
+      Alert.alert("Name required", "Please enter your name.");
+      return;
+    }
+
+    if (mobile.length !== 10) {
+      Alert.alert(
+        "Invalid mobile number",
+        "Please enter a valid 10-digit mobile number.",
+      );
+      return;
+    }
+
+    if (email && !/^\S+@\S+\.\S+$/.test(email)) {
+      Alert.alert("Invalid email", "Please enter a valid email address.");
+      return;
+    }
+
+    setSubmitting(true);
+    let result;
+    try {
+      result = await createRestaurantTableBooking({
+        restaurant_id: restaurantId,
+        restaurant_table_id: selectedTable.id,
+        customer_name: name,
+        customer_mobile: mobile,
+        customer_email: email,
+        booking_date: bookingDate,
+        booking_time: bookingTime,
+        end_time: endTime,
+        guest_count: guests,
+        special_requests: specialRequests,
+      });
+    } finally {
+      setSubmitting(false);
+    }
+
+    if (result?.success === 9) {
+      setDetailsOpen(false);
+      router.push("/"); // adjust to your auth route
+      return;
+    }
+
+    if (isFailure(result)) {
+      Alert.alert(
+        "Unable to book table",
+        result?.message || "Please try again.",
+      );
+      return;
+    }
+
+    setDetailsOpen(false);
     Alert.alert(
-      "Confirm Booking",
-      `${restaurant}\nTable ${selectedTable.id} (${selectedTable.seats} seats)\n${dateLabel} • ${timeLabel}\n${guestLabel}`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Confirm",
-          onPress: () => {
-            // Call your booking API here, e.g.:
-            // createBooking({ restaurant, tableId: selectedTable.id, date: dateLabel, time: timeLabel, guests });
-          },
-        },
-      ],
+      "Booking confirmed",
+      result?.message ||
+        `Table ${selectedTable.label} is booked for ${dateLabel} at ${timeLabel}.`,
+      [{ text: "OK", onPress: () => router.replace("/my-bookings") }],
     );
   };
 
@@ -306,6 +486,14 @@ export default function SelectTableScreen() {
 
       {/* Floor map */}
       <View style={styles.mapCard}>
+        {allTables.length === 0 ? (
+          <View style={styles.emptyTables}>
+            <Text style={styles.emptyTablesText}>
+              No available tables were returned for this booking.
+            </Text>
+          </View>
+        ) : null}
+
         <View style={styles.mapScrollArea}>
           <ScrollRail
             scrollRef={scrollRef}
@@ -328,7 +516,7 @@ export default function SelectTableScreen() {
               <TableRow
                 key={`main-${i}`}
                 row={row}
-                selectedId={selectedId}
+                selectedId={effectiveSelectedId}
                 guests={guests}
                 onSelect={setSelectedId}
               />
@@ -344,33 +532,35 @@ export default function SelectTableScreen() {
         </View>
 
         {/* Window view zone */}
-        <View style={styles.windowZone}>
-          <View style={styles.windowLabel}>
-            <Ionicons
-              name="grid-outline"
-              size={Math.round(20 * scale)}
-              color={COLORS.white}
-            />
-            <Text style={styles.windowLabelText}>Window View</Text>
-          </View>
+        {windowRows.length ? (
+          <View style={styles.windowZone}>
+            <View style={styles.windowLabel}>
+              <Ionicons
+                name="grid-outline"
+                size={Math.round(20 * scale)}
+                color={COLORS.white}
+              />
+              <Text style={styles.windowLabelText}>Window View</Text>
+            </View>
 
-          {windowRows.map((row, i) => (
-            <TableRow
-              key={`window-${i}`}
-              row={row}
-              selectedId={selectedId}
-              guests={guests}
-              onSelect={setSelectedId}
-            />
-          ))}
-        </View>
+            {windowRows.map((row, i) => (
+              <TableRow
+                key={`window-${i}`}
+                row={row}
+                selectedId={effectiveSelectedId}
+                guests={guests}
+                onSelect={setSelectedId}
+              />
+            ))}
+          </View>
+        ) : null}
       </View>
 
       {/* Selected summary */}
       <View style={styles.summaryCard}>
         <Text style={styles.summaryTitle}>
           {selectedTable
-            ? `Selected Table: ${selectedTable.id} (${selectedTable.seats} Seats)`
+            ? `Selected Table: ${selectedTable.label} (${selectedTable.seats} Seats)`
             : "No table selected"}
         </Text>
 
@@ -412,7 +602,7 @@ export default function SelectTableScreen() {
       <TouchableOpacity
         style={[styles.confirmButton, !selectedTable && styles.confirmDisabled]}
         activeOpacity={0.85}
-        onPress={confirmBooking}
+        onPress={openDetails}
         disabled={!selectedTable}
         accessibilityRole="button"
         accessibilityLabel="Confirm booking"
@@ -429,6 +619,108 @@ export default function SelectTableScreen() {
           color={COLORS.white}
         />
       </TouchableOpacity>
+
+      {/* Customer details sheet */}
+      <Modal
+        visible={detailsOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          if (!submitting) setDetailsOpen(false);
+        }}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalFlex}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <Pressable
+            style={styles.modalBackdrop}
+            onPress={() => {
+              if (!submitting) setDetailsOpen(false);
+            }}
+          >
+            <Pressable style={styles.modalSheet} onPress={() => {}}>
+              <View style={styles.modalHandle} />
+              <Text style={styles.modalTitle}>Your Details</Text>
+              <Text style={styles.modalSubtitle}>
+                {selectedTable
+                  ? `Table ${selectedTable.label} • ${dateLabel} • ${timeLabel} • ${guestLabel}`
+                  : ""}
+              </Text>
+
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                <Text style={styles.fieldLabel}>Name</Text>
+                <TextInput
+                  style={styles.fieldInput}
+                  value={customerName}
+                  onChangeText={setCustomerName}
+                  placeholder="Full name"
+                  placeholderTextColor="#666666"
+                  autoCapitalize="words"
+                  editable={!submitting}
+                />
+
+                <Text style={styles.fieldLabel}>Mobile</Text>
+                <TextInput
+                  style={styles.fieldInput}
+                  value={customerMobile}
+                  onChangeText={setCustomerMobile}
+                  placeholder="10-digit mobile number"
+                  placeholderTextColor="#666666"
+                  keyboardType="phone-pad"
+                  maxLength={13}
+                  editable={!submitting}
+                />
+
+                <Text style={styles.fieldLabel}>Email (optional)</Text>
+                <TextInput
+                  style={styles.fieldInput}
+                  value={customerEmail}
+                  onChangeText={setCustomerEmail}
+                  placeholder="you@example.com"
+                  placeholderTextColor="#666666"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!submitting}
+                />
+
+                <Text style={styles.fieldLabel}>
+                  Special requests (optional)
+                </Text>
+                <TextInput
+                  style={[styles.fieldInput, styles.fieldInputMultiline]}
+                  value={specialRequests}
+                  onChangeText={setSpecialRequests}
+                  placeholder="e.g. Window seating"
+                  placeholderTextColor="#666666"
+                  multiline
+                  editable={!submitting}
+                />
+              </ScrollView>
+
+              <TouchableOpacity
+                style={[
+                  styles.sheetButton,
+                  submitting && styles.confirmDisabled,
+                ]}
+                activeOpacity={0.85}
+                onPress={submitBooking}
+                disabled={submitting}
+                accessibilityRole="button"
+                accessibilityLabel="Book table"
+              >
+                <Text style={styles.sheetButtonText}>
+                  {submitting ? "Booking..." : "Book Table"}
+                </Text>
+              </TouchableOpacity>
+            </Pressable>
+          </Pressable>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -517,6 +809,20 @@ function createStyles(k) {
       paddingTop: z(14),
       paddingBottom: z(12),
       marginBottom: z(12),
+    },
+
+    emptyTables: {
+      flex: 1,
+      minHeight: 100,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: z(16),
+    },
+
+    emptyTablesText: {
+      color: COLORS.gray,
+      fontSize: Math.max(z(15), 11),
+      textAlign: "center",
     },
 
     mapScrollArea: {
@@ -728,6 +1034,93 @@ function createStyles(k) {
     confirmText: {
       color: COLORS.white,
       fontSize: Math.max(z(22), 15),
+      fontWeight: "800",
+    },
+
+    /* Details sheet */
+    modalFlex: {
+      flex: 1,
+    },
+
+    modalBackdrop: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.65)",
+      justifyContent: "flex-end",
+    },
+
+    modalSheet: {
+      maxHeight: "90%",
+      width: "100%",
+      maxWidth: MAX_WIDTH,
+      alignSelf: "center",
+      backgroundColor: COLORS.card,
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      paddingHorizontal: 22,
+      paddingTop: 12,
+      paddingBottom: 28,
+    },
+
+    modalHandle: {
+      alignSelf: "center",
+      width: 44,
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: "#3A3A3A",
+      marginBottom: 18,
+    },
+
+    modalTitle: {
+      color: COLORS.white,
+      fontSize: 21,
+      fontWeight: "800",
+    },
+
+    modalSubtitle: {
+      color: COLORS.gray,
+      fontSize: 13,
+      marginTop: 5,
+      marginBottom: 16,
+    },
+
+    fieldLabel: {
+      color: COLORS.gray,
+      fontSize: 13,
+      marginBottom: 6,
+      marginTop: 12,
+    },
+
+    fieldInput: {
+      minHeight: 46,
+      backgroundColor: COLORS.input,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      borderRadius: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      color: COLORS.white,
+      fontSize: 16,
+    },
+
+    fieldInputMultiline: {
+      minHeight: 76,
+      textAlignVertical: "top",
+    },
+
+    sheetButton: {
+      minHeight: 56,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.red,
+      borderRadius: 999,
+      marginTop: 20,
+    },
+
+    sheetButtonText: {
+      color: COLORS.white,
+      fontSize: 18,
       fontWeight: "800",
     },
   });

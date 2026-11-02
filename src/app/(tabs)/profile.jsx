@@ -294,6 +294,13 @@ export default function ProfileScreen() {
       route: "/addresses",
     },
     {
+      title: "Tablebookings",
+      subtitle: "Table History",
+      icon: "restaurant-outline",
+      color: colors.primary,
+      route: "/my-bookings",
+    },
+    {
       title: "Payment Methods",
       subtitle: "Manage cards, UPI & wallets",
       icon: "card",
