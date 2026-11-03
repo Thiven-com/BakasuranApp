@@ -132,9 +132,7 @@ const getImageSource = (image) => {
 
 const normalizeBlog = (item, index) => {
   const categoryObject =
-    item?.category && typeof item.category === "object"
-      ? item.category
-      : null;
+    item?.category && typeof item.category === "object" ? item.category : null;
 
   const imageValue =
     item?.image_url ??
@@ -154,9 +152,7 @@ const normalizeBlog = (item, index) => {
     categoryObject?.title ??
     item?.category_name ??
     item?.categoryName ??
-    (typeof item?.category === "string"
-      ? item.category
-      : null) ??
+    (typeof item?.category === "string" ? item.category : null) ??
     "Food";
 
   const categoryId =
@@ -167,12 +163,7 @@ const normalizeBlog = (item, index) => {
     "";
 
   return {
-    id: String(
-      item?.id ??
-        item?.blog_id ??
-        item?.slug ??
-        `blog-${index}`
-    ),
+    id: String(item?.id ?? item?.blog_id ?? item?.slug ?? `blog-${index}`),
 
     slug: item?.slug ?? "",
 
@@ -331,21 +322,15 @@ export default function BlogDetailsScreen() {
 
   const paramTitle = String(params?.title ?? "");
 
-  const paramDescription = String(
-    params?.description ?? ""
-  );
+  const paramDescription = String(params?.description ?? "");
 
   const paramDate = String(params?.date ?? "");
 
   const paramTime = String(params?.time ?? "");
 
-  const paramCategory = String(
-    params?.category ?? "Food"
-  );
+  const paramCategory = String(params?.category ?? "Food");
 
-  const paramCategoryId = String(
-    params?.categoryId ?? ""
-  );
+  const paramCategoryId = String(params?.categoryId ?? "");
 
   // =======================================================
   // STATES
@@ -367,13 +352,9 @@ export default function BlogDetailsScreen() {
     try {
       setError("");
 
-      console.log(
-        "===================================="
-      );
+      console.log("====================================");
       console.log("📖 BLOG DETAILS");
-      console.log(
-        "===================================="
-      );
+      console.log("====================================");
 
       console.log("🆔 BLOG ID:", blogId);
       console.log("🔗 BLOG SLUG:", blogSlug);
@@ -382,19 +363,14 @@ export default function BlogDetailsScreen() {
 
       console.log(
         "📖 BLOG DETAILS API RESPONSE:",
-        JSON.stringify(response, null, 2)
+        JSON.stringify(response, null, 2),
       );
 
       const list = extractBlogs(response);
 
-      console.log(
-        "📚 TOTAL BLOGS:",
-        list.length
-      );
+      console.log("📚 TOTAL BLOGS:", list.length);
 
-      const normalized = list.map(
-        normalizeBlog
-      );
+      const normalized = list.map(normalizeBlog);
 
       // =====================================================
       // FIND EXACT BLOG
@@ -406,8 +382,7 @@ export default function BlogDetailsScreen() {
       if (blogId) {
         foundBlog = normalized.find(
           (item) =>
-            String(item.id).toLowerCase() ===
-            String(blogId).toLowerCase()
+            String(item.id).toLowerCase() === String(blogId).toLowerCase(),
         );
       }
 
@@ -415,8 +390,7 @@ export default function BlogDetailsScreen() {
       if (!foundBlog && blogSlug) {
         foundBlog = normalized.find(
           (item) =>
-            String(item.slug).toLowerCase() ===
-            String(blogSlug).toLowerCase()
+            String(item.slug).toLowerCase() === String(blogSlug).toLowerCase(),
         );
       }
 
@@ -441,30 +415,19 @@ export default function BlogDetailsScreen() {
       }
 
       if (!foundBlog) {
-        setError(
-          "This blog could not be found."
-        );
+        setError("This blog could not be found.");
         setBlog(null);
       } else {
         setBlog(foundBlog);
       }
 
-      if (
-        !isApiSuccess(response) &&
-        normalized.length === 0 &&
-        !paramTitle
-      ) {
+      if (!isApiSuccess(response) && normalized.length === 0 && !paramTitle) {
         setError(
-          response?.message ||
-            response?.error ||
-            "Unable to load blog."
+          response?.message || response?.error || "Unable to load blog.",
         );
       }
     } catch (err) {
-      console.log(
-        "❌ BLOG DETAILS ERROR:",
-        err
-      );
+      console.log("❌ BLOG DETAILS ERROR:", err);
 
       // =====================================================
       // USE ROUTE PARAMS IF API FAILS
@@ -487,10 +450,7 @@ export default function BlogDetailsScreen() {
 
         setError("");
       } else {
-        setError(
-          err?.message ||
-            "Unable to load blog. Please try again."
-        );
+        setError(err?.message || "Unable to load blog. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -524,10 +484,7 @@ export default function BlogDetailsScreen() {
 
       await loadBlog();
     } catch (err) {
-      console.log(
-        "❌ REFRESH BLOG ERROR:",
-        err
-      );
+      console.log("❌ REFRESH BLOG ERROR:", err);
     } finally {
       setRefreshing(false);
     }
@@ -552,15 +509,10 @@ export default function BlogDetailsScreen() {
     }
 
     router.push({
-      pathname:
-        "/blogscategories-details",
+      pathname: "/blogscategories-details",
       params: {
-        categoryId: String(
-          blog.categoryId || ""
-        ),
-        categoryName: String(
-          blog.category || "Food"
-        ),
+        categoryId: String(blog.categoryId || ""),
+        categoryName: String(blog.category || "Food"),
       },
     });
   };
@@ -582,9 +534,7 @@ export default function BlogDetailsScreen() {
   // =======================================================
 
   const fullContent = cleanHtmlContent(
-    blog?.content ||
-      blog?.description ||
-      ""
+    blog?.content || blog?.description || "",
   );
 
   // =======================================================
@@ -597,27 +547,17 @@ export default function BlogDetailsScreen() {
         style={[
           styles.safeArea,
           {
-            backgroundColor:
-              colors.background,
+            backgroundColor: colors.background,
           },
         ]}
       >
         <StatusBar
-          barStyle={
-            isDark
-              ? "light-content"
-              : "dark-content"
-          }
-          backgroundColor={
-            colors.background
-          }
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor={colors.background}
         />
 
         <View style={styles.loadingContainer}>
-          <ActivityIndicator
-            size="large"
-            color={colors.primary}
-          />
+          <ActivityIndicator size="large" color={colors.primary} />
 
           <Text
             style={[
@@ -644,20 +584,13 @@ export default function BlogDetailsScreen() {
         style={[
           styles.safeArea,
           {
-            backgroundColor:
-              colors.background,
+            backgroundColor: colors.background,
           },
         ]}
       >
         <StatusBar
-          barStyle={
-            isDark
-              ? "light-content"
-              : "dark-content"
-          }
-          backgroundColor={
-            colors.background
-          }
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor={colors.background}
         />
 
         <View style={styles.errorScreen}>
@@ -665,8 +598,7 @@ export default function BlogDetailsScreen() {
             style={[
               styles.errorIcon,
               {
-                backgroundColor:
-                  `${colors.primary}18`,
+                backgroundColor: `${colors.primary}18`,
               },
             ]}
           >
@@ -692,13 +624,11 @@ export default function BlogDetailsScreen() {
             style={[
               styles.errorMessage,
               {
-                color:
-                  colors.textSecondary,
+                color: colors.textSecondary,
               },
             ]}
           >
-            {error ||
-              "The requested blog is not available."}
+            {error || "The requested blog is not available."}
           </Text>
 
           <TouchableOpacity
@@ -706,22 +636,13 @@ export default function BlogDetailsScreen() {
             style={[
               styles.backButtonLarge,
               {
-                backgroundColor:
-                  colors.primary,
+                backgroundColor: colors.primary,
               },
             ]}
           >
-            <Ionicons
-              name="arrow-back"
-              size={18}
-              color="#FFFFFF"
-            />
+            <Ionicons name="arrow-back" size={18} color="#FFFFFF" />
 
-            <Text
-              style={styles.backButtonText}
-            >
-              Go Back
-            </Text>
+            <Text style={styles.backButtonText}>Go Back</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -737,20 +658,13 @@ export default function BlogDetailsScreen() {
       style={[
         styles.safeArea,
         {
-          backgroundColor:
-            colors.background,
+          backgroundColor: colors.background,
         },
       ]}
     >
       <StatusBar
-        barStyle={
-          isDark
-            ? "light-content"
-            : "dark-content"
-        }
-        backgroundColor={
-          colors.background
-        }
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
       />
 
       <ScrollView
@@ -774,16 +688,11 @@ export default function BlogDetailsScreen() {
             style={[
               styles.headerBackButton,
               {
-                backgroundColor:
-                  colors.card,
+                backgroundColor: colors.card,
               },
             ]}
           >
-            <Ionicons
-              name="arrow-back"
-              size={22}
-              color={colors.text}
-            />
+            <Ionicons name="arrow-back" size={22} color={colors.text} />
           </TouchableOpacity>
 
           <Text
@@ -803,16 +712,11 @@ export default function BlogDetailsScreen() {
             style={[
               styles.headerRefreshButton,
               {
-                backgroundColor:
-                  colors.card,
+                backgroundColor: colors.card,
               },
             ]}
           >
-            <Ionicons
-              name="refresh-outline"
-              size={20}
-              color={colors.text}
-            />
+            <Ionicons name="refresh-outline" size={20} color={colors.text} />
           </TouchableOpacity>
         </View>
 
@@ -833,8 +737,7 @@ export default function BlogDetailsScreen() {
             style={[
               styles.imageOverlay,
               {
-                backgroundColor:
-                  "rgba(0,0,0,0.18)",
+                backgroundColor: "rgba(0,0,0,0.18)",
               },
             ]}
           />
@@ -847,21 +750,13 @@ export default function BlogDetailsScreen() {
             style={[
               styles.heroCategory,
               {
-                backgroundColor:
-                  colors.primary,
+                backgroundColor: colors.primary,
               },
             ]}
           >
-            <Ionicons
-              name="pricetag-outline"
-              size={13}
-              color="#FFFFFF"
-            />
+            <Ionicons name="pricetag-outline" size={13} color="#FFFFFF" />
 
-            <Text
-              numberOfLines={1}
-              style={styles.heroCategoryText}
-            >
+            <Text numberOfLines={1} style={styles.heroCategoryText}>
               {blog.category}
             </Text>
           </TouchableOpacity>
@@ -880,16 +775,11 @@ export default function BlogDetailsScreen() {
             style={[
               styles.categoryPill,
               {
-                backgroundColor:
-                  `${colors.primary}18`,
+                backgroundColor: `${colors.primary}18`,
               },
             ]}
           >
-            <Ionicons
-              name="grid-outline"
-              size={14}
-              color={colors.primary}
-            />
+            <Ionicons name="grid-outline" size={14} color={colors.primary} />
 
             <Text
               style={[
@@ -922,8 +812,7 @@ export default function BlogDetailsScreen() {
             style={[
               styles.metaContainer,
               {
-                borderColor:
-                  colors.border,
+                borderColor: colors.border,
               },
             ]}
           >
@@ -933,8 +822,7 @@ export default function BlogDetailsScreen() {
                   style={[
                     styles.metaIcon,
                     {
-                      backgroundColor:
-                        `${colors.primary}15`,
+                      backgroundColor: `${colors.primary}15`,
                     },
                   ]}
                 >
@@ -950,8 +838,7 @@ export default function BlogDetailsScreen() {
                     style={[
                       styles.metaLabel,
                       {
-                        color:
-                          colors.textSecondary,
+                        color: colors.textSecondary,
                       },
                     ]}
                   >
@@ -962,8 +849,7 @@ export default function BlogDetailsScreen() {
                     style={[
                       styles.metaValue,
                       {
-                        color:
-                          colors.text,
+                        color: colors.text,
                       },
                     ]}
                   >
@@ -979,8 +865,7 @@ export default function BlogDetailsScreen() {
                   style={[
                     styles.metaIcon,
                     {
-                      backgroundColor:
-                        `${colors.primary}15`,
+                      backgroundColor: `${colors.primary}15`,
                     },
                   ]}
                 >
@@ -996,8 +881,7 @@ export default function BlogDetailsScreen() {
                     style={[
                       styles.metaLabel,
                       {
-                        color:
-                          colors.textSecondary,
+                        color: colors.textSecondary,
                       },
                     ]}
                   >
@@ -1008,8 +892,7 @@ export default function BlogDetailsScreen() {
                     style={[
                       styles.metaValue,
                       {
-                        color:
-                          colors.text,
+                        color: colors.text,
                       },
                     ]}
                   >
@@ -1052,13 +935,11 @@ export default function BlogDetailsScreen() {
                 style={[
                   styles.noContentText,
                   {
-                    color:
-                      colors.textSecondary,
+                    color: colors.textSecondary,
                   },
                 ]}
               >
-                No description is available
-                for this blog.
+                No description is available for this blog.
               </Text>
             )}
           </View>
@@ -1073,10 +954,8 @@ export default function BlogDetailsScreen() {
             style={[
               styles.categoryButton,
               {
-                backgroundColor:
-                  colors.card,
-                borderColor:
-                  colors.border,
+                backgroundColor: colors.card,
+                borderColor: colors.border,
               },
             ]}
           >
@@ -1084,21 +963,14 @@ export default function BlogDetailsScreen() {
               style={[
                 styles.categoryButtonIcon,
                 {
-                  backgroundColor:
-                    `${colors.primary}18`,
+                  backgroundColor: `${colors.primary}18`,
                 },
               ]}
             >
-              <Ionicons
-                name="grid-outline"
-                size={19}
-                color={colors.primary}
-              />
+              <Ionicons name="grid-outline" size={19} color={colors.primary} />
             </View>
 
-            <View
-              style={styles.categoryButtonContent}
-            >
+            <View style={styles.categoryButtonContent}>
               <Text
                 style={[
                   styles.categoryButtonTitle,
@@ -1114,22 +986,18 @@ export default function BlogDetailsScreen() {
                 style={[
                   styles.categoryButtonSubtitle,
                   {
-                    color:
-                      colors.textSecondary,
+                    color: colors.textSecondary,
                   },
                 ]}
               >
-                Explore more blogs in this
-                category
+                Explore more blogs in this category
               </Text>
             </View>
 
             <Ionicons
               name="chevron-forward"
               size={21}
-              color={
-                colors.textSecondary
-              }
+              color={colors.textSecondary}
             />
           </TouchableOpacity>
 
@@ -1143,24 +1011,13 @@ export default function BlogDetailsScreen() {
             style={[
               styles.backToBlogsButton,
               {
-                backgroundColor:
-                  colors.primary,
+                backgroundColor: colors.primary,
               },
             ]}
           >
-            <Ionicons
-              name="arrow-back"
-              size={18}
-              color="#FFFFFF"
-            />
+            <Ionicons name="arrow-back" size={18} color="#FFFFFF" />
 
-            <Text
-              style={
-                styles.backToBlogsText
-              }
-            >
-              Back to Blogs
-            </Text>
+            <Text style={styles.backToBlogsText}>Back to Blogs</Text>
           </TouchableOpacity>
         </View>
 
@@ -1219,8 +1076,8 @@ const styles = StyleSheet.create({
   headerLabel: {
     flex: 1,
     textAlign: "center",
-    fontSize: 18,
-    fontFamily: Fonts?.bold,
+    fontSize: 23,
+    fontFamily: Fonts?.regular,
   },
 
   headerRefreshButton: {
@@ -1267,8 +1124,8 @@ const styles = StyleSheet.create({
 
   heroCategoryText: {
     color: "#FFFFFF",
-    fontSize: 12,
-    fontFamily: Fonts?.semiBold,
+    fontSize: 17,
+    fontFamily: Fonts?.regular,
   },
 
   // =======================================================
@@ -1291,8 +1148,8 @@ const styles = StyleSheet.create({
   },
 
   categoryPillText: {
-    fontSize: 12,
-    fontFamily: Fonts?.semiBold,
+    fontSize: 17,
+    fontFamily: Fonts?.regular,
   },
 
   articleTitle: {
@@ -1332,14 +1189,14 @@ const styles = StyleSheet.create({
   },
 
   metaLabel: {
-    fontSize: 10,
+    fontSize: 15,
     fontFamily: Fonts?.regular,
   },
 
   metaValue: {
-    fontSize: 12,
+    fontSize: 15,
     marginTop: 2,
-    fontFamily: Fonts?.semiBold,
+    fontFamily: Fonts?.regular,
   },
 
   // =======================================================
@@ -1351,14 +1208,14 @@ const styles = StyleSheet.create({
   },
 
   contentHeading: {
-    fontSize: 20,
-    fontFamily: Fonts?.bold,
+    fontSize: 25,
+    fontFamily: Fonts?.regular,
     marginBottom: 10,
   },
 
   fullDescription: {
-    fontSize: 15,
-    lineHeight: 26,
+    fontSize: 17,
+    lineHeight: 29,
     fontFamily: Fonts?.regular,
     textAlign: "left",
   },

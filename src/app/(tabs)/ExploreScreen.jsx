@@ -125,8 +125,7 @@ const normalize = (value) =>
     .toLowerCase()
     .trim();
 
-const isAll = (value) =>
-  normalize(value) === "all";
+const isAll = (value) => normalize(value) === "all";
 
 const getFirstMinutes = (time) => {
   const match = String(time ?? "").match(/\d+/);
@@ -160,10 +159,7 @@ const getImageSource = (imageValue, fallback = null) => {
     return fallback;
   }
 
-  if (
-    typeof imageValue === "object" &&
-    imageValue?.uri
-  ) {
+  if (typeof imageValue === "object" && imageValue?.uri) {
     return imageValue;
   }
 
@@ -188,10 +184,7 @@ const getImageSource = (imageValue, fallback = null) => {
   }
 
   return {
-    uri: `${API_BASE_URL}/${cleanValue.replace(
-      /^\/+/,
-      ""
-    )}`,
+    uri: `${API_BASE_URL}/${cleanValue.replace(/^\/+/, "")}`,
   };
 };
 
@@ -244,7 +237,7 @@ const getCategoryImage = (category) => {
       category?.category_name ||
       category?.categoryName ||
       category?.title ||
-      category?.slug
+      category?.slug,
   );
 
   const apiImage =
@@ -267,12 +260,8 @@ const getCategoryImage = (category) => {
     return FALLBACK_CATEGORY_IMAGES[categoryName];
   }
 
-  const fallbackKey = Object.keys(
-    FALLBACK_CATEGORY_IMAGES
-  ).find(
-    (key) =>
-      categoryName.includes(key) ||
-      key.includes(categoryName)
+  const fallbackKey = Object.keys(FALLBACK_CATEGORY_IMAGES).find(
+    (key) => categoryName.includes(key) || key.includes(categoryName),
   );
 
   if (fallbackKey) {
@@ -289,31 +278,29 @@ const getCategoryImage = (category) => {
 const normalizeCategories = (response) => {
   const apiCategories = extractArray(response);
 
-  const validCategories = apiCategories
-    .filter(Boolean)
-    .map((item, index) => {
-      const id =
-        item?.id ??
-        item?.category_id ??
-        item?.categoryId ??
-        item?.slug ??
-        index + 1;
+  const validCategories = apiCategories.filter(Boolean).map((item, index) => {
+    const id =
+      item?.id ??
+      item?.category_id ??
+      item?.categoryId ??
+      item?.slug ??
+      index + 1;
 
-      const name =
-        item?.name ||
-        item?.category_name ||
-        item?.categoryName ||
-        item?.title ||
-        item?.slug ||
-        `Category ${index + 1}`;
+    const name =
+      item?.name ||
+      item?.category_name ||
+      item?.categoryName ||
+      item?.title ||
+      item?.slug ||
+      `Category ${index + 1}`;
 
-      return {
-        id: String(id),
-        name: String(name),
-        image: getCategoryImage(item),
-        original: item,
-      };
-    });
+    return {
+      id: String(id),
+      name: String(name),
+      image: getCategoryImage(item),
+      original: item,
+    };
+  });
 
   return [
     {
@@ -321,9 +308,7 @@ const normalizeCategories = (response) => {
       name: "All",
       image: FALLBACK_CATEGORY_IMAGES.all,
     },
-    ...validCategories.filter(
-      (item) => !isAll(item.name)
-    ),
+    ...validCategories.filter((item) => !isAll(item.name)),
   ];
 };
 
@@ -332,8 +317,7 @@ const normalizeCategories = (response) => {
 // ============================================================
 
 const normalizeRestaurant = (item, index) => {
-  const restaurant =
-    item?.restaurant || item;
+  const restaurant = item?.restaurant || item;
 
   const id =
     restaurant?.id ??
@@ -356,11 +340,7 @@ const normalizeRestaurant = (item, index) => {
     restaurant?.photo ||
     restaurant?.thumbnail;
 
-  const image =
-    getImageSource(
-      imageValue,
-      FALLBACK_CATEGORY_IMAGES.all
-    );
+  const image = getImageSource(imageValue, FALLBACK_CATEGORY_IMAGES.all);
 
   const cuisine =
     restaurant?.cuisine ||
@@ -395,16 +375,13 @@ const normalizeRestaurant = (item, index) => {
     "₹200 for two";
 
   const offer =
-    restaurant?.offer ||
-    restaurant?.offer_text ||
-    restaurant?.discount ||
-    "";
+    restaurant?.offer || restaurant?.offer_text || restaurant?.discount || "";
 
   const isVeg = isTruthy(
     restaurant?.isVeg ??
       restaurant?.is_veg ??
       restaurant?.pure_veg ??
-      restaurant?.is_pure_veg
+      restaurant?.is_pure_veg,
   );
 
   return {
@@ -414,9 +391,7 @@ const normalizeRestaurant = (item, index) => {
     name: String(name),
     image,
 
-    cuisine: Array.isArray(cuisine)
-      ? cuisine.join(" • ")
-      : String(cuisine),
+    cuisine: Array.isArray(cuisine) ? cuisine.join(" • ") : String(cuisine),
 
     rating,
     reviews,
@@ -434,16 +409,10 @@ const normalizeRestaurant = (item, index) => {
 // ============================================================
 
 const normalizeProduct = (item, index) => {
-  const product =
-    item?.product ||
-    item?.item ||
-    item;
+  const product = item?.product || item?.item || item;
 
   const id =
-    product?.id ??
-    product?.product_id ??
-    product?.productId ??
-    index + 1;
+    product?.id ?? product?.product_id ?? product?.productId ?? index + 1;
 
   const name =
     product?.name ||
@@ -477,15 +446,9 @@ const normalizeProduct = (item, index) => {
       product?.amount ??
       0,
 
-    description:
-      product?.description ||
-      product?.short_description ||
-      "",
+    description: product?.description || product?.short_description || "",
 
-    isVeg: isTruthy(
-      product?.isVeg ??
-        product?.is_veg
-    ),
+    isVeg: isTruthy(product?.isVeg ?? product?.is_veg),
 
     original: product,
   };
@@ -498,92 +461,63 @@ const normalizeProduct = (item, index) => {
 export default function ExploreScreen() {
   const params = useLocalSearchParams();
 
-  const {
-    colors: Colors,
-    isDark,
-  } = useTheme();
+  const { colors: Colors, isDark } = useTheme();
 
-  const styles = useMemo(
-    () => makeStyles(Colors, isDark),
-    [Colors, isDark]
-  );
+  const styles = useMemo(() => makeStyles(Colors, isDark), [Colors, isDark]);
 
   // ==========================================================
   // ROUTE PARAMS
   // ==========================================================
 
-  const incomingSearch =
-    typeof params.search === "string"
-      ? params.search
-      : "";
+  const incomingSearch = typeof params.search === "string" ? params.search : "";
 
   const incomingCategory =
-    typeof params.category === "string"
-      ? params.category
-      : "All";
+    typeof params.category === "string" ? params.category : "All";
 
   const incomingCategoryId =
-    typeof params.categoryId === "string"
-      ? params.categoryId
-      : "all";
+    typeof params.categoryId === "string" ? params.categoryId : "all";
 
   // ==========================================================
   // STATE
   // ==========================================================
 
-  const [searchText, setSearchText] =
-    useState(incomingSearch);
+  const [searchText, setSearchText] = useState(incomingSearch);
 
-  const [selectedCategory, setSelectedCategory] =
-    useState(incomingCategory);
+  const [selectedCategory, setSelectedCategory] = useState(incomingCategory);
 
-  const [selectedCategoryId, setSelectedCategoryId] =
-    useState(
-      incomingCategoryId || "all"
-    );
+  const [selectedCategoryId, setSelectedCategoryId] = useState(
+    incomingCategoryId || "all",
+  );
 
-  const [categories, setCategories] =
-    useState(DEFAULT_CATEGORIES);
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
 
-  const [categoriesLoading, setCategoriesLoading] =
-    useState(false);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
 
-  const [categoriesError, setCategoriesError] =
-    useState("");
+  const [categoriesError, setCategoriesError] = useState("");
 
-  const [restaurants, setRestaurants] =
-    useState([]);
+  const [restaurants, setRestaurants] = useState([]);
 
-  const [restaurantsLoading, setRestaurantsLoading] =
-    useState(false);
+  const [restaurantsLoading, setRestaurantsLoading] = useState(false);
 
-  const [restaurantsError, setRestaurantsError] =
-    useState("");
+  const [restaurantsError, setRestaurantsError] = useState("");
 
-  const [restaurantProducts, setRestaurantProducts] =
-    useState({});
+  const [restaurantProducts, setRestaurantProducts] = useState({});
 
-  const [favorites, setFavorites] =
-    useState([]);
+  const [favorites, setFavorites] = useState([]);
 
   // ==========================================================
   // FILTER STATE
   // ==========================================================
 
-  const [selectedFilter, setSelectedFilter] =
-    useState("All");
+  const [selectedFilter, setSelectedFilter] = useState("All");
 
-  const [sortBy, setSortBy] =
-    useState("default");
+  const [sortBy, setSortBy] = useState("default");
 
-  const [showFilterModal, setShowFilterModal] =
-    useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
-  const [tempFilter, setTempFilter] =
-    useState("All");
+  const [tempFilter, setTempFilter] = useState("All");
 
-  const [tempSort, setTempSort] =
-    useState("default");
+  const [tempSort, setTempSort] = useState("default");
 
   // ==========================================================
   // LOAD CATEGORIES
@@ -594,75 +528,45 @@ export default function ExploreScreen() {
       setCategoriesLoading(true);
       setCategoriesError("");
 
-      console.log(
-        "===================================="
-      );
-      console.log(
-        "RESTAURANT CATEGORIES API"
-      );
-      console.log(
-        "GET /api/customer/restaurant-categories"
-      );
+      console.log("====================================");
+      console.log("RESTAURANT CATEGORIES API");
+      console.log("GET /api/customer/restaurant-categories");
 
-      const response =
-        await getRestaurantCategories();
+      const response = await getRestaurantCategories();
 
-      console.log(
-        "CATEGORY RESPONSE:",
-        JSON.stringify(
-          response,
-          null,
-          2
-        )
-      );
+      console.log("CATEGORY RESPONSE:", JSON.stringify(response, null, 2));
 
-      const normalized =
-        normalizeCategories(response);
+      const normalized = normalizeCategories(response);
 
       if (normalized.length > 0) {
         setCategories(normalized);
 
-        const routeCategoryId =
-          incomingCategoryId;
+        const routeCategoryId = incomingCategoryId;
 
         if (routeCategoryId) {
-          const matched =
-            normalized.find(
-              (category) =>
-                String(category.id) ===
-                String(routeCategoryId)
-            );
+          const matched = normalized.find(
+            (category) => String(category.id) === String(routeCategoryId),
+          );
 
           if (matched) {
-            setSelectedCategory(
-              matched.name
-            );
+            setSelectedCategory(matched.name);
 
-            setSelectedCategoryId(
-              String(matched.id)
-            );
+            setSelectedCategoryId(String(matched.id));
           }
         }
       } else {
-        setCategories(
-          DEFAULT_CATEGORIES
-        );
+        setCategories(DEFAULT_CATEGORIES);
       }
     } catch (error) {
-      console.log(
-        "CATEGORY ERROR:",
-        error?.message
-      );
+      console.log("CATEGORY ERROR:", error?.message);
 
       setCategoriesError(
         error?.response?.data?.message ||
           error?.message ||
-          "Unable to load categories."
+          "Unable to load categories.",
       );
 
-      setCategories(
-        DEFAULT_CATEGORIES
-      );
+      setCategories(DEFAULT_CATEGORIES);
     } finally {
       setCategoriesLoading(false);
     }
@@ -672,10 +576,7 @@ export default function ExploreScreen() {
   // LOAD PRODUCTS
   // ==========================================================
 
-  const loadProductsForRestaurants = async (
-    categoryId,
-    restaurantList
-  ) => {
+  const loadProductsForRestaurants = async (categoryId, restaurantList) => {
     if (
       !categoryId ||
       !Array.isArray(restaurantList) ||
@@ -684,138 +585,86 @@ export default function ExploreScreen() {
       return;
     }
 
-    console.log(
-      "===================================="
-    );
-    console.log(
-      "LOADING RESTAURANT PRODUCTS"
-    );
-    console.log(
-      "CATEGORY:",
-      categoryId
-    );
-    console.log(
-      "RESTAURANTS:",
-      restaurantList.length
-    );
-    console.log(
-      "===================================="
-    );
+    console.log("====================================");
+    console.log("LOADING RESTAURANT PRODUCTS");
+    console.log("CATEGORY:", categoryId);
+    console.log("RESTAURANTS:", restaurantList.length);
+    console.log("====================================");
 
-    setRestaurantProducts(
-      (previous) => {
-        const next = {
-          ...previous,
+    setRestaurantProducts((previous) => {
+      const next = {
+        ...previous,
+      };
+
+      restaurantList.forEach((restaurant) => {
+        next[String(restaurant.id)] = {
+          loading: true,
+          error: "",
+          products: [],
         };
+      });
 
-        restaurantList.forEach(
-          (restaurant) => {
-            next[String(restaurant.id)] = {
-              loading: true,
-              error: "",
-              products: [],
-            };
-          }
-        );
-
-        return next;
-      }
-    );
+      return next;
+    });
 
     await Promise.all(
-      restaurantList.map(
-        async (restaurant) => {
-          const restaurantId =
-            restaurant?.id;
+      restaurantList.map(async (restaurant) => {
+        const restaurantId = restaurant?.id;
 
-          if (!restaurantId) {
-            return;
-          }
-
-          try {
-            console.log(
-              "------------------------------------"
-            );
-
-            console.log(
-              "PRODUCT API CALL"
-            );
-
-            console.log(
-              "CATEGORY ID:",
-              categoryId
-            );
-
-            console.log(
-              "RESTAURANT ID:",
-              restaurantId
-            );
-
-            const response =
-              await getProductsByCategoryAndRestaurant(
-                categoryId,
-                restaurantId
-              );
-
-            console.log(
-              "PRODUCT RESPONSE:",
-              JSON.stringify(
-                response,
-                null,
-                2
-              )
-            );
-
-            const apiProducts =
-              extractArray(response);
-
-            const products =
-              apiProducts.map(
-                normalizeProduct
-              );
-
-            console.log(
-              "PRODUCT COUNT:",
-              products.length
-            );
-
-            setRestaurantProducts(
-              (previous) => ({
-                ...previous,
-
-                [String(restaurantId)]: {
-                  loading: false,
-                  error: "",
-                  products,
-                },
-              })
-            );
-          } catch (error) {
-            console.log(
-              "PRODUCT API ERROR:",
-              error?.message
-            );
-
-            setRestaurantProducts(
-              (previous) => ({
-                ...previous,
-
-                [String(restaurantId)]: {
-                  loading: false,
-
-                  error:
-                    error?.response?.data
-                      ?.message ||
-                    error?.message ||
-                    "Unable to load menu.",
-
-                  products: [],
-                },
-              })
-            );
-          }
+        if (!restaurantId) {
+          return;
         }
-      )
+
+        try {
+          console.log("------------------------------------");
+
+          console.log("PRODUCT API CALL");
+
+          console.log("CATEGORY ID:", categoryId);
+
+          console.log("RESTAURANT ID:", restaurantId);
+
+          const response = await getProductsByCategoryAndRestaurant(
+            categoryId,
+            restaurantId,
+          );
+
+          console.log("PRODUCT RESPONSE:", JSON.stringify(response, null, 2));
+
+          const apiProducts = extractArray(response);
+
+          const products = apiProducts.map(normalizeProduct);
+
+          console.log("PRODUCT COUNT:", products.length);
+
+          setRestaurantProducts((previous) => ({
+            ...previous,
+
+            [String(restaurantId)]: {
+              loading: false,
+              error: "",
+              products,
+            },
+          }));
+        } catch (error) {
+          console.log("PRODUCT API ERROR:", error?.message);
+
+          setRestaurantProducts((previous) => ({
+            ...previous,
+
+            [String(restaurantId)]: {
+              loading: false,
+
+              error:
+                error?.response?.data?.message ||
+                error?.message ||
+                "Unable to load menu.",
+
+              products: [],
+            },
+          }));
+        }
+      }),
     );
   };
 
@@ -823,31 +672,19 @@ export default function ExploreScreen() {
   // LOAD RESTAURANTS
   // ==========================================================
 
-  const loadCategoryRestaurants = async (
-    categoryId
-  ) => {
-    const safeCategoryId =
-      String(
-        categoryId || "all"
-      );
+  const loadCategoryRestaurants = async (categoryId) => {
+    const safeCategoryId = String(categoryId || "all");
 
     try {
       setRestaurantsLoading(true);
       setRestaurantsError("");
       setRestaurantProducts({});
 
-      console.log(
-        "===================================="
-      );
+      console.log("====================================");
 
-      console.log(
-        "LOAD RESTAURANTS"
-      );
+      console.log("LOAD RESTAURANTS");
 
-      console.log(
-        "CATEGORY ID:",
-        safeCategoryId
-      );
+      console.log("CATEGORY ID:", safeCategoryId);
 
       let response;
 
@@ -856,104 +693,59 @@ export default function ExploreScreen() {
       // ------------------------------------------------------
 
       if (isAll(safeCategoryId)) {
-        console.log(
-          "ALL CATEGORY SELECTED"
-        );
+        console.log("ALL CATEGORY SELECTED");
 
-        console.log(
-          "GET /api/customer/restaurants"
-        );
+        console.log("GET /api/customer/restaurants");
 
-        response =
-          await getRestaurants();
+        response = await getRestaurants();
       }
 
       // ------------------------------------------------------
       // SPECIFIC CATEGORY
       // ------------------------------------------------------
-
       else {
         console.log(
-          `GET /api/customer/categories/${safeCategoryId}/restaurants`
+          `GET /api/customer/categories/${safeCategoryId}/restaurants`,
         );
 
-        response =
-          await getCategoryRestaurants(
-            safeCategoryId
-          );
+        response = await getCategoryRestaurants(safeCategoryId);
       }
 
-      console.log(
-        "RESTAURANT RESPONSE:",
-        JSON.stringify(
-          response,
-          null,
-          2
-        )
-      );
+      console.log("RESTAURANT RESPONSE:", JSON.stringify(response, null, 2));
 
-      const apiRestaurants =
-        extractArray(response);
+      const apiRestaurants = extractArray(response);
 
-      console.log(
-        "RESTAURANT COUNT:",
-        apiRestaurants.length
-      );
+      console.log("RESTAURANT COUNT:", apiRestaurants.length);
 
-      const normalizedRestaurants =
-        apiRestaurants.map(
-          normalizeRestaurant
-        );
+      const normalizedRestaurants = apiRestaurants.map(normalizeRestaurant);
 
-      setRestaurants(
-        normalizedRestaurants
-      );
+      setRestaurants(normalizedRestaurants);
 
       // ------------------------------------------------------
       // LOAD PRODUCTS FOR EVERY RESTAURANT
       // ------------------------------------------------------
 
-      if (
-        normalizedRestaurants.length >
-        0
-      ) {
-        loadProductsForRestaurants(
-          safeCategoryId,
-          normalizedRestaurants
-        );
+      if (normalizedRestaurants.length > 0) {
+        loadProductsForRestaurants(safeCategoryId, normalizedRestaurants);
       }
     } catch (error) {
-      console.log(
-        "===================================="
-      );
+      console.log("====================================");
 
-      console.log(
-        "RESTAURANT API ERROR"
-      );
+      console.log("RESTAURANT API ERROR");
 
-      console.log(
-        "MESSAGE:",
-        error?.message
-      );
+      console.log("MESSAGE:", error?.message);
 
-      console.log(
-        "STATUS:",
-        error?.response?.status
-      );
+      console.log("STATUS:", error?.response?.status);
 
       console.log(
         "RESPONSE:",
-        JSON.stringify(
-          error?.response?.data || {},
-          null,
-          2
-        )
+        JSON.stringify(error?.response?.data || {}, null, 2),
       );
 
       setRestaurantsError(
         error?.response?.data?.message ||
           error?.message ||
-          "Unable to load restaurants."
+          "Unable to load restaurants.",
       );
 
       setRestaurants([]);
@@ -980,9 +772,7 @@ export default function ExploreScreen() {
       return;
     }
 
-    loadCategoryRestaurants(
-      selectedCategoryId
-    );
+    loadCategoryRestaurants(selectedCategoryId);
   }, [selectedCategoryId]);
 
   // ==========================================================
@@ -990,66 +780,33 @@ export default function ExploreScreen() {
   // ==========================================================
 
   useEffect(() => {
-    if (
-      typeof params.search ===
-      "string"
-    ) {
-      setSearchText(
-        params.search
-      );
+    if (typeof params.search === "string") {
+      setSearchText(params.search);
     }
 
-    if (
-      typeof params.category ===
-      "string"
-    ) {
-      setSelectedCategory(
-        params.category
-      );
+    if (typeof params.category === "string") {
+      setSelectedCategory(params.category);
     }
 
-    if (
-      typeof params.categoryId ===
-      "string"
-    ) {
-      setSelectedCategoryId(
-        params.categoryId || "all"
-      );
+    if (typeof params.categoryId === "string") {
+      setSelectedCategoryId(params.categoryId || "all");
     }
-  }, [
-    params.search,
-    params.category,
-    params.categoryId,
-  ]);
+  }, [params.search, params.category, params.categoryId]);
 
   // ==========================================================
   // SELECT CATEGORY
   // ==========================================================
 
-  const selectCategory = (
-    categoryName,
-    categoryId
-  ) => {
-    const id =
-      String(categoryId || "all");
+  const selectCategory = (categoryName, categoryId) => {
+    const id = String(categoryId || "all");
 
-    console.log(
-      "===================================="
-    );
+    console.log("====================================");
 
-    console.log(
-      "SELECTED CATEGORY:",
-      categoryName
-    );
+    console.log("SELECTED CATEGORY:", categoryName);
 
-    console.log(
-      "SELECTED CATEGORY ID:",
-      id
-    );
+    console.log("SELECTED CATEGORY ID:", id);
 
-    setSelectedCategory(
-      categoryName
-    );
+    setSelectedCategory(categoryName);
 
     setSelectedCategoryId(id);
     setSearchText("");
@@ -1060,194 +817,104 @@ export default function ExploreScreen() {
   // ==========================================================
 
   const toggleFavorite = (id) => {
-    setFavorites(
-      (previous) => {
-        if (
-          previous.includes(id)
-        ) {
-          return previous.filter(
-            (item) => item !== id
-          );
-        }
-
-        return [
-          ...previous,
-          id,
-        ];
+    setFavorites((previous) => {
+      if (previous.includes(id)) {
+        return previous.filter((item) => item !== id);
       }
-    );
+
+      return [...previous, id];
+    });
   };
 
   // ==========================================================
   // FILTER + SORT
   // ==========================================================
 
-  const filteredRestaurants =
-    useMemo(() => {
-      let result = [
-        ...restaurants,
-      ];
+  const filteredRestaurants = useMemo(() => {
+    let result = [...restaurants];
 
-      // ------------------------------------------------------
-      // SEARCH
-      // ------------------------------------------------------
+    // ------------------------------------------------------
+    // SEARCH
+    // ------------------------------------------------------
 
-      const search =
-        normalize(searchText);
+    const search = normalize(searchText);
 
-      if (search) {
-        result =
-          result.filter(
-            (restaurant) => {
-              const name =
-                normalize(
-                  restaurant?.name
-                );
+    if (search) {
+      result = result.filter((restaurant) => {
+        const name = normalize(restaurant?.name);
 
-              const cuisine =
-                normalize(
-                  restaurant?.cuisine
-                );
+        const cuisine = normalize(restaurant?.cuisine);
 
-              const address =
-                normalize(
-                  restaurant?.address
-                );
+        const address = normalize(restaurant?.address);
 
-              return (
-                name.includes(search) ||
-                cuisine.includes(search) ||
-                address.includes(search)
-              );
-            }
-          );
-      }
-
-      // ------------------------------------------------------
-      // PURE VEG
-      // ------------------------------------------------------
-
-      if (
-        selectedFilter ===
-        "Pure Veg"
-      ) {
-        result =
-          result.filter(
-            (restaurant) =>
-              restaurant?.isVeg === true
-          );
-      }
-
-      // ------------------------------------------------------
-      // RATING
-      // ------------------------------------------------------
-
-      if (
-        selectedFilter ===
-        "Rating 4.0+"
-      ) {
-        result =
-          result.filter(
-            (restaurant) =>
-              Number(
-                restaurant?.rating || 0
-              ) >= 4
-          );
-      }
-
-      // ------------------------------------------------------
-      // FAST DELIVERY
-      // ------------------------------------------------------
-
-      if (
-        selectedFilter ===
-        "Fast Delivery"
-      ) {
-        result =
-          result.filter(
-            (restaurant) =>
-              getFirstMinutes(
-                restaurant?.time
-              ) <= 30
-          );
-      }
-
-      // ------------------------------------------------------
-      // OFFERS
-      // ------------------------------------------------------
-
-      if (
-        selectedFilter ===
-        "Offers"
-      ) {
-        result =
-          result.filter(
-            (restaurant) =>
-              Boolean(
-                restaurant?.offer
-              )
-          );
-      }
-
-      // ------------------------------------------------------
-      // SORT
-      // ------------------------------------------------------
-
-      if (
-        sortBy === "rating"
-      ) {
-        result.sort(
-          (a, b) =>
-            Number(
-              b?.rating || 0
-            ) -
-            Number(
-              a?.rating || 0
-            )
+        return (
+          name.includes(search) ||
+          cuisine.includes(search) ||
+          address.includes(search)
         );
-      }
+      });
+    }
 
-      if (
-        sortBy === "delivery"
-      ) {
-        result.sort(
-          (a, b) =>
-            getFirstMinutes(
-              a?.time
-            ) -
-            getFirstMinutes(
-              b?.time
-            )
-        );
-      }
+    // ------------------------------------------------------
+    // PURE VEG
+    // ------------------------------------------------------
 
-      if (
-        sortBy === "priceLow"
-      ) {
-        result.sort(
-          (a, b) =>
-            getPrice(a?.price) -
-            getPrice(b?.price)
-        );
-      }
+    if (selectedFilter === "Pure Veg") {
+      result = result.filter((restaurant) => restaurant?.isVeg === true);
+    }
 
-      if (
-        sortBy === "priceHigh"
-      ) {
-        result.sort(
-          (a, b) =>
-            getPrice(b?.price) -
-            getPrice(a?.price)
-        );
-      }
+    // ------------------------------------------------------
+    // RATING
+    // ------------------------------------------------------
 
-      return result;
-    }, [
-      restaurants,
-      searchText,
-      selectedFilter,
-      sortBy,
-    ]);
+    if (selectedFilter === "Rating 4.0+") {
+      result = result.filter(
+        (restaurant) => Number(restaurant?.rating || 0) >= 4,
+      );
+    }
+
+    // ------------------------------------------------------
+    // FAST DELIVERY
+    // ------------------------------------------------------
+
+    if (selectedFilter === "Fast Delivery") {
+      result = result.filter(
+        (restaurant) => getFirstMinutes(restaurant?.time) <= 30,
+      );
+    }
+
+    // ------------------------------------------------------
+    // OFFERS
+    // ------------------------------------------------------
+
+    if (selectedFilter === "Offers") {
+      result = result.filter((restaurant) => Boolean(restaurant?.offer));
+    }
+
+    // ------------------------------------------------------
+    // SORT
+    // ------------------------------------------------------
+
+    if (sortBy === "rating") {
+      result.sort((a, b) => Number(b?.rating || 0) - Number(a?.rating || 0));
+    }
+
+    if (sortBy === "delivery") {
+      result.sort(
+        (a, b) => getFirstMinutes(a?.time) - getFirstMinutes(b?.time),
+      );
+    }
+
+    if (sortBy === "priceLow") {
+      result.sort((a, b) => getPrice(a?.price) - getPrice(b?.price));
+    }
+
+    if (sortBy === "priceHigh") {
+      result.sort((a, b) => getPrice(b?.price) - getPrice(a?.price));
+    }
+
+    return result;
+  }, [restaurants, searchText, selectedFilter, sortBy]);
 
   // ==========================================================
   // CLEAR ALL FILTERS
@@ -1256,27 +923,17 @@ export default function ExploreScreen() {
   const clearAll = () => {
     setSearchText("");
 
-    setSelectedCategory(
-      "All"
-    );
+    setSelectedCategory("All");
 
-    setSelectedCategoryId(
-      "all"
-    );
+    setSelectedCategoryId("all");
 
-    setSelectedFilter(
-      "All"
-    );
+    setSelectedFilter("All");
 
-    setSortBy(
-      "default"
-    );
+    setSortBy("default");
 
     setRestaurantsError("");
 
-    setShowFilterModal(
-      false
-    );
+    setShowFilterModal(false);
   };
 
   // ==========================================================
@@ -1284,15 +941,11 @@ export default function ExploreScreen() {
   // ==========================================================
 
   const openFilter = () => {
-    setTempFilter(
-      selectedFilter
-    );
+    setTempFilter(selectedFilter);
 
     setTempSort(sortBy);
 
-    setShowFilterModal(
-      true
-    );
+    setShowFilterModal(true);
   };
 
   // ==========================================================
@@ -1300,44 +953,29 @@ export default function ExploreScreen() {
   // ==========================================================
 
   const applyFilter = () => {
-    setSelectedFilter(
-      tempFilter
-    );
+    setSelectedFilter(tempFilter);
 
-    setSortBy(
-      tempSort
-    );
+    setSortBy(tempSort);
 
-    setShowFilterModal(
-      false
-    );
+    setShowFilterModal(false);
   };
 
   // ==========================================================
   // OPEN RESTAURANT
   // ==========================================================
 
-  const openRestaurant = (
-    restaurant
-  ) => {
+  const openRestaurant = (restaurant) => {
     if (!restaurant?.id) {
       return;
     }
 
     router.push({
-      pathname:
-        "/Restaurant/[id]",
+      pathname: "/Restaurant/[id]",
 
       params: {
-        id: String(
-          restaurant.id
-        ),
+        id: String(restaurant.id),
 
-        categoryId:
-          String(
-            selectedCategoryId ||
-              "all"
-          ),
+        categoryId: String(selectedCategoryId || "all"),
       },
     });
   };
@@ -1346,54 +984,26 @@ export default function ExploreScreen() {
   // PRODUCT INFO
   // ==========================================================
 
-  const renderProductInfo = (
-    restaurant
-  ) => {
-    const restaurantId =
-      String(
-        restaurant?.id
-      );
+  const renderProductInfo = (restaurant) => {
+    const restaurantId = String(restaurant?.id);
 
-    const productState =
-      restaurantProducts[
-        restaurantId
-      ];
+    const productState = restaurantProducts[restaurantId];
 
     if (!productState) {
       return null;
     }
 
-    if (
-      productState.loading
-    ) {
+    if (productState.loading) {
       return (
-        <View
-          style={
-            styles.productInfo
-          }
-        >
-          <ActivityIndicator
-            size="small"
-            color={
-              Colors.primary ||
-              "#F9080C"
-            }
-          />
+        <View style={styles.productInfo}>
+          <ActivityIndicator size="small" color={Colors.primary || "#F9080C"} />
 
-          <Text
-            style={
-              styles.productInfoText
-            }
-          >
-            Loading menu...
-          </Text>
+          <Text style={styles.productInfoText}>Loading menu...</Text>
         </View>
       );
     }
 
-    if (
-      productState.error
-    ) {
+    if (productState.error) {
       return (
         <View
           style={
@@ -1405,61 +1015,31 @@ export default function ExploreScreen() {
       );
     }
 
-    if (
-      productState.products
-        ?.length > 0
-    ) {
+    if (productState.products?.length > 0) {
       return (
-        <View
-          style={
-            styles.productInfo
-          }
-        >
+        <View style={styles.productInfo}>
           <Ionicons
             name="fast-food-outline"
             size={14}
-            color={
-              Colors.primary ||
-              "#F9080C"
-            }
+            color={Colors.primary || "#F9080C"}
           />
 
-          <Text
-            style={
-              styles.productInfoText
-            }
-          >
-            {
-              productState
-                .products.length
-            }{" "}
-            menu items
+          <Text style={styles.productInfoText}>
+            {productState.products.length} menu items
           </Text>
         </View>
       );
     }
 
     return (
-      <View
-        style={
-          styles.productInfo
-        }
-      >
+      <View style={styles.productInfo}>
         <Ionicons
           name="fast-food-outline"
           size={14}
-          color={
-            Colors.textSecondary
-          }
+          color={Colors.textSecondary}
         />
 
-        <Text
-          style={
-            styles.productInfoText
-          }
-        >
-          No menu items
-        </Text>
+        <Text style={styles.productInfoText}>No menu items</Text>
       </View>
     );
   };
@@ -1468,60 +1048,28 @@ export default function ExploreScreen() {
   // RESTAURANT CARD
   // ==========================================================
 
-  const renderRestaurant = (
-    restaurant
-  ) => {
-    const favorite =
-      favorites.includes(
-        restaurant.id
-      );
+  const renderRestaurant = (restaurant) => {
+    const favorite = favorites.includes(restaurant.id);
 
     return (
       <TouchableOpacity
-        key={String(
-          restaurant.id
-        )}
+        key={String(restaurant.id)}
         activeOpacity={0.92}
-        style={
-          styles.restaurantCard
-        }
-        onPress={() =>
-          openRestaurant(
-            restaurant
-          )
-        }
+        style={styles.restaurantCard}
+        onPress={() => openRestaurant(restaurant)}
       >
         {/* IMAGE */}
 
-        <View
-          style={
-            styles.imageContainer
-          }
-        >
+        <View style={styles.imageContainer}>
           <Image
-            source={
-              restaurant.image ||
-              FALLBACK_CATEGORY_IMAGES.all
-            }
-            style={
-              styles.restaurantImage
-            }
+            source={restaurant.image || FALLBACK_CATEGORY_IMAGES.all}
+            style={styles.restaurantImage}
             resizeMode="cover"
           />
 
           {restaurant.offer ? (
-            <View
-              style={
-                styles.offerBadge
-              }
-            >
-              <Text
-                style={
-                  styles.offerText
-                }
-              >
-                {restaurant.offer}
-              </Text>
+            <View style={styles.offerBadge}>
+              <Text style={styles.offerText}>{restaurant.offer}</Text>
             </View>
           ) : null}
 
@@ -1530,135 +1078,54 @@ export default function ExploreScreen() {
 
         {/* DETAILS */}
 
-        <View
-          style={
-            styles.restaurantDetails
-          }
-        >
-          <View
-            style={
-              styles.nameRow
-            }
-          >
-            <Text
-              style={
-                styles.restaurantName
-              }
-              numberOfLines={1}
-            >
+        <View style={styles.restaurantDetails}>
+          <View style={styles.nameRow}>
+            <Text style={styles.restaurantName} numberOfLines={1}>
               {restaurant.name}
             </Text>
 
-            <View
-              style={
-                styles.ratingBadge
-              }
-            >
-              <Ionicons
-                name="star"
-                size={11}
-                color="#FFFFFF"
-              />
+            <View style={styles.ratingBadge}>
+              <Ionicons name="star" size={11} color="#FFFFFF" />
 
-              <Text
-                style={
-                  styles.ratingText
-                }
-              >
-                {restaurant.rating ||
-                  "0"}
-              </Text>
+              <Text style={styles.ratingText}>{restaurant.rating || "0"}</Text>
             </View>
           </View>
 
-          <Text
-            style={
-              styles.cuisine
-            }
-            numberOfLines={1}
-          >
+          <Text style={styles.cuisine} numberOfLines={1}>
             {restaurant.cuisine}
           </Text>
 
-          <View
-            style={
-              styles.infoRow
-            }
-          >
-            <View
-              style={
-                styles.infoItem
-              }
-            >
+          <View style={styles.infoRow}>
+            <View style={styles.infoItem}>
               <Ionicons
                 name="time-outline"
                 size={14}
-                color={
-                  Colors.textSecondary
-                }
+                color={Colors.textSecondary}
               />
 
-              <Text
-                style={
-                  styles.infoText
-                }
-              >
-                {restaurant.time}
-              </Text>
+              <Text style={styles.infoText}>{restaurant.time}</Text>
             </View>
 
-            <View
-              style={styles.dot}
-            />
+            <View style={styles.dot} />
 
-            <Text
-              style={
-                styles.infoText
-              }
-            >
-              {restaurant.price}
-            </Text>
+            <Text style={styles.infoText}>{restaurant.price}</Text>
           </View>
 
-          {renderProductInfo(
-            restaurant
-          )}
+          {renderProductInfo(restaurant)}
 
-          <View
-            style={
-              styles.cardBottom
-            }
-          >
-            <View
-              style={
-                styles.delivery
-              }
-            >
+          <View style={styles.cardBottom}>
+            <View style={styles.delivery}>
               <Ionicons
                 name="bicycle-outline"
                 size={15}
-                color={
-                  Colors.textSecondary
-                }
+                color={Colors.textSecondary}
               />
 
-              <Text
-                style={
-                  styles.deliveryText
-                }
-              >
-                Free delivery
-              </Text>
+              <Text style={styles.deliveryText}>Free delivery</Text>
             </View>
 
-            <Text
-              style={
-                styles.reviews
-              }
-            >
-              {restaurant.reviews ||
-                0}{" "}
-              ratings
+            <Text style={styles.reviews}>
+              {restaurant.reviews || 0} ratings
             </Text>
           </View>
         </View>
@@ -1673,181 +1140,71 @@ export default function ExploreScreen() {
   const renderEmpty = () => {
     if (restaurantsLoading) {
       return (
-        <View
-          style={
-            styles.loadingContainer
-          }
-        >
-          <ActivityIndicator
-            size="large"
-            color={
-              Colors.primary ||
-              "#F9080C"
-            }
-          />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary || "#F9080C"} />
 
-          <Text
-            style={
-              styles.loadingText
-            }
-          >
-            Loading restaurants...
-          </Text>
+          <Text style={styles.loadingText}>Loading restaurants...</Text>
         </View>
       );
     }
 
     if (restaurantsError) {
       return (
-        <View
-          style={
-            styles.emptyContainer
-          }
-        >
+        <View style={styles.emptyContainer}>
           <Ionicons
             name="alert-circle-outline"
             size={45}
-            color={
-              Colors.textMuted
-            }
+            color={Colors.textMuted}
           />
 
-          <Text
-            style={
-              styles.emptyTitle
-            }
-          >
-            Unable to load restaurants
-          </Text>
+          <Text style={styles.emptyTitle}>Unable to load restaurants</Text>
 
-          <Text
-            style={
-              styles.emptyDescription
-            }
-          >
-            {restaurantsError}
-          </Text>
+          <Text style={styles.emptyDescription}>{restaurantsError}</Text>
 
           <TouchableOpacity
-            style={
-              styles.clearButton
-            }
-            onPress={() =>
-              loadCategoryRestaurants(
-                selectedCategoryId ||
-                  "all"
-              )
-            }
+            style={styles.clearButton}
+            onPress={() => loadCategoryRestaurants(selectedCategoryId || "all")}
           >
-            <Text
-              style={
-                styles.clearButtonText
-              }
-            >
-              Retry
-            </Text>
+            <Text style={styles.clearButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
       );
     }
 
-    if (
-      restaurants.length > 0 &&
-      filteredRestaurants.length === 0
-    ) {
+    if (restaurants.length > 0 && filteredRestaurants.length === 0) {
       return (
-        <View
-          style={
-            styles.emptyContainer
-          }
-        >
-          <Ionicons
-            name="search-outline"
-            size={45}
-            color={
-              Colors.textMuted
-            }
-          />
+        <View style={styles.emptyContainer}>
+          <Ionicons name="search-outline" size={45} color={Colors.textMuted} />
 
-          <Text
-            style={
-              styles.emptyTitle
-            }
-          >
-            No matching restaurants
+          <Text style={styles.emptyTitle}>No matching restaurants</Text>
+
+          <Text style={styles.emptyDescription}>
+            Try another search or clear your filters.
           </Text>
 
-          <Text
-            style={
-              styles.emptyDescription
-            }
-          >
-            Try another search or clear
-            your filters.
-          </Text>
-
-          <TouchableOpacity
-            style={
-              styles.clearButton
-            }
-            onPress={clearAll}
-          >
-            <Text
-              style={
-                styles.clearButtonText
-              }
-            >
-              Clear Filters
-            </Text>
+          <TouchableOpacity style={styles.clearButton} onPress={clearAll}>
+            <Text style={styles.clearButtonText}>Clear Filters</Text>
           </TouchableOpacity>
         </View>
       );
     }
 
     return (
-      <View
-        style={
-          styles.emptyContainer
-        }
-      >
+      <View style={styles.emptyContainer}>
         <Ionicons
           name="restaurant-outline"
           size={45}
-          color={
-            Colors.textMuted
-          }
+          color={Colors.textMuted}
         />
 
-        <Text
-          style={
-            styles.emptyTitle
-          }
-        >
-          No restaurants found
+        <Text style={styles.emptyTitle}>No restaurants found</Text>
+
+        <Text style={styles.emptyDescription}>
+          No restaurants are available for this category.
         </Text>
 
-        <Text
-          style={
-            styles.emptyDescription
-          }
-        >
-          No restaurants are available
-          for this category.
-        </Text>
-
-        <TouchableOpacity
-          style={
-            styles.clearButton
-          }
-          onPress={clearAll}
-        >
-          <Text
-            style={
-              styles.clearButtonText
-            }
-          >
-            View All Restaurants
-          </Text>
+        <TouchableOpacity style={styles.clearButton} onPress={clearAll}>
+          <Text style={styles.clearButtonText}>View All Restaurants</Text>
         </TouchableOpacity>
       </View>
     );
@@ -1858,206 +1215,94 @@ export default function ExploreScreen() {
   // ==========================================================
 
   return (
-    <View
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <StatusBar
-        barStyle={
-          isDark
-            ? "light-content"
-            : "dark-content"
-        }
-        backgroundColor={
-          Colors.background
-        }
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={Colors.background}
       />
 
       <ScrollView
-        showsVerticalScrollIndicator={
-          false
-        }
+        showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         {/* HEADER */}
 
-        <View
-          style={styles.header}
-        >
-          <View
-            style={
-              styles.locationWrapper
-            }
-          >
-            <View
-              style={
-                styles.locationIcon
-              }
-            >
+        <View style={styles.header}>
+          <View style={styles.locationWrapper}>
+            <View style={styles.locationIcon}>
               <Ionicons
                 name="location"
                 size={18}
-                color={
-                  Colors.primary ||
-                  "#F9080C"
-                }
+                color={Colors.primary || "#F9080C"}
               />
             </View>
 
             <View>
-              <Text
-                style={
-                  styles.deliverText
-                }
-              >
-                Delivering to
-              </Text>
+              <Text style={styles.deliverText}>Delivering to</Text>
 
-              <Text
-                style={
-                  styles.location
-                }
-              >
-                Hitech City
-              </Text>
+              <Text style={styles.location}>Hitech City</Text>
 
-              <Text
-                style={styles.city}
-              >
-                Hyderabad
-              </Text>
+              <Text style={styles.city}>Hyderabad</Text>
             </View>
           </View>
         </View>
 
         {/* TITLE */}
 
-        <View
-          style={
-            styles.titleContainer
-          }
-        >
-          <Text
-            style={styles.title}
-          >
-            Explore
-          </Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Explore</Text>
 
-          <Text
-            style={styles.subtitle}
-          >
-            Discover the best food
-            near you
-          </Text>
+          <Text style={styles.subtitle}>Discover the best food near you</Text>
         </View>
 
         {/* SEARCH */}
 
-        <View
-          style={styles.searchRow}
-        >
-          <View
-            style={styles.searchBox}
-          >
-            <Ionicons
-              name="search"
-              size={20}
-              color={
-                Colors.textSecondary
-              }
-            />
+        <View style={styles.searchRow}>
+          <View style={styles.searchBox}>
+            <Ionicons name="search" size={20} color={Colors.textSecondary} />
 
             <TextInput
               value={searchText}
-              onChangeText={
-                setSearchText
-              }
+              onChangeText={setSearchText}
               placeholder="Search restaurants or food"
-              placeholderTextColor={
-                Colors.textMuted
-              }
-              style={
-                styles.searchInput
-              }
+              placeholderTextColor={Colors.textMuted}
+              style={styles.searchInput}
             />
 
-            {searchText.length >
-            0 ? (
-              <TouchableOpacity
-                onPress={() =>
-                  setSearchText("")
-                }
-              >
+            {searchText.length > 0 ? (
+              <TouchableOpacity onPress={() => setSearchText("")}>
                 <Ionicons
                   name="close-circle"
                   size={19}
-                  color={
-                    Colors.textMuted
-                  }
+                  color={Colors.textMuted}
                 />
               </TouchableOpacity>
             ) : null}
           </View>
 
-          <TouchableOpacity
-            style={
-              styles.filterButton
-            }
-            onPress={
-              openFilter
-            }
-          >
-            <Ionicons
-              name="options-outline"
-              size={22}
-              color="#FFFFFF"
-            />
+          <TouchableOpacity style={styles.filterButton} onPress={openFilter}>
+            <Ionicons name="options-outline" size={22} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
         {/* CATEGORIES */}
 
-        <View
-          style={
-            styles.sectionHeader
-          }
-        >
-          <View
-            style={
-              styles.categoryTitleRow
-            }
-          >
-            <Text
-              style={
-                styles.sectionTitle
-              }
-            >
-              Eat what makes you happy
-            </Text>
+        <View style={styles.sectionHeader}>
+          <View style={styles.categoryTitleRow}>
+            <Text style={styles.sectionTitle}>Eat what makes you happy</Text>
 
             {categoriesLoading ? (
               <ActivityIndicator
                 size="small"
-                color={
-                  Colors.primary ||
-                  "#F9080C"
-                }
+                color={Colors.primary || "#F9080C"}
               />
             ) : null}
           </View>
 
           {categoriesError ? (
-            <TouchableOpacity
-              onPress={
-                loadCategories
-              }
-            >
-              <Text
-                style={
-                  styles.retryCategoryText
-                }
-              >
-                Unable to load categories.
-                Tap to retry.
+            <TouchableOpacity onPress={loadCategories}>
+              <Text style={styles.retryCategoryText}>
+                Unable to load categories. Tap to retry.
               </Text>
             </TouchableOpacity>
           ) : null}
@@ -2065,256 +1310,145 @@ export default function ExploreScreen() {
 
         <ScrollView
           horizontal
-          showsHorizontalScrollIndicator={
-            false
-          }
-          contentContainerStyle={
-            styles.categoryList
-          }
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryList}
         >
-          {categories.map(
-            (category) => {
-              const active =
-                String(
-                  selectedCategoryId
-                ) ===
-                String(
-                  category.id
-                );
+          {categories.map((category) => {
+            const active = String(selectedCategoryId) === String(category.id);
 
-              return (
-                <TouchableOpacity
-                  key={String(
-                    category.id
-                  )}
-                  activeOpacity={0.85}
-                  style={
-                    styles.categoryItem
-                  }
-                  onPress={() =>
-                    selectCategory(
-                      category.name,
-                      category.id
-                    )
-                  }
+            return (
+              <TouchableOpacity
+                key={String(category.id)}
+                activeOpacity={0.85}
+                style={styles.categoryItem}
+                onPress={() => selectCategory(category.name, category.id)}
+              >
+                <View
+                  style={[
+                    styles.categoryImageBox,
+                    active && styles.categoryImageBoxActive,
+                  ]}
                 >
-                  <View
-                    style={[
-                      styles.categoryImageBox,
-                      active &&
-                        styles.categoryImageBoxActive,
-                    ]}
-                  >
-                    <Image
-                      source={
-                        category.image
-                      }
-                      style={
-                        styles.categoryImage
-                      }
-                      resizeMode="cover"
-                    />
-                  </View>
+                  <Image
+                    source={category.image}
+                    style={styles.categoryImage}
+                    resizeMode="cover"
+                  />
+                </View>
 
-                  <Text
-                    style={[
-                      styles.categoryText,
-                      active &&
-                        styles.categoryTextActive,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {category.name}
-                  </Text>
-                </TouchableOpacity>
-              );
-            }
-          )}
+                <Text
+                  style={[
+                    styles.categoryText,
+                    active && styles.categoryTextActive,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {category.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
 
         {/* RESTAURANT HEADER */}
 
-        <View
-          style={
-            styles.restaurantHeader
-          }
-        >
+        <View style={styles.restaurantHeader}>
           <View>
-            <Text
-              style={
-                styles.restaurantTitle
-              }
-            >
-              Restaurants
-            </Text>
+            <Text style={styles.restaurantTitle}>Restaurants</Text>
 
-            <Text
-              style={
-                styles.resultText
-              }
-            >
-              {filteredRestaurants.length}{" "}
-              restaurants
+            <Text style={styles.resultText}>
+              {filteredRestaurants.length} restaurants
             </Text>
           </View>
 
-          {(selectedFilter !==
-            "All" ||
-            sortBy !==
-              "default") ? (
-            <TouchableOpacity
-              onPress={
-                clearAll
-              }
-            >
-              <Text
-                style={
-                  styles.clearFilterText
-                }
-              >
-                Clear
-              </Text>
+          {selectedFilter !== "All" || sortBy !== "default" ? (
+            <TouchableOpacity onPress={clearAll}>
+              <Text style={styles.clearFilterText}>Clear</Text>
             </TouchableOpacity>
           ) : null}
         </View>
 
+        {/* RESTAURANTS LOADING / ERROR */}
+
+        {restaurantsLoading && (
+          <ActivityIndicator
+            size="small"
+            style={styles.restaurantLoader}
+            color={Colors.primary || "#E85D04"}
+          />
+        )}
+
+        {restaurantsError ? (
+          <TouchableOpacity
+            onPress={() => loadCategoryRestaurants(selectedCategoryId)}
+            style={styles.retryRestaurants}
+          >
+            <Text style={styles.retryCategoryText}>
+              Unable to load restaurants. Tap to retry.
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+
         {/* RESTAURANTS */}
 
-        <View
-          style={
-            styles.restaurantList
-          }
-        >
-          {restaurantsLoading ||
-          filteredRestaurants.length ===
-            0
+        <View style={styles.restaurantList}>
+          {restaurantsLoading || filteredRestaurants.length === 0
             ? renderEmpty()
-            : filteredRestaurants.map(
-                renderRestaurant
-              )}
+            : filteredRestaurants.map(renderRestaurant)}
         </View>
 
-        <View
-          style={{ height: 40 }}
-        />
+        <View style={{ height: 40 }} />
       </ScrollView>
 
       {/* FILTER MODAL */}
 
       <Modal
-        visible={
-          showFilterModal
-        }
+        visible={showFilterModal}
         transparent
         animationType="slide"
-        onRequestClose={() =>
-          setShowFilterModal(
-            false
-          )
-        }
+        onRequestClose={() => setShowFilterModal(false)}
       >
-        <View
-          style={
-            styles.modalOverlay
-          }
-        >
-          <View
-            style={styles.modal}
-          >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modal}>
             {/* MODAL HEADER */}
 
-            <View
-              style={
-                styles.modalHeader
-              }
-            >
-              <Text
-                style={
-                  styles.modalTitle
-                }
-              >
-                Filters & Sort
-              </Text>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Filters & Sort</Text>
 
-              <TouchableOpacity
-                onPress={() =>
-                  setShowFilterModal(
-                    false
-                  )
-                }
-              >
-                <Ionicons
-                  name="close"
-                  size={25}
-                  color={
-                    Colors.textPrimary
-                  }
-                />
+              <TouchableOpacity onPress={() => setShowFilterModal(false)}>
+                <Ionicons name="close" size={25} color={Colors.textPrimary} />
               </TouchableOpacity>
             </View>
 
             {/* FILTER */}
 
-            <Text
-              style={
-                styles.modalHeading
-              }
-            >
-              Filter by
-            </Text>
+            <Text style={styles.modalHeading}>Filter by</Text>
 
-            {[
-              "All",
-              "Pure Veg",
-              "Rating 4.0+",
-              "Fast Delivery",
-              "Offers",
-            ].map(
+            {["All", "Pure Veg", "Rating 4.0+", "Fast Delivery", "Offers"].map(
               (filter) => {
-                const active =
-                  tempFilter ===
-                  filter;
+                const active = tempFilter === filter;
 
                 return (
                   <TouchableOpacity
                     key={filter}
-                    style={
-                      styles.modalOption
-                    }
-                    onPress={() =>
-                      setTempFilter(
-                        filter
-                      )
-                    }
+                    style={styles.modalOption}
+                    onPress={() => setTempFilter(filter)}
                   >
-                    <View
-                      style={[
-                        styles.radio,
-                        active &&
-                          styles.radioActive,
-                      ]}
-                    >
-                      {active ? (
-                        <View
-                          style={
-                            styles.radioDot
-                          }
-                        />
-                      ) : null}
+                    <View style={[styles.radio, active && styles.radioActive]}>
+                      {active ? <View style={styles.radioDot} /> : null}
                     </View>
 
                     <Text
                       style={[
                         styles.modalOptionText,
-                        active &&
-                          styles.modalOptionTextActive,
+                        active && styles.modalOptionTextActive,
                       ]}
                     >
                       {filter}
                     </Text>
                   </TouchableOpacity>
                 );
-              }
+              },
             )}
 
             {/* SORT */}
@@ -2345,109 +1479,56 @@ export default function ExploreScreen() {
               },
               {
                 value: "priceLow",
-                label:
-                  "Price: Low to High",
+                label: "Price: Low to High",
               },
               {
                 value: "priceHigh",
-                label:
-                  "Price: High to Low",
+                label: "Price: High to Low",
               },
-            ].map(
-              (sort) => {
-                const active =
-                  tempSort ===
-                  sort.value;
+            ].map((sort) => {
+              const active = tempSort === sort.value;
 
-                return (
-                  <TouchableOpacity
-                    key={
-                      sort.value
-                    }
-                    style={
-                      styles.modalOption
-                    }
-                    onPress={() =>
-                      setTempSort(
-                        sort.value
-                      )
-                    }
+              return (
+                <TouchableOpacity
+                  key={sort.value}
+                  style={styles.modalOption}
+                  onPress={() => setTempSort(sort.value)}
+                >
+                  <View style={[styles.radio, active && styles.radioActive]}>
+                    {active ? <View style={styles.radioDot} /> : null}
+                  </View>
+
+                  <Text
+                    style={[
+                      styles.modalOptionText,
+                      active && styles.modalOptionTextActive,
+                    ]}
                   >
-                    <View
-                      style={[
-                        styles.radio,
-                        active &&
-                          styles.radioActive,
-                      ]}
-                    >
-                      {active ? (
-                        <View
-                          style={
-                            styles.radioDot
-                          }
-                        />
-                      ) : null}
-                    </View>
-
-                    <Text
-                      style={[
-                        styles.modalOptionText,
-                        active &&
-                          styles.modalOptionTextActive,
-                      ]}
-                    >
-                      {sort.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              }
-            )}
+                    {sort.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
 
             {/* BUTTONS */}
 
-            <View
-              style={
-                styles.modalButtons
-              }
-            >
+            <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={
-                  styles.clearModalButton
-                }
+                style={styles.clearModalButton}
                 onPress={() => {
-                  setTempFilter(
-                    "All"
-                  );
+                  setTempFilter("All");
 
-                  setTempSort(
-                    "default"
-                  );
+                  setTempSort("default");
                 }}
               >
-                <Text
-                  style={
-                    styles.clearModalText
-                  }
-                >
-                  Clear
-                </Text>
+                <Text style={styles.clearModalText}>Clear</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={
-                  styles.applyModalButton
-                }
-                onPress={
-                  applyFilter
-                }
+                style={styles.applyModalButton}
+                onPress={applyFilter}
               >
-                <Text
-                  style={
-                    styles.applyModalText
-                  }
-                >
-                  Apply
-                </Text>
+                <Text style={styles.applyModalText}>Apply</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -2461,15 +1542,11 @@ export default function ExploreScreen() {
 // STYLES
 // ============================================================
 
-const makeStyles = (
-  Colors,
-  isDark
-) =>
+const makeStyles = (Colors, isDark) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor:
-        Colors.background,
+      backgroundColor: Colors.background,
     },
 
     header: {
@@ -2487,37 +1564,28 @@ const makeStyles = (
       width: 40,
       height: 40,
       borderRadius: 20,
-      backgroundColor:
-        isDark
-          ? Colors.surface
-          : Colors.backgroundElement,
+      backgroundColor: isDark ? Colors.surface : Colors.backgroundElement,
       justifyContent: "center",
       alignItems: "center",
       marginRight: 10,
     },
 
     deliverText: {
-      fontFamily:
-        Fonts.regular,
-      fontSize: 10,
-      color:
-        Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
+      color: Colors.textSecondary,
     },
 
     location: {
-      fontFamily:
-        Fonts.bold,
-      fontSize: 15,
-      color:
-        Colors.textPrimary,
+      fontFamily: Fonts.bold,
+      fontSize: 18,
+      color: Colors.textPrimary,
     },
 
     city: {
-      fontFamily:
-        Fonts.regular,
-      fontSize: 13,
-      color:
-        Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
+      color: Colors.textSecondary,
     },
 
     titleContainer: {
@@ -2526,19 +1594,15 @@ const makeStyles = (
     },
 
     title: {
-      fontFamily:
-        Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: 30,
-      color:
-        Colors.textPrimary,
+      color: Colors.textPrimary,
     },
 
     subtitle: {
-      fontFamily:
-        Fonts.regular,
-      fontSize: 14,
-      color:
-        Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
+      color: Colors.textSecondary,
       marginTop: 4,
     },
 
@@ -2553,24 +1617,20 @@ const makeStyles = (
     searchBox: {
       flex: 1,
       height: 52,
-      backgroundColor:
-        Colors.surface,
+      backgroundColor: Colors.surface,
       borderRadius: 15,
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: 15,
       borderWidth: 1,
-      borderColor:
-        Colors.border,
+      borderColor: Colors.border,
     },
 
     searchInput: {
       flex: 1,
-      fontFamily:
-        Fonts.regular,
+      fontFamily: Fonts.regular,
       fontSize: 16,
-      color:
-        Colors.textPrimary,
+      color: Colors.textPrimary,
       marginLeft: 9,
     },
 
@@ -2578,11 +1638,8 @@ const makeStyles = (
       width: 52,
       height: 52,
       borderRadius: 15,
-      backgroundColor:
-        Colors.primary ||
-        "#F9080C",
-      justifyContent:
-        "center",
+      backgroundColor: Colors.primary || "#F9080C",
+      justifyContent: "center",
       alignItems: "center",
     },
 
@@ -2595,26 +1652,20 @@ const makeStyles = (
     categoryTitleRow: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent:
-        "space-between",
+      justifyContent: "space-between",
     },
 
     sectionTitle: {
-      fontFamily:
-        Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: 22,
-      color:
-        Colors.textPrimary,
+      color: Colors.textPrimary,
     },
 
     retryCategoryText: {
       marginTop: 7,
-      fontFamily:
-        Fonts.medium,
+      fontFamily: Fonts.medium,
       fontSize: 11,
-      color:
-        Colors.primary ||
-        "#F9080C",
+      color: Colors.primary || "#F9080C",
     },
 
     categoryList: {
@@ -2632,19 +1683,13 @@ const makeStyles = (
       height: 68,
       borderRadius: 34,
       overflow: "hidden",
-      backgroundColor:
-        isDark
-          ? Colors.surface
-          : Colors.backgroundElement,
+      backgroundColor: isDark ? Colors.surface : Colors.backgroundElement,
       borderWidth: 2,
-      borderColor:
-        "transparent",
+      borderColor: "transparent",
     },
 
     categoryImageBoxActive: {
-      borderColor:
-        Colors.primary ||
-        "#F9080C",
+      borderColor: Colors.primary || "#F9080C",
       transform: [
         {
           scale: 1.04,
@@ -2659,20 +1704,15 @@ const makeStyles = (
 
     categoryText: {
       marginTop: 8,
-      fontFamily:
-        Fonts.medium,
-      fontSize: 13,
-      color:
-        Colors.textPrimary,
+      fontFamily: Fonts.medium,
+      fontSize: 17,
+      color: Colors.textPrimary,
       textAlign: "center",
     },
 
     categoryTextActive: {
-      color:
-        Colors.primary ||
-        "#F9080C",
-      fontFamily:
-        Fonts.bold,
+      color: Colors.primary || "#F9080C",
+      fontFamily: Fonts.bold,
     },
 
     restaurantHeader: {
@@ -2681,34 +1721,26 @@ const makeStyles = (
       marginBottom: 13,
       flexDirection: "row",
       alignItems: "center",
-      justifyContent:
-        "space-between",
+      justifyContent: "space-between",
     },
 
     restaurantTitle: {
-      fontFamily:
-        Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: 24,
-      color:
-        Colors.textPrimary,
+      color: Colors.textPrimary,
     },
 
     resultText: {
-      fontFamily:
-        Fonts.regular,
-      fontSize: 12,
-      color:
-        Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
+      color: Colors.textSecondary,
       marginTop: 4,
     },
 
     clearFilterText: {
-      fontFamily:
-        Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: 13,
-      color:
-        Colors.primary ||
-        "#F9080C",
+      color: Colors.primary || "#F9080C",
     },
 
     restaurantList: {
@@ -2716,13 +1748,11 @@ const makeStyles = (
     },
 
     restaurantCard: {
-      backgroundColor:
-        Colors.card,
+      backgroundColor: Colors.card,
       borderRadius: 20,
       overflow: "hidden",
       borderWidth: 1,
-      borderColor:
-        Colors.border,
+      borderColor: Colors.border,
       marginBottom: 18,
       elevation: 5,
     },
@@ -2731,8 +1761,7 @@ const makeStyles = (
       height: 195,
       width: "100%",
       position: "relative",
-      backgroundColor:
-        Colors.card,
+      backgroundColor: Colors.card,
     },
 
     restaurantImage: {
@@ -2744,8 +1773,7 @@ const makeStyles = (
       position: "absolute",
       left: 12,
       bottom: 12,
-      backgroundColor:
-        "#D84315",
+      backgroundColor: "#D84315",
       paddingHorizontal: 10,
       paddingVertical: 6,
       borderRadius: 7,
@@ -2753,8 +1781,7 @@ const makeStyles = (
 
     offerText: {
       color: "#FFFFFF",
-      fontFamily:
-        Fonts.bold,
+      fontFamily: Fonts.bold,
       fontSize: 10,
     },
 
@@ -2765,8 +1792,7 @@ const makeStyles = (
       width: 39,
       height: 39,
       borderRadius: 20,
-      backgroundColor:
-        "rgba(255,255,255,0.96)",
+      backgroundColor: "rgba(255,255,255,0.96)",
       alignItems: "center",
       justifyContent: "center",
     },
@@ -2784,184 +1810,142 @@ const makeStyles = (
 
     restaurantName: {
       flex: 1,
-      fontFamily:
-        Fonts.bold,
+      fontFamily: Fonts.bold,
       fontSize: 20,
-      color:
-        Colors.textPrimary,
+      color: Colors.textPrimary,
       marginRight: 8,
     },
 
     ratingBadge: {
-      backgroundColor:
-        "#2E7D32",
+      backgroundColor: "#2E7D32",
       borderRadius: 7,
       paddingHorizontal: 7,
       paddingVertical: 4,
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
+      flexDirection: "row",
+      alignItems: "center",
       gap: 3,
     },
 
     ratingText: {
       color: "#FFFFFF",
-      fontFamily:
-        Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: 11,
     },
 
     cuisine: {
-      fontFamily:
-        Fonts.regular,
-      fontSize: 13,
-      color:
-        Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
+      color: Colors.textSecondary,
       marginTop: 5,
     },
 
     infoRow: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
+      flexDirection: "row",
+      alignItems: "center",
       marginTop: 9,
     },
 
     infoItem: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
+      flexDirection: "row",
+      alignItems: "center",
       gap: 4,
     },
 
     infoText: {
-      fontFamily:
-        Fonts.regular,
+      fontFamily: Fonts.regular,
       fontSize: 12,
-      color:
-        Colors.textSecondary,
+      color: Colors.textSecondary,
     },
 
     dot: {
       width: 4,
       height: 4,
       borderRadius: 2,
-      backgroundColor:
-        Colors.textMuted,
+      backgroundColor: Colors.textMuted,
       marginHorizontal: 8,
     },
 
     productInfo: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
+      flexDirection: "row",
+      alignItems: "center",
       marginTop: 10,
       gap: 5,
     },
 
     productInfoText: {
-      fontFamily:
-        Fonts.medium,
+      fontFamily: Fonts.medium,
       fontSize: 11,
-      color:
-        Colors.textSecondary,
+      color: Colors.textSecondary,
     },
 
     productErrorText: {
       flex: 1,
-      fontFamily:
-        Fonts.regular,
+      fontFamily: Fonts.regular,
       fontSize: 11,
-      color:
-        Colors.error ||
-        "#E53935",
+      color: Colors.error || "#E53935",
     },
 
     cardBottom: {
       marginTop: 11,
       paddingTop: 10,
       borderTopWidth: 1,
-      borderTopColor:
-        Colors.border,
-      flexDirection:
-        "row",
-      justifyContent:
-        "space-between",
-      alignItems:
-        "center",
+      borderTopColor: Colors.border,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
     },
 
     delivery: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
+      flexDirection: "row",
+      alignItems: "center",
       gap: 5,
     },
 
     deliveryText: {
-      fontFamily:
-        Fonts.medium,
-      fontSize: 11,
-      color:
-        Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
+      color: Colors.textSecondary,
     },
 
     reviews: {
-      fontFamily:
-        Fonts.regular,
+      fontFamily: Fonts.regular,
       fontSize: 11,
-      color:
-        Colors.textSecondary,
+      color: Colors.textSecondary,
     },
 
     loadingContainer: {
       minHeight: 180,
-      justifyContent:
-        "center",
-      alignItems:
-        "center",
+      justifyContent: "center",
+      alignItems: "center",
     },
 
     loadingText: {
       marginTop: 12,
-      fontFamily:
-        Fonts.medium,
+      fontFamily: Fonts.medium,
       fontSize: 14,
-      color:
-        Colors.textSecondary,
+      color: Colors.textSecondary,
     },
 
     emptyContainer: {
       minHeight: 220,
-      justifyContent:
-        "center",
-      alignItems:
-        "center",
+      justifyContent: "center",
+      alignItems: "center",
       paddingHorizontal: 30,
     },
 
     emptyTitle: {
       marginTop: 12,
-      fontFamily:
-        Fonts.bold,
+      fontFamily: Fonts.bold,
       fontSize: 18,
-      color:
-        Colors.textPrimary,
+      color: Colors.textPrimary,
       textAlign: "center",
     },
 
     emptyDescription: {
       marginTop: 7,
-      fontFamily:
-        Fonts.regular,
+      fontFamily: Fonts.regular,
       fontSize: 13,
-      color:
-        Colors.textSecondary,
+      color: Colors.textSecondary,
       textAlign: "center",
       lineHeight: 19,
     },
@@ -2971,31 +1955,23 @@ const makeStyles = (
       paddingHorizontal: 18,
       paddingVertical: 10,
       borderRadius: 10,
-      backgroundColor:
-        Colors.primary ||
-        "#F9080C",
+      backgroundColor: Colors.primary || "#F9080C",
     },
 
     clearButtonText: {
-      color:
-        Colors.white ||
-        "#FFFFFF",
-      fontFamily:
-        Fonts.bold,
+      color: Colors.white || "#FFFFFF",
+      fontFamily: Fonts.bold,
       fontSize: 13,
     },
 
     modalOverlay: {
       flex: 1,
-      backgroundColor:
-        "rgba(0,0,0,0.65)",
-      justifyContent:
-        "flex-end",
+      backgroundColor: "rgba(0,0,0,0.65)",
+      justifyContent: "flex-end",
     },
 
     modal: {
-      backgroundColor:
-        Colors.background,
+      backgroundColor: Colors.background,
       borderTopLeftRadius: 25,
       borderTopRightRadius: 25,
       padding: 20,
@@ -3003,37 +1979,28 @@ const makeStyles = (
     },
 
     modalHeader: {
-      flexDirection:
-        "row",
-      justifyContent:
-        "space-between",
-      alignItems:
-        "center",
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       marginBottom: 18,
     },
 
     modalTitle: {
-      fontFamily:
-        Fonts.bold,
+      fontFamily: Fonts.bold,
       fontSize: 22,
-      color:
-        Colors.textPrimary,
+      color: Colors.textPrimary,
     },
 
     modalHeading: {
-      fontFamily:
-        Fonts.bold,
+      fontFamily: Fonts.bold,
       fontSize: 15,
-      color:
-        Colors.textPrimary,
+      color: Colors.textPrimary,
       marginBottom: 8,
     },
 
     modalOption: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
+      flexDirection: "row",
+      alignItems: "center",
       paddingVertical: 10,
     },
 
@@ -3042,48 +2009,36 @@ const makeStyles = (
       height: 20,
       borderRadius: 10,
       borderWidth: 2,
-      borderColor:
-        Colors.border,
-      justifyContent:
-        "center",
-      alignItems:
-        "center",
+      borderColor: Colors.border,
+      justifyContent: "center",
+      alignItems: "center",
       marginRight: 10,
     },
 
     radioActive: {
-      borderColor:
-        Colors.primary ||
-        "#F9080C",
+      borderColor: Colors.primary || "#F9080C",
     },
 
     radioDot: {
       width: 10,
       height: 10,
       borderRadius: 5,
-      backgroundColor:
-        Colors.primary ||
-        "#F9080C",
+      backgroundColor: Colors.primary || "#F9080C",
     },
 
     modalOptionText: {
-      fontFamily:
-        Fonts.medium,
+      fontFamily: Fonts.medium,
       fontSize: 14,
-      color:
-        Colors.textSecondary,
+      color: Colors.textSecondary,
     },
 
     modalOptionTextActive: {
-      color:
-        Colors.textPrimary,
-      fontFamily:
-        Fonts.bold,
+      color: Colors.textPrimary,
+      fontFamily: Fonts.bold,
     },
 
     modalButtons: {
-      flexDirection:
-        "row",
+      flexDirection: "row",
       gap: 10,
       marginTop: 20,
     },
@@ -3093,39 +2048,27 @@ const makeStyles = (
       height: 48,
       borderRadius: 12,
       borderWidth: 1,
-      borderColor:
-        Colors.border,
-      justifyContent:
-        "center",
-      alignItems:
-        "center",
+      borderColor: Colors.border,
+      justifyContent: "center",
+      alignItems: "center",
     },
 
     clearModalText: {
-      fontFamily:
-        Fonts.bold,
-      color:
-        Colors.textPrimary,
+      fontFamily: Fonts.bold,
+      color: Colors.textPrimary,
     },
 
     applyModalButton: {
       flex: 1,
       height: 48,
       borderRadius: 12,
-      backgroundColor:
-        Colors.primary ||
-        "#F9080C",
-      justifyContent:
-        "center",
-      alignItems:
-        "center",
+      backgroundColor: Colors.primary || "#F9080C",
+      justifyContent: "center",
+      alignItems: "center",
     },
 
     applyModalText: {
-      fontFamily:
-        Fonts.bold,
-      color:
-        Colors.white ||
-        "#FFFFFF",
+      fontFamily: Fonts.bold,
+      color: Colors.white || "#FFFFFF",
     },
   });

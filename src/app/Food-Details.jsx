@@ -1192,7 +1192,7 @@ export default function FoodDetailsScreen() {
     useCallback(() => {
       try {
         router.push(
-          "/(tabs)/CartScreen"
+          "/CartScreen"
         );
       } catch (error) {
         console.log(
@@ -1459,15 +1459,22 @@ export default function FoodDetailsScreen() {
             return;
           }
 
-          // ===============================================
-          // SUCCESS
-          // ===============================================
+          // =======================================================
+          // SUCCESS - NAVIGATE TO CART
+          // =======================================================
 
-          const success =
+          if (
             response?.success === 1 ||
             response?.success === true ||
-            response?.success === "1";
+            response?.success === "1"
+          ) {
+            console.log("Product added successfully");
+            console.log("Navigating to CartScreen");
 
+            router.push("/CartScreen");
+
+            return;
+          }
           // ===============================================
           // API ERROR
           // ===============================================

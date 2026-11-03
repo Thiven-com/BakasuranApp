@@ -1,4 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -311,7 +313,6 @@ const getFoodImage = (item) => {
 // =========================================================
 // NORMALIZE FOOD
 // =========================================================
-
 const normalizeFoodItem = (item, index = 0) => {
   const product = item?.product || item;
 
@@ -322,8 +323,28 @@ const normalizeFoodItem = (item, index = 0) => {
         product?.product_id,
         item?.id,
         item?.product_id,
-        index + 1,
-      ),
+        index + 1
+      )
+    ),
+
+    product_id: getFirstValue(
+      product?.id,
+      product?.product_id,
+      item?.product_id,
+      item?.product?.id
+    ),
+
+    variant_id: getFirstValue(
+      product?.variant_id,
+      product?.variantId,
+      product?.variant?.id,
+
+      item?.variant_id,
+      item?.variantId,
+      item?.variant?.id,
+
+      item?.product_variant_id,
+      item?.productVariantId
     ),
 
     name:
@@ -331,7 +352,7 @@ const normalizeFoodItem = (item, index = 0) => {
         product?.name,
         product?.product_name,
         item?.name,
-        item?.product_name,
+        item?.product_name
       ) || "Food Item",
 
     description:
@@ -339,7 +360,7 @@ const normalizeFoodItem = (item, index = 0) => {
         product?.description,
         item?.description,
         product?.short_description,
-        item?.short_description,
+        item?.short_description
       ) || "Delicious food prepared fresh.",
 
     price: Number(
@@ -350,8 +371,8 @@ const normalizeFoodItem = (item, index = 0) => {
         item?.price,
         item?.selling_price,
         item?.final_price,
-        0,
-      ),
+        0
+      )
     ),
 
     image: getFoodImage(product),
@@ -362,7 +383,7 @@ const normalizeFoodItem = (item, index = 0) => {
         product?.avg_rating,
         product?.average_rating,
         item?.rating,
-        item?.avg_rating,
+        item?.avg_rating
       ) || "4.5",
   };
 };
@@ -473,6 +494,7 @@ export default function RestaurantDetails() {
   // =======================================================
 
   const [productLoading, setProductLoading] = useState(false);
+  const [cartLoading, setCartLoading] = useState(false);
 
   const [selectedProduct, setSelectedProduct] = useState(null);
 
@@ -510,8 +532,8 @@ export default function RestaurantDetails() {
         if (!isSuccessResponse(response)) {
           throw new Error(
             response?.message ||
-              response?.error ||
-              "Unable to load restaurant.",
+            response?.error ||
+            "Unable to load restaurant.",
           );
         }
 
@@ -706,8 +728,8 @@ export default function RestaurantDetails() {
       if (!isSuccessResponse(response)) {
         throw new Error(
           response?.message ||
-            response?.error ||
-            "Unable to load product details.",
+          response?.error ||
+          "Unable to load product details.",
         );
       }
 
@@ -775,8 +797,8 @@ export default function RestaurantDetails() {
   const restaurantImage = useMemo(() => {
     return getImageSource(
       restaurant?.image ||
-        restaurant?.image_url ||
-        restaurant?.restaurant_image,
+      restaurant?.image_url ||
+      restaurant?.restaurant_image,
     );
   }, [restaurant]);
 
@@ -904,8 +926,7 @@ export default function RestaurantDetails() {
 
     Alert.alert(
       "Offer Available",
-      `${
-        restaurant.offerText || restaurant.offer || ""
+      `${restaurant.offerText || restaurant.offer || ""
       }\n\nCoupon: ${restaurant.offerCode}`,
     );
   };
@@ -974,14 +995,178 @@ export default function RestaurantDetails() {
       0,
     ),
   );
-
   const selectedProductId = getFirstValue(
-    selectedProduct?.id,
     selectedProduct?.product_id,
-    selectedMenuItem?.id,
+    selectedProduct?.productId,
+    selectedProduct?.product?.id,
+    selectedProduct?.id,
     selectedMenuItem?.product_id,
+    selectedMenuItem?.productId,
+    selectedMenuItem?.product?.id,
+    selectedMenuItem?.id,
   );
 
+  const selectedVariantId = getFirstValue(
+    selectedProduct?.variant_id,
+    selectedProduct?.variantId,
+    selectedProduct?.variant?.id,
+    selectedProduct?.product_variant_id,
+    selectedProduct?.productVariantId,
+
+    selectedProduct?.product?.variant_id,
+    selectedProduct?.product?.variantId,
+    selectedProduct?.product?.variant?.id,
+
+    selectedMenuItem?.variant_id,
+    selectedMenuItem?.variantId,
+    selectedMenuItem?.variant?.id,
+    selectedMenuItem?.product_variant_id,
+    selectedMenuItem?.productVariantId,
+
+    selectedMenuItem?.product?.variant_id,
+    selectedMenuItem?.product?.variantId,
+    selectedMenuItem?.product?.variant?.id,
+  );
+
+
+  // =======================================================
+  // ADD TO CART API
+  // POST /api/customer/cart/add
+  // =======================================================
+  const addToCart = useCallback(async () => {
+    if (cartLoading) return;
+
+    console.log("========== ADD CART START ==========");
+
+    try {
+      const productId = Number(selectedProductId);
+      const variantId = Number(selectedVariantId);
+
+      if (!Number.isInteger(productId) || productId <= 0) {
+        Alert.alert("Cart", "Product ID is missing or invalid.");
+        return;
+      }
+
+      if (!Number.isInteger(variantId) || variantId <= 0) {
+        console.log("PRODUCT:", JSON.stringify(selectedProduct, null, 2));
+        console.log("MENU ITEM:", JSON.stringify(selectedMenuItem, null, 2));
+
+        Alert.alert("Cart", "Variant ID is missing.");
+        return;
+      }
+
+      setCartLoading(true);
+
+      const tokenKeys = [
+        "bakasuran_token",
+        "access_token",
+        "accessToken",
+        "authToken",
+        "token",
+      ];
+
+      let token = null;
+
+      for (const key of tokenKeys) {
+        const value = await AsyncStorage.getItem(key);
+
+        if (value) {
+          token = value;
+          console.log("TOKEN FOUND:", key);
+          break;
+        }
+      }
+
+      if (!token) {
+        Alert.alert("Login Required", "Please login again.");
+        return;
+      }
+
+      const payload = {
+        product_id: productId,
+        variant_id: variantId,
+        quantity: 1,
+      };
+
+      const url =
+        `${String(BASE_URL).replace(/\/+$/, "")}/api/customer/cart/add`;
+
+      console.log("API URL:", url);
+      console.log("METHOD: POST");
+      console.log("REQUEST DATA:", JSON.stringify(payload, null, 2));
+
+      const response = await axios.post(url, payload, {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${String(token).replace(/^Bearer\s+/i, "")}`,
+        },
+        timeout: 30000,
+        validateStatus: () => true,
+      });
+
+      console.log("HTTP STATUS:", response.status);
+
+      console.log(
+        "ADD CART API RESPONSE:",
+        JSON.stringify(response.data, null, 2)
+      );
+
+      const data = response.data;
+
+      const success =
+        [1, "1", true].includes(data?.success) ||
+        [1, "1", true].includes(data?.status);
+
+      if (response.status < 200 || response.status >= 300 || !success) {
+        Alert.alert(
+          "Add to Cart Failed",
+          data?.message || data?.error || `HTTP ${response.status}`
+        );
+        return;
+      }
+
+      const menuItemId = String(
+        selectedMenuItem?.id ||
+        selectedMenuItem?.product_id ||
+        productId
+      );
+
+      increaseQuantity(menuItemId);
+      Alert.alert(
+        "Added to Cart",
+        data?.message || "Product added successfully.",
+        [{ text: "OK", onPress: closeProductModal }]
+      );
+
+    } catch (error) {
+      console.log("ADD CART ERROR:", error?.message);
+      console.log("ERROR STATUS:", error?.response?.status);
+      console.log(
+        "ERROR RESPONSE:",
+        JSON.stringify(error?.response?.data, null, 2)
+      );
+
+      Alert.alert(
+        "Cart Error",
+        error?.response?.data?.message ||
+        error?.message ||
+        "Unable to add item to cart."
+      );
+
+    } finally {
+      setCartLoading(false);
+      console.log("========== ADD CART END ==========");
+    }
+  }, [
+    cartLoading,
+    selectedProductId,
+    selectedVariantId,
+    selectedProduct,
+    selectedMenuItem,
+    selectedProductName,
+    increaseQuantity,
+  ]);
   // =======================================================
   // LOADING
   // =======================================================
@@ -1395,6 +1580,28 @@ export default function RestaurantDetails() {
               </TouchableOpacity>
             ) : null}
           </View>
+          <TouchableOpacity
+            style={[
+              styles.actionButton,
+              { borderColor: colors.border || "#333333" },
+            ]}
+            onPress={() =>
+              router.push({
+                pathname: "/DineInScreen",
+                params: { restaurantId },
+              })
+            }
+          >
+            <Ionicons
+              name="restaurant-outline"
+              size={18}
+              color={colors.primary || "#F9080C"}
+            />
+
+            <Text style={[styles.actionText, { color: colors.text }]}>
+              Table Booking
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* OFFER */}
@@ -1583,33 +1790,41 @@ export default function RestaurantDetails() {
                           style={styles.foodImage}
                           resizeMode="cover"
                         />
-
                         {quantity === 0 ? (
                           <TouchableOpacity
                             style={[
                               styles.addButton,
                               {
                                 backgroundColor: colors.background || "#050505",
-
                                 borderColor: colors.primary || "#F9080C",
                               },
                             ]}
+                            disabled={productLoading || cartLoading}
                             onPress={(event) => {
                               event?.stopPropagation?.();
 
-                              increaseQuantity(itemId);
+                              // Open product details and load product API.
+                              // Add to Cart API will run from the product modal.
+                              openProduct(item);
                             }}
                           >
-                            <Text
-                              style={[
-                                styles.addButtonText,
-                                {
-                                  color: colors.primary || "#F9080C",
-                                },
-                              ]}
-                            >
-                              ADD
-                            </Text>
+                            {productLoading ? (
+                              <ActivityIndicator
+                                size="small"
+                                color={colors.primary || "#F9080C"}
+                              />
+                            ) : (
+                              <Text
+                                style={[
+                                  styles.addButtonText,
+                                  {
+                                    color: colors.primary || "#F9080C",
+                                  },
+                                ]}
+                              >
+                                ADD
+                              </Text>
+                            )}
                           </TouchableOpacity>
                         ) : (
                           <View
@@ -1895,10 +2110,10 @@ export default function RestaurantDetails() {
 
                 {/* PRODUCT ID */}
 
-                {selectedProductId ? (
+                {selectedVariantId ? (
                   <View style={styles.productInfoRow}>
                     <Ionicons
-                      name="barcode-outline"
+                      name="layers-outline"
                       size={18}
                       color={colors.primary || "#F9080C"}
                     />
@@ -1907,11 +2122,12 @@ export default function RestaurantDetails() {
                       style={[
                         styles.productInfoText,
                         {
-                          color: colors.textSecondary || "#8F8F8F",
+                          color:
+                            colors.textSecondary || "#8F8F8F",
                         },
                       ]}
                     >
-                      Product ID: {selectedProductId}
+                      Variant ID: {selectedVariantId}
                     </Text>
                   </View>
                 ) : null}
@@ -1922,39 +2138,39 @@ export default function RestaurantDetails() {
                   style={[
                     styles.modalAddButton,
                     {
-                      backgroundColor: colors.primary || "#F9080C",
+                      backgroundColor:
+                        cartLoading
+                          ? "#777777"
+                          : colors.primary || "#F9080C",
                     },
                   ]}
-                  onPress={() => {
-                    if (
-                      selectedProductId === undefined ||
-                      selectedProductId === null ||
-                      selectedProductId === ""
-                    ) {
-                      Alert.alert("Cart", "Product ID is missing.");
-
-                      return;
-                    }
-
-                    /*
-                     * Use the menu item ID first.
-                     * This keeps the quantity/cart total
-                     * connected to the menu item that
-                     * the user clicked.
-                     */
-                    const cartItemId =
-                      selectedMenuItem?.id ||
-                      selectedMenuItem?.product_id ||
-                      selectedProductId;
-
-                    increaseQuantity(String(cartItemId));
-
-                    closeProductModal();
-                  }}
+                  onPress={addToCart}
+                  disabled={cartLoading}
                 >
-                  <Ionicons name="cart-outline" size={20} color="#FFFFFF" />
+                  {cartLoading ? (
+                    <>
+                      <ActivityIndicator
+                        size="small"
+                        color="#FFFFFF"
+                      />
 
-                  <Text style={styles.modalAddButtonText}>Add to Cart</Text>
+                      <Text style={styles.modalAddButtonText}>
+                        Adding...
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Ionicons
+                        name="cart-outline"
+                        size={20}
+                        color="#FFFFFF"
+                      />
+
+                      <Text style={styles.modalAddButtonText}>
+                        Add to Cart
+                      </Text>
+                    </>
+                  )}
                 </TouchableOpacity>
               </ScrollView>
             ) : (

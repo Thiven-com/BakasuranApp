@@ -1,4 +1,3 @@
-
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useEffect, useMemo, useRef } from "react";
@@ -16,20 +15,12 @@ import {
 
 import { useTheme } from "../../hooks/use-theme";
 
-const TOKEN_KEYS = [
-  "access_token",
-  "accessToken",
-  "authToken",
-  "token",
-];
+const TOKEN_KEYS = ["access_token", "accessToken", "authToken", "token"];
 
 export default function SplashScreen() {
   const { colors, isDark } = useTheme();
 
-  const styles = useMemo(
-    () => createStyles(colors),
-    [colors]
-  );
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
@@ -45,7 +36,7 @@ export default function SplashScreen() {
         duration: 1200,
         easing: Easing.linear,
         useNativeDriver: Platform.OS !== "web",
-      })
+      }),
     );
 
     animation.start();
@@ -135,10 +126,7 @@ export default function SplashScreen() {
           />
 
           <View style={styles.loaderInner}>
-            <ActivityIndicator
-              size="small"
-              color="#FF2A00"
-            />
+            <ActivityIndicator size="small" color="#FF2A00" />
           </View>
         </View>
 

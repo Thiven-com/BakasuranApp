@@ -1,4 +1,3 @@
-
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -21,8 +20,7 @@ import { getFAQs } from "../utils/Function";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-const scale = (size) =>
-  Math.round(size * Math.min(SCREEN_WIDTH / 375, 1.12));
+const scale = (size) => Math.round(size * Math.min(SCREEN_WIDTH / 375, 1.12));
 
 export default function FAQScreen() {
   const [expandedId, setExpandedId] = useState(null);
@@ -41,10 +39,7 @@ export default function FAQScreen() {
     try {
       const response = await getFAQs();
 
-      console.log(
-        "FAQ API RESPONSE:",
-        JSON.stringify(response, null, 2)
-      );
+      console.log("FAQ API RESPONSE:", JSON.stringify(response, null, 2));
 
       // Support common API response formats.
       const candidates = [
@@ -61,11 +56,7 @@ export default function FAQScreen() {
 
       const formattedFAQs = list
         .map((item, index) => ({
-          id:
-            item?.id ??
-            item?.faq_id ??
-            item?.faqId ??
-            index + 1,
+          id: item?.id ?? item?.faq_id ?? item?.faqId ?? index + 1,
 
           question:
             item?.question ??
@@ -84,14 +75,14 @@ export default function FAQScreen() {
         .filter(
           (item) =>
             String(item.question).trim() !== "" &&
-            String(item.answer).trim() !== ""
+            String(item.answer).trim() !== "",
         );
 
       setFaqs(formattedFAQs);
     } catch (error) {
       console.error(
         "FAQ GET API ERROR:",
-        error?.response?.data || error?.message || error
+        error?.response?.data || error?.message || error,
       );
 
       setFaqs([]);
@@ -99,7 +90,7 @@ export default function FAQScreen() {
       setErrorMessage(
         error?.response?.data?.message ||
           error?.message ||
-          "Unable to load FAQs. Please try again."
+          "Unable to load FAQs. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -131,9 +122,7 @@ export default function FAQScreen() {
   // =========================================================
 
   const toggleFAQ = (id) => {
-    setExpandedId((currentId) =>
-      currentId === id ? null : id
-    );
+    setExpandedId((currentId) => (currentId === id ? null : id));
   };
 
   // =========================================================
@@ -155,10 +144,7 @@ export default function FAQScreen() {
   // =========================================================
 
   return (
-    <SafeAreaView
-      style={styles.safeArea}
-      edges={["top", "bottom"]}
-    >
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <StatusBar
         barStyle="light-content"
         backgroundColor={Colors.backgroundDark}
@@ -184,9 +170,7 @@ export default function FAQScreen() {
           />
         </Pressable>
 
-        <Text style={styles.headerTitle}>
-          Frequently Asked Questions
-        </Text>
+        <Text style={styles.headerTitle}>Frequently Asked Questions</Text>
 
         <View style={styles.headerRightSpace} />
       </View>
@@ -201,14 +185,9 @@ export default function FAQScreen() {
         {/* LOADING STATE */}
         {loading ? (
           <View style={styles.statusContainer}>
-            <ActivityIndicator
-              size="large"
-              color={Colors.primary}
-            />
+            <ActivityIndicator size="large" color={Colors.primary} />
 
-            <Text style={styles.statusText}>
-              Loading FAQs...
-            </Text>
+            <Text style={styles.statusText}>Loading FAQs...</Text>
           </View>
         ) : errorMessage ? (
           /* ERROR STATE */
@@ -219,9 +198,7 @@ export default function FAQScreen() {
               color={Colors.primary}
             />
 
-            <Text style={styles.statusText}>
-              {errorMessage}
-            </Text>
+            <Text style={styles.statusText}>{errorMessage}</Text>
 
             <Pressable
               onPress={loadFAQs}
@@ -230,9 +207,7 @@ export default function FAQScreen() {
                 pressed && styles.retryButtonPressed,
               ]}
             >
-              <Text style={styles.retryButtonText}>
-                Try Again
-              </Text>
+              <Text style={styles.retryButtonText}>Try Again</Text>
             </Pressable>
           </View>
         ) : faqs.length === 0 ? (
@@ -255,9 +230,7 @@ export default function FAQScreen() {
                 pressed && styles.retryButtonPressed,
               ]}
             >
-              <Text style={styles.retryButtonText}>
-                Refresh
-              </Text>
+              <Text style={styles.retryButtonText}>Refresh</Text>
             </Pressable>
           </View>
         ) : (
@@ -267,10 +240,7 @@ export default function FAQScreen() {
               const isExpanded = expandedId === item.id;
 
               return (
-                <View
-                  key={String(item.id)}
-                  style={styles.faqItem}
-                >
+                <View key={String(item.id)} style={styles.faqItem}>
                   {/* QUESTION */}
                   <Pressable
                     onPress={() => toggleFAQ(item.id)}
@@ -280,8 +250,7 @@ export default function FAQScreen() {
                     }}
                     style={({ pressed }) => [
                       styles.questionRow,
-                      isExpanded &&
-                        styles.questionRowActive,
+                      isExpanded && styles.questionRowActive,
                       pressed && styles.questionRowPressed,
                     ]}
                   >
@@ -295,8 +264,7 @@ export default function FAQScreen() {
                       <Text
                         style={[
                           styles.questionText,
-                          isExpanded &&
-                            styles.questionTextActive,
+                          isExpanded && styles.questionTextActive,
                         ]}
                       >
                         {item.question}
@@ -306,18 +274,13 @@ export default function FAQScreen() {
                     <View
                       style={[
                         styles.expandButton,
-                        isExpanded &&
-                          styles.expandButtonActive,
+                        isExpanded && styles.expandButtonActive,
                       ]}
                     >
                       <Ionicons
                         name={isExpanded ? "remove" : "add"}
                         size={scale(16)}
-                        color={
-                          isExpanded
-                            ? Colors.white
-                            : Colors.iconSecondary
-                        }
+                        color={isExpanded ? Colors.white : Colors.iconSecondary}
                       />
                     </View>
                   </Pressable>
@@ -325,16 +288,12 @@ export default function FAQScreen() {
                   {/* ANSWER */}
                   {isExpanded && (
                     <View style={styles.answerContainer}>
-                      <Text style={styles.answerText}>
-                        {item.answer}
-                      </Text>
+                      <Text style={styles.answerText}>{item.answer}</Text>
                     </View>
                   )}
 
                   {/* DIVIDER */}
-                  {index < faqs.length - 1 && (
-                    <View style={styles.divider} />
-                  )}
+                  {index < faqs.length - 1 && <View style={styles.divider} />}
                 </View>
               );
             })}
@@ -365,14 +324,11 @@ export default function FAQScreen() {
               <View style={styles.helpLine} />
             </View>
 
-            <Text style={styles.helpTitle}>
-              Need More Help?
-            </Text>
+            <Text style={styles.helpTitle}>Need More Help?</Text>
 
             <Text style={styles.helpDescription}>
-              Have a question about your food, restaurant,
-              payment or delivery? BAKASURAN is here to help
-              you with your ordering journey.
+              Have a question about your food, restaurant, payment or delivery?
+              BAKASURAN is here to help you with your ordering journey.
             </Text>
 
             <View style={styles.helpButton}>

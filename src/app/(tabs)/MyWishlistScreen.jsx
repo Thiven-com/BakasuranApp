@@ -1,4 +1,3 @@
-
 import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
@@ -18,10 +17,7 @@ import BASE_URL from "../../constants/AppUrls";
 import Fonts from "../../constants/Fonts";
 import { useTheme } from "../../hooks/use-theme";
 
-import {
-  getWishlist,
-  removeFromWishlist,
-} from "../../utils/Function";
+import { getWishlist, removeFromWishlist } from "../../utils/Function";
 
 import { postMethod } from "../../utils/APIServices";
 
@@ -92,11 +88,7 @@ const formatPrice = (value) => {
 
 const getValidId = (...values) => {
   for (const value of values) {
-    if (
-      value !== undefined &&
-      value !== null &&
-      String(value).trim() !== ""
-    ) {
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
       return String(value).trim();
     }
   }
@@ -195,16 +187,9 @@ const mapWishlistItem = (entry) => {
   if (!entry) return null;
 
   const variant =
-    entry?.variant ??
-    entry?.product_variant ??
-    entry?.productVariant ??
-    {};
+    entry?.variant ?? entry?.product_variant ?? entry?.productVariant ?? {};
 
-  const product =
-    entry?.product ??
-    variant?.product ??
-    entry?.item ??
-    {};
+  const product = entry?.product ?? variant?.product ?? entry?.item ?? {};
 
   // IMPORTANT:
   // This must be the wishlist record ID.
@@ -217,7 +202,7 @@ const mapWishlistItem = (entry) => {
     entry?.wishlist_itemId,
     entry?.wishlist?.id,
     entry?.wishlist_item?.id,
-    entry?.id
+    entry?.id,
   );
 
   const variantId = getValidId(
@@ -225,7 +210,7 @@ const mapWishlistItem = (entry) => {
     entry?.variantId,
     variant?.id,
     product?.variant_id,
-    product?.variantId
+    product?.variantId,
   );
 
   const productId = getValidId(
@@ -233,7 +218,7 @@ const mapWishlistItem = (entry) => {
     entry?.productId,
     product?.id,
     variant?.product_id,
-    variant?.productId
+    variant?.productId,
   );
 
   const name =
@@ -329,10 +314,7 @@ const mapWishlistItem = (entry) => {
 const WishlistScreen = () => {
   const { colors: Colors } = useTheme();
 
-  const styles = useMemo(
-    () => makeStyles(Colors),
-    [Colors]
-  );
+  const styles = useMemo(() => makeStyles(Colors), [Colors]);
 
   const [dishes, setDishes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -361,47 +343,31 @@ const WishlistScreen = () => {
 
       const response = await getWishlist();
 
-      console.log(
-        "WISHLIST RESPONSE:",
-        JSON.stringify(response, null, 2)
-      );
+      console.log("WISHLIST RESPONSE:", JSON.stringify(response, null, 2));
 
       if (isLoginRequired(response)) {
         setDishes([]);
 
         if (!isRefresh) {
-          Alert.alert(
-            "Login Required",
-            "Please login to view your wishlist.",
-            [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Login",
-                onPress: () =>
-                  router.replace("/(auth)/Loginscreen"),
-              },
-            ]
-          );
+          Alert.alert("Login Required", "Please login to view your wishlist.", [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Login",
+              onPress: () => router.replace("/(auth)/Loginscreen"),
+            },
+          ]);
         }
 
         return;
       }
 
-      if (
-        response?.success !== undefined &&
-        !isSuccess(response)
-      ) {
-        throw new Error(
-          response?.message || "Unable to load wishlist."
-        );
+      if (response?.success !== undefined && !isSuccess(response)) {
+        throw new Error(response?.message || "Unable to load wishlist.");
       }
 
       const wishlistArray = extractWishlistArray(response);
 
-      console.log(
-        "WISHLIST ARRAY:",
-        JSON.stringify(wishlistArray, null, 2)
-      );
+      console.log("WISHLIST ARRAY:", JSON.stringify(wishlistArray, null, 2));
 
       wishlistArray.forEach((item, index) => {
         console.log(`WISHLIST ITEM ${index + 1} IDS:`, {
@@ -413,21 +379,16 @@ const WishlistScreen = () => {
         });
       });
 
-      const mapped = wishlistArray
-        .map(mapWishlistItem)
-        .filter(Boolean);
+      const mapped = wishlistArray.map(mapWishlistItem).filter(Boolean);
 
-      console.log(
-        "MAPPED WISHLIST:",
-        JSON.stringify(mapped, null, 2)
-      );
+      console.log("MAPPED WISHLIST:", JSON.stringify(mapped, null, 2));
 
       setDishes(mapped);
     } catch (error) {
       console.log("GET WISHLIST ERROR:", error?.message);
       console.log(
         "SERVER RESPONSE:",
-        JSON.stringify(error?.response?.data ?? {}, null, 2)
+        JSON.stringify(error?.response?.data ?? {}, null, 2),
       );
 
       if (!isRefresh) {
@@ -435,7 +396,7 @@ const WishlistScreen = () => {
           "Wishlist",
           error?.response?.data?.message ||
             error?.message ||
-            "Unable to load wishlist."
+            "Unable to load wishlist.",
         );
       }
     } finally {
@@ -451,7 +412,7 @@ const WishlistScreen = () => {
   useFocusEffect(
     useCallback(() => {
       loadWishlist(false);
-    }, [loadWishlist])
+    }, [loadWishlist]),
   );
 
   // ==========================================================
@@ -467,105 +428,96 @@ const WishlistScreen = () => {
   // ==========================================================
 
   const handleAddToCart = async (item) => {
-  const cartKey = String(
-    item?.variantId || item?.productId || ""
-  );
+    const cartKey = String(item?.variantId || item?.productId || "");
 
-  try {
-    const productId = Number(item?.productId);
-    const variantId = Number(item?.variantId);
+    try {
+      const productId = Number(item?.productId);
+      const variantId = Number(item?.variantId);
 
-    if (!Number.isFinite(productId) || productId <= 0) {
-      Alert.alert("Add to Cart", "Product ID is missing.");
-      return;
-    }
+      if (!Number.isFinite(productId) || productId <= 0) {
+        Alert.alert("Add to Cart", "Product ID is missing.");
+        return;
+      }
 
-    if (!Number.isFinite(variantId) || variantId <= 0) {
-      Alert.alert("Add to Cart", "Variant ID is missing.");
-      return;
-    }
+      if (!Number.isFinite(variantId) || variantId <= 0) {
+        Alert.alert("Add to Cart", "Variant ID is missing.");
+        return;
+      }
 
-    const requestData = {
-      product_id: productId,
-      variant_id: variantId,
-      quantity: 1,
-    };
+      const requestData = {
+        product_id: productId,
+        variant_id: variantId,
+        quantity: 1,
+      };
 
-    console.log("====================================");
-    console.log("ADD TO CART API");
-    console.log("REQUEST:", JSON.stringify(requestData, null, 2));
-    console.log("====================================");
+      console.log("====================================");
+      console.log("ADD TO CART API");
+      console.log("REQUEST:", JSON.stringify(requestData, null, 2));
+      console.log("====================================");
 
-    setAddingCartId(cartKey);
+      setAddingCartId(cartKey);
 
-    const response = await postMethod(
-      "api/customer/cart/add",
-      requestData
-    );
+      const response = await postMethod("api/customer/cart/add", requestData);
 
-    console.log(
-      "ADD CART RESPONSE:",
-      JSON.stringify(response, null, 2)
-    );
+      console.log("ADD CART RESPONSE:", JSON.stringify(response, null, 2));
 
-    // LOGIN REQUIRED
-    if (isLoginRequired(response)) {
+      // LOGIN REQUIRED
+      if (isLoginRequired(response)) {
+        Alert.alert(
+          "Login Required",
+          "Please login to add items to your cart.",
+          [
+            {
+              text: "Cancel",
+              style: "cancel",
+            },
+            {
+              text: "Login",
+              onPress: () => router.replace("/(auth)/Loginscreen"),
+            },
+          ],
+        );
+
+        return;
+      }
+
+      // SUCCESS
+      if (isSuccess(response)) {
+        console.log("PRODUCT ADDED TO CART SUCCESSFULLY");
+
+        // Open CartScreen directly
+        router.push("/CartScreen");
+
+        return;
+      }
+
+      // API FAILURE
       Alert.alert(
-        "Login Required",
-        "Please login to add items to your cart.",
-        [
-          {
-            text: "Cancel",
-            style: "cancel",
-          },
-          {
-            text: "Login",
-            onPress: () =>
-              router.replace("/(auth)/Loginscreen"),
-          },
-        ]
+        "Add to Cart",
+        response?.message ||
+          response?.data?.message ||
+          "Unable to add item to cart.",
       );
+    } catch (error) {
+      console.log("====================================");
+      console.log("ADD CART ERROR");
+      console.log("MESSAGE:", error?.message);
+      console.log(
+        "SERVER:",
+        JSON.stringify(error?.response?.data ?? {}, null, 2),
+      );
+      console.log("====================================");
 
-      return;
+      Alert.alert(
+        "Add to Cart",
+        error?.response?.data?.message ||
+          error?.message ||
+          "Unable to add item to cart.",
+      );
+    } finally {
+      setAddingCartId(null);
     }
-
-    // SUCCESS
-    if (isSuccess(response)) {
-      console.log("PRODUCT ADDED TO CART SUCCESSFULLY");
-
-      // Open CartScreen directly
-      router.push("/CartScreen");
-
-      return;
-    }
-
-    // API FAILURE
-    Alert.alert(
-      "Add to Cart",
-      response?.message ||
-        response?.data?.message ||
-        "Unable to add item to cart."
-    );
-  } catch (error) {
-    console.log("====================================");
-    console.log("ADD CART ERROR");
-    console.log("MESSAGE:", error?.message);
-    console.log(
-      "SERVER:",
-      JSON.stringify(error?.response?.data ?? {}, null, 2)
-    );
-    console.log("====================================");
-
-    Alert.alert(
-      "Add to Cart",
-      error?.response?.data?.message ||
-        error?.message ||
-        "Unable to add item to cart."
-    );
-  } finally {
-    setAddingCartId(null);
-  }
-};
+  };
 
   // ==========================================================
   // REMOVE ONE WISHLIST ITEM
@@ -584,7 +536,7 @@ const WishlistScreen = () => {
     if (!wishlistId) {
       Alert.alert(
         "Remove Wishlist",
-        "Wishlist ID is missing. Check the GET wishlist response."
+        "Wishlist ID is missing. Check the GET wishlist response.",
       );
       return;
     }
@@ -599,38 +551,32 @@ const WishlistScreen = () => {
 
       console.log(
         "DELETE WISHLIST RESPONSE:",
-        JSON.stringify(response, null, 2)
+        JSON.stringify(response, null, 2),
       );
 
       if (isLoginRequired(response)) {
-        Alert.alert(
-          "Login Required",
-          "Please login to continue.",
-          [
-            { text: "Cancel", style: "cancel" },
-            {
-              text: "Login",
-              onPress: () =>
-                router.replace("/(auth)/Loginscreen"),
-            },
-          ]
-        );
+        Alert.alert("Login Required", "Please login to continue.", [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Login",
+            onPress: () => router.replace("/(auth)/Loginscreen"),
+          },
+        ]);
         return;
       }
 
       if (isSuccess(response)) {
         setDishes((current) =>
           current.filter(
-            (dish) =>
-              String(dish?.wishlistId) !== String(wishlistId)
-          )
+            (dish) => String(dish?.wishlistId) !== String(wishlistId),
+          ),
         );
 
         Alert.alert(
           "Success",
           response?.message ||
             response?.data?.message ||
-            "Item removed from wishlist."
+            "Item removed from wishlist.",
         );
 
         await loadWishlist(true);
@@ -641,7 +587,7 @@ const WishlistScreen = () => {
         "Remove Wishlist",
         response?.message ||
           response?.data?.message ||
-          "Unable to remove wishlist item."
+          "Unable to remove wishlist item.",
       );
     } catch (error) {
       console.log("====================================");
@@ -650,7 +596,7 @@ const WishlistScreen = () => {
       console.log("STATUS:", error?.response?.status);
       console.log(
         "SERVER:",
-        JSON.stringify(error?.response?.data ?? {}, null, 2)
+        JSON.stringify(error?.response?.data ?? {}, null, 2),
       );
       console.log("====================================");
 
@@ -658,7 +604,7 @@ const WishlistScreen = () => {
         "Delete Failed",
         error?.response?.data?.message ||
           error?.message ||
-          "Unable to remove wishlist item."
+          "Unable to remove wishlist item.",
       );
     } finally {
       setRemovingId(null);
@@ -692,13 +638,13 @@ const WishlistScreen = () => {
               setClearing(true);
 
               const validItems = previousDishes.filter(
-                (item) => !!getValidId(item?.wishlistId)
+                (item) => !!getValidId(item?.wishlistId),
               );
 
               if (validItems.length !== previousDishes.length) {
                 Alert.alert(
                   "Wishlist",
-                  "One or more wishlist items are missing a wishlist ID. No items were removed."
+                  "One or more wishlist items are missing a wishlist ID. No items were removed.",
                 );
                 return;
               }
@@ -706,25 +652,19 @@ const WishlistScreen = () => {
               for (const item of validItems) {
                 const wishlistId = getValidId(item?.wishlistId);
 
-                console.log(
-                  "CLEAR WISHLIST - DELETING ID:",
-                  wishlistId
-                );
+                console.log("CLEAR WISHLIST - DELETING ID:", wishlistId);
 
                 const response = await removeFromWishlist(wishlistId);
 
                 console.log(
                   "CLEAR DELETE RESPONSE:",
-                  JSON.stringify(response, null, 2)
+                  JSON.stringify(response, null, 2),
                 );
 
                 if (isLoginRequired(response)) {
                   await loadWishlist(true);
 
-                  Alert.alert(
-                    "Login Required",
-                    "Please login to continue."
-                  );
+                  Alert.alert("Login Required", "Please login to continue.");
 
                   router.replace("/(auth)/Loginscreen");
                   return;
@@ -737,7 +677,7 @@ const WishlistScreen = () => {
                     "Clear Wishlist",
                     response?.message ||
                       response?.data?.message ||
-                      `Unable to remove wishlist item ${wishlistId}.`
+                      `Unable to remove wishlist item ${wishlistId}.`,
                   );
                   return;
                 }
@@ -747,7 +687,7 @@ const WishlistScreen = () => {
 
               Alert.alert(
                 "Success",
-                "All wishlist items removed successfully."
+                "All wishlist items removed successfully.",
               );
 
               await loadWishlist(true);
@@ -755,7 +695,7 @@ const WishlistScreen = () => {
               console.log("CLEAR WISHLIST ERROR:", error?.message);
               console.log(
                 "SERVER:",
-                JSON.stringify(error?.response?.data ?? {}, null, 2)
+                JSON.stringify(error?.response?.data ?? {}, null, 2),
               );
 
               await loadWishlist(true);
@@ -764,67 +704,65 @@ const WishlistScreen = () => {
                 "Clear Wishlist",
                 error?.response?.data?.message ||
                   error?.message ||
-                  "Unable to clear wishlist."
+                  "Unable to clear wishlist.",
               );
             } finally {
               setClearing(false);
             }
           },
         },
-      ]
+      ],
     );
   };
 
   // ==========================================================
   // OPEN PRODUCT
   // ==========================================================
-const openProduct = (item) => {
-  const productId = getValidId(
-    item?.productId,
-    item?.original?.product_id,
-    item?.original?.product?.id
-  );
+  const openProduct = (item) => {
+    const productId = getValidId(
+      item?.productId,
+      item?.original?.product_id,
+      item?.original?.product?.id,
+    );
 
-  const variantId = getValidId(
-    item?.variantId,
-    item?.original?.variant_id,
-    item?.original?.variant?.id
-  );
+    const variantId = getValidId(
+      item?.variantId,
+      item?.original?.variant_id,
+      item?.original?.variant?.id,
+    );
 
-  if (!productId) {
-    Alert.alert("Product", "Product ID is missing.");
-    return;
-  }
+    if (!productId) {
+      Alert.alert("Product", "Product ID is missing.");
+      return;
+    }
 
-  console.log("====================================");
-  console.log("OPEN FOOD DETAILS");
-  console.log("Product ID:", productId);
-  console.log("Variant ID:", variantId);
-  console.log("====================================");
+    console.log("====================================");
+    console.log("OPEN FOOD DETAILS");
+    console.log("Product ID:", productId);
+    console.log("Variant ID:", variantId);
+    console.log("====================================");
 
-  router.push({
-    pathname: "/Food-Details",
-    params: {
-      itemId: String(productId),
-      restaurantId: item?.original?.restaurant_id
-        ? String(item.original.restaurant_id)
-        : "",
-      variantId: variantId || "",
-    },
-  });
-};
+    router.push({
+      pathname: "/Food-Details",
+      params: {
+        itemId: String(productId),
+        restaurantId: item?.original?.restaurant_id
+          ? String(item.original.restaurant_id)
+          : "",
+        variantId: variantId || "",
+      },
+    });
+  };
 
   // ==========================================================
   // RENDER ITEM
   // ==========================================================
 
   const renderItem = ({ item }) => {
-    const removing =
-      String(removingId) === String(item?.wishlistId);
+    const removing = String(removingId) === String(item?.wishlistId);
 
     const adding =
-      String(addingCartId) ===
-      String(item?.variantId || item?.productId || "");
+      String(addingCartId) === String(item?.variantId || item?.productId || "");
 
     return (
       <View style={styles.card}>
@@ -857,10 +795,7 @@ const openProduct = (item) => {
               onPress={() => openProduct(item)}
               style={styles.titleContainer}
             >
-              <Text
-                numberOfLines={2}
-                style={styles.productName}
-              >
+              <Text numberOfLines={2} style={styles.productName}>
                 {item?.name}
               </Text>
             </TouchableOpacity>
@@ -873,25 +808,15 @@ const openProduct = (item) => {
               style={styles.heartButton}
             >
               {removing ? (
-                <ActivityIndicator
-                  size="small"
-                  color={Colors.primary}
-                />
+                <ActivityIndicator size="small" color={Colors.primary} />
               ) : (
-                <Ionicons
-                  name="heart"
-                  size={24}
-                  color={Colors.primary}
-                />
+                <Ionicons name="heart" size={24} color={Colors.primary} />
               )}
             </TouchableOpacity>
           </View>
 
           {!!item?.restaurant && (
-            <Text
-              numberOfLines={1}
-              style={styles.restaurant}
-            >
+            <Text numberOfLines={1} style={styles.restaurant}>
               {item.restaurant}
             </Text>
           )}
@@ -899,14 +824,8 @@ const openProduct = (item) => {
           <View style={styles.metaRow}>
             {!!item?.rating && item.rating !== "0.0" && (
               <View style={styles.ratingBox}>
-                <Ionicons
-                  name="star"
-                  size={12}
-                  color="#FFFFFF"
-                />
-                <Text style={styles.ratingText}>
-                  {item.rating}
-                </Text>
+                <Ionicons name="star" size={12} color="#FFFFFF" />
+                <Text style={styles.ratingText}>{item.rating}</Text>
               </View>
             )}
 
@@ -917,26 +836,17 @@ const openProduct = (item) => {
                   size={14}
                   color={Colors.textSecondary}
                 />
-                <Text style={styles.timeText}>
-                  {item.time}
-                </Text>
+                <Text style={styles.timeText}>{item.time}</Text>
               </View>
             )}
           </View>
 
           <View style={styles.priceRow}>
-            {!!item?.price && (
-              <Text style={styles.price}>
-                {item.price}
-              </Text>
-            )}
+            {!!item?.price && <Text style={styles.price}>{item.price}</Text>}
 
-            {!!item?.oldPrice &&
-              item.oldPrice !== item.price && (
-                <Text style={styles.oldPrice}>
-                  {item.oldPrice}
-                </Text>
-              )}
+            {!!item?.oldPrice && item.oldPrice !== item.price && (
+              <Text style={styles.oldPrice}>{item.oldPrice}</Text>
+            )}
           </View>
 
           {/* ADD TO CART */}
@@ -947,26 +857,16 @@ const openProduct = (item) => {
             style={[
               styles.addButton,
               {
-                opacity:
-                  adding || removing || clearing ? 0.6 : 1,
+                opacity: adding || removing || clearing ? 0.6 : 1,
               },
             ]}
           >
             {adding ? (
-              <ActivityIndicator
-                size="small"
-                color="#FFFFFF"
-              />
+              <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
               <>
-                <Ionicons
-                  name="cart-outline"
-                  size={17}
-                  color="#FFFFFF"
-                />
-                <Text style={styles.addButtonText}>
-                  Add to Cart
-                </Text>
+                <Ionicons name="cart-outline" size={17} color="#FFFFFF" />
+                <Text style={styles.addButtonText}>Add to Cart</Text>
               </>
             )}
           </TouchableOpacity>
@@ -987,16 +887,10 @@ const openProduct = (item) => {
     return (
       <View style={styles.emptyContainer}>
         <View style={styles.emptyIcon}>
-          <Ionicons
-            name="heart-outline"
-            size={58}
-            color={Colors.primary}
-          />
+          <Ionicons name="heart-outline" size={58} color={Colors.primary} />
         </View>
 
-        <Text style={styles.emptyTitle}>
-          Your Wishlist is Empty
-        </Text>
+        <Text style={styles.emptyTitle}>Your Wishlist is Empty</Text>
 
         <Text style={styles.emptyText}>
           Save your favourite dishes here and order them whenever you want.
@@ -1004,13 +898,9 @@ const openProduct = (item) => {
 
         <TouchableOpacity
           style={styles.exploreButton}
-          onPress={() =>
-            router.push("/(tabs)/ExploreScreen")
-          }
+          onPress={() => router.push("/(tabs)/ExploreScreen")}
         >
-          <Text style={styles.exploreButtonText}>
-            Explore Restaurants
-          </Text>
+          <Text style={styles.exploreButtonText}>Explore Restaurants</Text>
         </TouchableOpacity>
       </View>
     );
@@ -1028,29 +918,18 @@ const openProduct = (item) => {
             onPress={() => router.back()}
             style={styles.backButton}
           >
-            <Ionicons
-              name="arrow-back"
-              size={24}
-              color={Colors.text}
-            />
+            <Ionicons name="arrow-back" size={24} color={Colors.text} />
           </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>
-            Wishlist
-          </Text>
+          <Text style={styles.headerTitle}>Wishlist</Text>
 
           <View style={styles.headerRight} />
         </View>
 
         <View style={styles.loadingContainer}>
-          <ActivityIndicator
-            size="large"
-            color={Colors.primary}
-          />
+          <ActivityIndicator size="large" color={Colors.primary} />
 
-          <Text style={styles.loadingText}>
-            Loading wishlist...
-          </Text>
+          <Text style={styles.loadingText}>Loading wishlist...</Text>
         </View>
       </View>
     );
@@ -1069,22 +948,15 @@ const openProduct = (item) => {
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Ionicons
-            name="arrow-back"
-            size={24}
-            color={Colors.text}
-          />
+          <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
 
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>
-            Wishlist
-          </Text>
+          <Text style={styles.headerTitle}>Wishlist</Text>
 
           {dishes.length > 0 && (
             <Text style={styles.countText}>
-              {dishes.length}{" "}
-              {dishes.length === 1 ? "item" : "items"}
+              {dishes.length} {dishes.length === 1 ? "item" : "items"}
             </Text>
           )}
         </View>
@@ -1096,14 +968,9 @@ const openProduct = (item) => {
             style={styles.clearButton}
           >
             {clearing ? (
-              <ActivityIndicator
-                size="small"
-                color={Colors.primary}
-              />
+              <ActivityIndicator size="small" color={Colors.primary} />
             ) : (
-              <Text style={styles.clearButtonText}>
-                Clear
-              </Text>
+              <Text style={styles.clearButtonText}>Clear</Text>
             )}
           </TouchableOpacity>
         ) : (
@@ -1117,16 +984,13 @@ const openProduct = (item) => {
         data={dishes}
         keyExtractor={(item, index) =>
           String(
-            item?.wishlistId ||
-              `${item?.productId || "wishlist"}-${index}`
+            item?.wishlistId || `${item?.productId || "wishlist"}-${index}`,
           )
         }
         renderItem={renderItem}
         ListEmptyComponent={renderEmpty}
         contentContainerStyle={
-          dishes.length === 0
-            ? styles.emptyList
-            : styles.listContent
+          dishes.length === 0 ? styles.emptyList : styles.listContent
         }
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -1160,8 +1024,7 @@ const makeStyles = (Colors) =>
       alignItems: "center",
       justifyContent: "space-between",
       borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor:
-        Colors.border || Colors.divider || "#333333",
+      borderBottomColor: Colors.border || Colors.divider || "#333333",
     },
 
     backButton: {
@@ -1406,9 +1269,7 @@ const makeStyles = (Colors) =>
       borderRadius: 55,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: Colors.primary
-        ? `${Colors.primary}18`
-        : "#F9080C18",
+      backgroundColor: Colors.primary ? `${Colors.primary}18` : "#F9080C18",
       marginBottom: 22,
     },
 

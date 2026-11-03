@@ -22,7 +22,6 @@ import { useTheme } from "../hooks/use-theme";
 import {
   checkoutOrder,
   checkoutPreview,
-
   deleteCartItem,
   getCart,
   getLocations,
@@ -104,10 +103,7 @@ const getErrorMessage = (response, fallback) => {
   const data = unwrapResponse(response);
 
   return (
-    data?.message ||
-    response?.message ||
-    response?.data?.message ||
-    fallback
+    data?.message || response?.message || response?.data?.message || fallback
   );
 };
 
@@ -182,20 +178,11 @@ const normalizeCartItem = (raw) => {
       "selling_price",
       "variant_price",
     ]) ??
-    toNumber(variant, [
-      "price",
-      "sale_price",
-      "selling_price",
-    ]) ??
-    toNumber(product, [
-      "price",
-      "sale_price",
-      "selling_price",
-    ]) ??
+    toNumber(variant, ["price", "sale_price", "selling_price"]) ??
+    toNumber(product, ["price", "sale_price", "selling_price"]) ??
     0;
 
-  const quantity =
-    toNumber(cartItem, ["quantity", "qty"]) ?? 1;
+  const quantity = toNumber(cartItem, ["quantity", "qty"]) ?? 1;
 
   // ============================================================
   // IMAGE
@@ -252,15 +239,9 @@ const normalizeCartItem = (raw) => {
 
     price: Number.isFinite(price) ? price : 0,
 
-    quantity:
-      Number.isFinite(quantity) && quantity > 0
-        ? quantity
-        : 1,
+    quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
 
-    veg:
-      vegValue === true ||
-      vegValue === 1 ||
-      vegValue === "1",
+    veg: vegValue === true || vegValue === 1 || vegValue === "1",
   };
 };
 
@@ -274,11 +255,7 @@ const normalizePreview = (response) => {
   const summary = data?.summary ?? data?.totals ?? data;
 
   return {
-    itemTotal: toNumber(summary, [
-      "item_total",
-      "subtotal",
-      "sub_total",
-    ]),
+    itemTotal: toNumber(summary, ["item_total", "subtotal", "sub_total"]),
 
     deliveryFee: toNumber(summary, [
       "delivery_fee",
@@ -287,11 +264,7 @@ const normalizePreview = (response) => {
       "shipping",
     ]),
 
-    gst: toNumber(summary, [
-      "gst",
-      "tax",
-      "tax_amount",
-    ]),
+    gst: toNumber(summary, ["gst", "tax", "tax_amount"]),
 
     discount: toNumber(summary, [
       "discount",
@@ -307,8 +280,7 @@ const normalizePreview = (response) => {
     ]),
 
     deliveryCharges:
-      data?.delivery_charges &&
-        typeof data.delivery_charges === "object"
+      data?.delivery_charges && typeof data.delivery_charges === "object"
         ? data.delivery_charges
         : {},
   };
@@ -320,33 +292,17 @@ const normalizePreview = (response) => {
 
 const normalizeAddress = (raw) => ({
   id: raw?.id,
-  name:
-    raw?.address_type ||
-    raw?.type ||
-    raw?.name ||
-    "Address",
+  name: raw?.address_type || raw?.type || raw?.name || "Address",
 
-  address: [
-    raw?.address,
-    raw?.address_2,
-    raw?.landmark,
-  ]
+  address: [raw?.address, raw?.address_2, raw?.landmark]
     .filter(Boolean)
     .join(", "),
 
-  city: [
-    raw?.city,
-    raw?.state,
-    raw?.pincode,
-  ]
-    .filter(Boolean)
-    .join(" "),
+  city: [raw?.city, raw?.state, raw?.pincode].filter(Boolean).join(" "),
 
   mobile: raw?.mobile || "",
 
-  isDefault: Boolean(
-    raw?.default ?? raw?.is_default,
-  ),
+  isDefault: Boolean(raw?.default ?? raw?.is_default),
 });
 
 const extractAddresses = (response) => {
@@ -355,17 +311,10 @@ const extractAddresses = (response) => {
 
   const list = Array.isArray(data)
     ? data
-    : (
-      data?.locations ??
-      data?.addresses ??
-      data?.data ??
-      []
-    );
+    : (data?.locations ?? data?.addresses ?? data?.data ?? []);
 
   return Array.isArray(list)
-    ? list
-      .filter((item) => item?.id !== undefined)
-      .map(normalizeAddress)
+    ? list.filter((item) => item?.id !== undefined).map(normalizeAddress)
     : [];
 };
 
@@ -384,23 +333,14 @@ const SectionTitle = ({ number, title, styles }) => (
 );
 
 const Card = ({ children, style, styles }) => (
-  <View style={[styles.card, style]}>
-    {children}
-  </View>
+  <View style={[styles.card, style]}>{children}</View>
 );
 
-const PriceRow = ({
-  label,
-  value,
-  valueStyle,
-  styles,
-}) => (
+const PriceRow = ({ label, value, valueStyle, styles }) => (
   <View style={styles.priceRow}>
     <Text style={styles.priceLabel}>{label}</Text>
 
-    <Text style={[styles.priceValue, valueStyle]}>
-      {value}
-    </Text>
+    <Text style={[styles.priceValue, valueStyle]}>{value}</Text>
   </View>
 );
 
@@ -411,10 +351,7 @@ const PriceRow = ({
 export default function CheckoutScreen() {
   const { colors, isDark } = useTheme();
 
-  const styles = useMemo(
-    () => makeStyles(colors, isDark),
-    [colors, isDark],
-  );
+  const styles = useMemo(() => makeStyles(colors, isDark), [colors, isDark]);
 
   // Cart items are loaded from the API.
   const [items, setItems] = useState([]);
@@ -423,8 +360,7 @@ export default function CheckoutScreen() {
   const [cartActionId, setCartActionId] = useState(null);
 
   const [submitting, setSubmitting] = useState(false);
-  const [addressPickerVisible, setAddressPickerVisible] =
-    useState(false);
+  const [addressPickerVisible, setAddressPickerVisible] = useState(false);
 
   const [email, setEmail] = useState("raju.kumar@gmail.com");
   const [mobile, setMobile] = useState("8686742779");
@@ -434,10 +370,8 @@ export default function CheckoutScreen() {
 
   // Saved addresses
   const [addresses, setAddresses] = useState([]);
-  const [selectedAddressId, setSelectedAddressId] =
-    useState(null);
-  const [addressesLoading, setAddressesLoading] =
-    useState(true);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [addressesLoading, setAddressesLoading] = useState(true);
 
   // Discount code
   const [discountCode, setDiscountCode] = useState("");
@@ -450,19 +384,14 @@ export default function CheckoutScreen() {
   const [previewError, setPreviewError] = useState("");
 
   const address =
-    addresses.find(
-      (item) => item.id === selectedAddressId,
-    ) ?? null;
+    addresses.find((item) => item.id === selectedAddressId) ?? null;
 
   const successColor = colors.success || "#22C55E";
   const radioOff = colors.textSecondary;
 
   // Used to refresh the price preview when cart quantities change.
   const cartSignature = items
-    .map(
-      (item) =>
-        `${item.id}:${item.quantity}:${item.price}`,
-    )
+    .map((item) => `${item.id}:${item.quantity}:${item.price}`)
     .join("|");
 
   // ==========================================================
@@ -475,17 +404,11 @@ export default function CheckoutScreen() {
     try {
       const response = await getCart();
 
-      console.log(
-        "CHECKOUT CART RESPONSE:",
-        JSON.stringify(response, null, 2),
-      );
+      console.log("CHECKOUT CART RESPONSE:", JSON.stringify(response, null, 2));
 
       if (isFailure(response)) {
         throw new Error(
-          getErrorMessage(
-            response,
-            "Unable to load cart items.",
-          ),
+          getErrorMessage(response, "Unable to load cart items."),
         );
       }
 
@@ -493,11 +416,7 @@ export default function CheckoutScreen() {
 
       const formattedItems = cartRows
         .map(normalizeCartItem)
-        .filter(
-          (item) =>
-            item.id !== undefined &&
-            item.id !== null,
-        );
+        .filter((item) => item.id !== undefined && item.id !== null);
 
       setItems(formattedItems);
     } catch (error) {
@@ -505,10 +424,7 @@ export default function CheckoutScreen() {
 
       setItems([]);
 
-      notify(
-        "Cart Error",
-        error?.message || "Unable to load cart items.",
-      );
+      notify("Cart Error", error?.message || "Unable to load cart items.");
     } finally {
       setCartLoading(false);
     }
@@ -530,12 +446,7 @@ export default function CheckoutScreen() {
       );
 
       if (isFailure(response)) {
-        throw new Error(
-          getErrorMessage(
-            response,
-            "Unable to load addresses.",
-          ),
-        );
+        throw new Error(getErrorMessage(response, "Unable to load addresses."));
       }
 
       const list = extractAddresses(response);
@@ -543,16 +454,11 @@ export default function CheckoutScreen() {
       setAddresses(list);
 
       setSelectedAddressId((current) => {
-        if (
-          current &&
-          list.some((item) => item.id === current)
-        ) {
+        if (current && list.some((item) => item.id === current)) {
           return current;
         }
 
-        const preferred =
-          list.find((item) => item.isDefault) ??
-          list[0];
+        const preferred = list.find((item) => item.isDefault) ?? list[0];
 
         return preferred ? preferred.id : null;
       });
@@ -624,10 +530,7 @@ export default function CheckoutScreen() {
 
         if (isFailure(response)) {
           throw new Error(
-            getErrorMessage(
-              response,
-              "Unable to load price details.",
-            ),
+            getErrorMessage(response, "Unable to load price details."),
           );
         }
 
@@ -639,9 +542,7 @@ export default function CheckoutScreen() {
           console.log("CHECKOUT PREVIEW ERROR:", error);
 
           setPreview(null);
-          setPreviewError(
-            error?.message || "Unable to load price details.",
-          );
+          setPreviewError(error?.message || "Unable to load price details.");
         }
       } finally {
         if (!cancelled) {
@@ -655,13 +556,7 @@ export default function CheckoutScreen() {
     return () => {
       cancelled = true;
     };
-  }, [
-    orderType,
-    address?.id,
-    appliedCode,
-    cartSignature,
-    buildPreviewPayload,
-  ]);
+  }, [orderType, address?.id, appliedCode, cartSignature, buildPreviewPayload]);
   // ==========================================================
   // PRICE CALCULATIONS
   // SAME BILL CALCULATION AS CART SCREEN
@@ -699,16 +594,12 @@ export default function CheckoutScreen() {
   // Same CartScreen total calculation,
   // with coupon discount applied.
   const total = useMemo(() => {
-    return Math.max(
-      itemTotal + deliveryFee + gst - discount,
-      0,
-    );
+    return Math.max(itemTotal + deliveryFee + gst - discount, 0);
   }, [itemTotal, deliveryFee, gst, discount]);
 
   const itemCount = useMemo(() => {
     return items.reduce(
-      (count, item) =>
-        count + (Number(item.quantity) || 0),
+      (count, item) => count + (Number(item.quantity) || 0),
       0,
     );
   }, [items]);
@@ -733,18 +624,16 @@ export default function CheckoutScreen() {
     // immediately while the API request is running.
     if (newQuantity <= 0) {
       setItems((previous) =>
-        previous.filter(
-          (cartItem) => cartItem.id !== item.id,
-        ),
+        previous.filter((cartItem) => cartItem.id !== item.id),
       );
     } else {
       setItems((previous) =>
         previous.map((cartItem) =>
           cartItem.id === item.id
             ? {
-              ...cartItem,
-              quantity: newQuantity,
-            }
+                ...cartItem,
+                quantity: newQuantity,
+              }
             : cartItem,
         ),
       );
@@ -765,10 +654,7 @@ export default function CheckoutScreen() {
         );
       } else {
         // Quantity is greater than zero: update quantity.
-        response = await updateCartQuantity(
-          item.id,
-          newQuantity,
-        );
+        response = await updateCartQuantity(item.id, newQuantity);
 
         console.log(
           "UPDATE CART QUANTITY RESPONSE:",
@@ -777,12 +663,7 @@ export default function CheckoutScreen() {
       }
 
       if (isFailure(response)) {
-        throw new Error(
-          getErrorMessage(
-            response,
-            "Unable to update cart.",
-          ),
-        );
+        throw new Error(getErrorMessage(response, "Unable to update cart."));
       }
 
       // Fetch the latest cart values from the server.
@@ -793,10 +674,7 @@ export default function CheckoutScreen() {
       // Restore the previous cart if the API fails.
       setItems(previousItems);
 
-      notify(
-        "Cart Update Failed",
-        error?.message || "Unable to update cart.",
-      );
+      notify("Cart Update Failed", error?.message || "Unable to update cart.");
     } finally {
       setCartActionId(null);
     }
@@ -810,18 +688,12 @@ export default function CheckoutScreen() {
     const code = discountCode.trim().toUpperCase();
 
     if (!code) {
-      notify(
-        "Discount",
-        "Please enter a discount code.",
-      );
+      notify("Discount", "Please enter a discount code.");
       return;
     }
 
     if (!address?.id) {
-      notify(
-        "Delivery Address",
-        "Please select a delivery address first.",
-      );
+      notify("Delivery Address", "Please select a delivery address first.");
       return;
     }
 
@@ -830,10 +702,7 @@ export default function CheckoutScreen() {
     try {
       const payload = buildPreviewPayload(code);
 
-      console.log(
-        "DISCOUNT PREVIEW PAYLOAD:",
-        JSON.stringify(payload),
-      );
+      console.log("DISCOUNT PREVIEW PAYLOAD:", JSON.stringify(payload));
 
       const response = await checkoutPreview(payload);
 
@@ -843,31 +712,17 @@ export default function CheckoutScreen() {
       );
 
       if (isFailure(response)) {
-        throw new Error(
-          getErrorMessage(
-            response,
-            "Invalid discount code.",
-          ),
-        );
+        throw new Error(getErrorMessage(response, "Invalid discount code."));
       }
 
       setDiscountCode(code);
       setAppliedCode(code);
 
-      notify(
-        "Success",
-        getErrorMessage(
-          response,
-          "Discount code applied.",
-        ),
-      );
+      notify("Success", getErrorMessage(response, "Discount code applied."));
     } catch (error) {
       setAppliedCode("");
 
-      notify(
-        "Invalid Code",
-        error?.message || "Invalid discount code.",
-      );
+      notify("Invalid Code", error?.message || "Invalid discount code.");
     } finally {
       setApplyingCode(false);
     }
@@ -885,10 +740,7 @@ export default function CheckoutScreen() {
 
   const submitOrder = async () => {
     if (!address?.id) {
-      notify(
-        "Delivery Address",
-        "Please select a delivery address.",
-      );
+      notify("Delivery Address", "Please select a delivery address.");
       return;
     }
 
@@ -899,40 +751,27 @@ export default function CheckoutScreen() {
 
       ...(appliedCode ? { code: appliedCode } : {}),
 
-      delivery_charges:
-        preview?.deliveryCharges ?? {},
+      delivery_charges: preview?.deliveryCharges ?? {},
     };
 
-    console.log(
-      "CHECKOUT PAYLOAD:",
-      JSON.stringify(payload, null, 2),
-    );
+    console.log("CHECKOUT PAYLOAD:", JSON.stringify(payload, null, 2));
 
     setSubmitting(true);
 
     try {
       const response = await checkoutOrder(payload);
 
-      console.log(
-        "CHECKOUT RESPONSE:",
-        JSON.stringify(response, null, 2),
-      );
+      console.log("CHECKOUT RESPONSE:", JSON.stringify(response, null, 2));
 
       if (isFailure(response)) {
         throw new Error(
-          getErrorMessage(
-            response,
-            "Unable to place your order.",
-          ),
+          getErrorMessage(response, "Unable to place your order."),
         );
       }
 
       notify(
         "Order placed",
-        getErrorMessage(
-          response,
-          "Your order has been placed successfully.",
-        ),
+        getErrorMessage(response, "Your order has been placed successfully."),
       );
     } catch (error) {
       console.log("CHECKOUT ORDER ERROR:", error);
@@ -948,10 +787,7 @@ export default function CheckoutScreen() {
 
   const placeOrder = () => {
     if (items.length === 0) {
-      notify(
-        "Empty Cart",
-        "Please add items to your cart.",
-      );
+      notify("Empty Cart", "Please add items to your cart.");
       return;
     }
 
@@ -964,18 +800,12 @@ export default function CheckoutScreen() {
     }
 
     if (!address) {
-      notify(
-        "Delivery Address",
-        "Please select a delivery address.",
-      );
+      notify("Delivery Address", "Please select a delivery address.");
       return;
     }
 
     if (cartLoading || cartActionId !== null) {
-      notify(
-        "Please wait",
-        "Your cart is still being updated.",
-      );
+      notify("Please wait", "Your cart is still being updated.");
       return;
     }
 
@@ -1001,38 +831,24 @@ export default function CheckoutScreen() {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.headerButton}
-          onPress={() =>
-            router.canGoBack() ? router.back() : null
-          }
+          onPress={() => (router.canGoBack() ? router.back() : null)}
           activeOpacity={0.8}
         >
-          <Ionicons
-            name="chevron-back"
-            size={24}
-            color={colors.textPrimary}
-          />
+          <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>
-          Checkout
-        </Text>
+        <Text style={styles.headerTitle}>Checkout</Text>
 
         <TouchableOpacity
           style={styles.headerButton}
           onPress={() => notify("Cart", "Your cart is shown below.")}
           activeOpacity={0.8}
         >
-          <Ionicons
-            name="cart-outline"
-            size={23}
-            color={colors.textPrimary}
-          />
+          <Ionicons name="cart-outline" size={23} color={colors.textPrimary} />
 
           {itemCount > 0 && (
             <View style={styles.cartBadge}>
-              <Text style={styles.cartBadgeText}>
-                {itemCount}
-              </Text>
+              <Text style={styles.cartBadgeText}>{itemCount}</Text>
             </View>
           )}
         </TouchableOpacity>
@@ -1046,13 +862,9 @@ export default function CheckoutScreen() {
       >
         {/* PAGE TITLE */}
         <View style={styles.pageHeading}>
-          <Text style={styles.brandText}>
-            BAKASURAN FOOD
-          </Text>
+          <Text style={styles.brandText}>BAKASURAN FOOD</Text>
 
-          <Text style={styles.pageTitle}>
-            Checkout
-          </Text>
+          <Text style={styles.pageTitle}>Checkout</Text>
 
           <Text style={styles.pageSubtitle}>
             You're just a few steps away from enjoying your favourite food.
@@ -1077,11 +889,7 @@ export default function CheckoutScreen() {
                 <Ionicons
                   name={type.icon}
                   size={18}
-                  color={
-                    selected
-                      ? colors.primary
-                      : colors.textSecondary
-                  }
+                  color={selected ? colors.primary : colors.textSecondary}
                 />
 
                 <Text
@@ -1105,9 +913,7 @@ export default function CheckoutScreen() {
             styles={styles}
           />
 
-          <Text style={styles.label}>
-            Email Address
-          </Text>
+          <Text style={styles.label}>Email Address</Text>
 
           <View style={styles.inputContainer}>
             <Ionicons
@@ -1127,9 +933,7 @@ export default function CheckoutScreen() {
             />
           </View>
 
-          <Text style={styles.label}>
-            Mobile Number
-          </Text>
+          <Text style={styles.label}>Mobile Number</Text>
 
           <View style={styles.inputContainer}>
             <Ionicons
@@ -1152,50 +956,30 @@ export default function CheckoutScreen() {
 
         {/* 02 DELIVERY ADDRESS */}
         <Card styles={styles}>
-          <SectionTitle
-            number="02"
-            title="Delivery Address"
-            styles={styles}
-          />
+          <SectionTitle number="02" title="Delivery Address" styles={styles} />
 
           {addressesLoading ? (
             <View style={styles.emptyAddress}>
               <ActivityIndicator color={colors.primary} />
 
-              <Text style={styles.emptyAddressText}>
-                Loading addresses...
-              </Text>
+              <Text style={styles.emptyAddressText}>Loading addresses...</Text>
             </View>
           ) : address ? (
             <View style={styles.addressBox}>
               <View style={styles.locationIcon}>
-                <Ionicons
-                  name="location"
-                  size={25}
-                  color={colors.primary}
-                />
+                <Ionicons name="location" size={25} color={colors.primary} />
               </View>
 
               <View style={styles.addressDetails}>
-                <Text style={styles.addressTitle}>
-                  {address.name}
-                </Text>
+                <Text style={styles.addressTitle}>{address.name}</Text>
 
-                <Text style={styles.addressText}>
-                  {address.address}
-                </Text>
+                <Text style={styles.addressText}>{address.address}</Text>
 
-                <Text style={styles.addressText}>
-                  {address.city}
-                </Text>
+                <Text style={styles.addressText}>{address.city}</Text>
               </View>
 
-              <TouchableOpacity
-                onPress={() => setAddressPickerVisible(true)}
-              >
-                <Text style={styles.changeText}>
-                  Change
-                </Text>
+              <TouchableOpacity onPress={() => setAddressPickerVisible(true)}>
+                <Text style={styles.changeText}>Change</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -1216,25 +1000,15 @@ export default function CheckoutScreen() {
             style={styles.addAddressButton}
             onPress={() => router.push("/addresses")}
           >
-            <Ionicons
-              name="add"
-              size={20}
-              color={colors.primary}
-            />
+            <Ionicons name="add" size={20} color={colors.primary} />
 
-            <Text style={styles.addAddressText}>
-              Add New Address
-            </Text>
+            <Text style={styles.addAddressText}>Add New Address</Text>
           </TouchableOpacity>
         </Card>
 
         {/* 03 PAYMENT METHOD */}
         <Card styles={styles}>
-          <SectionTitle
-            number="03"
-            title="Payment Method"
-            styles={styles}
-          />
+          <SectionTitle number="03" title="Payment Method" styles={styles} />
 
           {PAYMENT_METHODS.map((method) => {
             const selected = payment === method.id;
@@ -1249,35 +1023,21 @@ export default function CheckoutScreen() {
                 onPress={() => setPayment(method.id)}
               >
                 <Ionicons
-                  name={
-                    selected
-                      ? "radio-button-on"
-                      : "radio-button-off"
-                  }
+                  name={selected ? "radio-button-on" : "radio-button-off"}
                   size={23}
-                  color={
-                    selected
-                      ? colors.primary
-                      : radioOff
-                  }
+                  color={selected ? colors.primary : radioOff}
                 />
 
                 <View style={styles.paymentIcon}>
                   <Ionicons
                     name={method.icon}
                     size={26}
-                    color={
-                      selected
-                        ? colors.primary
-                        : colors.textPrimary
-                    }
+                    color={selected ? colors.primary : colors.textPrimary}
                   />
                 </View>
 
                 <View style={styles.paymentContent}>
-                  <Text style={styles.paymentTitle}>
-                    {method.title}
-                  </Text>
+                  <Text style={styles.paymentTitle}>{method.title}</Text>
 
                   <Text style={styles.paymentDescription}>
                     {method.description}
@@ -1290,18 +1050,12 @@ export default function CheckoutScreen() {
 
         {/* ORDER SUMMARY */}
         <Card styles={styles}>
-          <Text style={styles.summaryEyebrow}>
-            YOUR SELECTION
-          </Text>
+          <Text style={styles.summaryEyebrow}>YOUR SELECTION</Text>
 
           <View style={styles.summaryHeading}>
-            <Text style={styles.summaryTitle}>
-              Order Summary
-            </Text>
+            <Text style={styles.summaryTitle}>Order Summary</Text>
 
-            <Text style={styles.itemCountText}>
-              {itemCount} Items
-            </Text>
+            <Text style={styles.itemCountText}>{itemCount} Items</Text>
           </View>
 
           {/* CART LOADING */}
@@ -1309,9 +1063,7 @@ export default function CheckoutScreen() {
             <View style={styles.emptyAddress}>
               <ActivityIndicator color={colors.primary} />
 
-              <Text style={styles.emptyAddressText}>
-                Loading cart items...
-              </Text>
+              <Text style={styles.emptyAddressText}>Loading cart items...</Text>
             </View>
           ) : items.length === 0 ? (
             <View style={styles.emptyAddress}>
@@ -1331,10 +1083,7 @@ export default function CheckoutScreen() {
               const isUpdating = cartActionId === item.id;
 
               return (
-                <View
-                  style={styles.foodItem}
-                  key={item.id}
-                >
+                <View style={styles.foodItem} key={item.id}>
                   <View style={styles.foodImage}>
                     {item.image ? (
                       <Image
@@ -1345,7 +1094,7 @@ export default function CheckoutScreen() {
                           console.log(
                             "FOOD IMAGE ERROR:",
                             item.image,
-                            error?.nativeEvent
+                            error?.nativeEvent,
                           );
                         }}
                       />
@@ -1357,9 +1106,7 @@ export default function CheckoutScreen() {
                   </View>
 
                   <View style={styles.foodDetails}>
-                    <Text style={styles.foodName}>
-                      {item.name}
-                    </Text>
+                    <Text style={styles.foodName}>{item.name}</Text>
 
                     <View style={styles.foodTypeRow}>
                       <View
@@ -1377,9 +1124,7 @@ export default function CheckoutScreen() {
                         style={[
                           styles.foodType,
                           {
-                            color: item.veg
-                              ? successColor
-                              : colors.primary,
+                            color: item.veg ? successColor : colors.primary,
                           },
                         ]}
                       >
@@ -1394,21 +1139,15 @@ export default function CheckoutScreen() {
                     )}
 
                     <Text style={styles.foodUnitPrice}>
-                      {item.quantity} × ₹
-                      {item.price.toFixed(2)}
+                      {item.quantity} × ₹{item.price.toFixed(2)}
                     </Text>
 
                     {/* QUANTITY */}
                     <View style={styles.quantityContainer}>
                       <TouchableOpacity
                         style={styles.quantityButton}
-                        onPress={() =>
-                          updateQuantity(item, -1)
-                        }
-                        disabled={
-                          isUpdating ||
-                          cartActionId !== null
-                        }
+                        onPress={() => updateQuantity(item, -1)}
+                        disabled={isUpdating || cartActionId !== null}
                       >
                         {isUpdating ? (
                           <ActivityIndicator
@@ -1418,9 +1157,7 @@ export default function CheckoutScreen() {
                         ) : (
                           <Ionicons
                             name={
-                              item.quantity === 1
-                                ? "trash-outline"
-                                : "remove"
+                              item.quantity === 1 ? "trash-outline" : "remove"
                             }
                             size={17}
                             color={colors.textSecondary}
@@ -1428,19 +1165,12 @@ export default function CheckoutScreen() {
                         )}
                       </TouchableOpacity>
 
-                      <Text style={styles.quantityText}>
-                        {item.quantity}
-                      </Text>
+                      <Text style={styles.quantityText}>{item.quantity}</Text>
 
                       <TouchableOpacity
                         style={styles.quantityButton}
-                        onPress={() =>
-                          updateQuantity(item, 1)
-                        }
-                        disabled={
-                          isUpdating ||
-                          cartActionId !== null
-                        }
+                        onPress={() => updateQuantity(item, 1)}
+                        disabled={isUpdating || cartActionId !== null}
                       >
                         <Ionicons
                           name="add"
@@ -1452,10 +1182,7 @@ export default function CheckoutScreen() {
                   </View>
 
                   <Text style={styles.foodPrice}>
-                    ₹
-                    {(
-                      item.price * item.quantity
-                    ).toFixed(2)}
+                    ₹{(item.price * item.quantity).toFixed(2)}
                   </Text>
                 </View>
               );
@@ -1484,18 +1211,11 @@ export default function CheckoutScreen() {
 
             <TouchableOpacity
               style={styles.applyButton}
-              onPress={
-                appliedCode
-                  ? removeDiscount
-                  : applyDiscount
-              }
+              onPress={appliedCode ? removeDiscount : applyDiscount}
               disabled={applyingCode}
             >
               {applyingCode ? (
-                <ActivityIndicator
-                  color="#FFFFFF"
-                  size="small"
-                />
+                <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
                 <Text style={styles.applyButtonText}>
                   {appliedCode ? "REMOVE" : "APPLY"}
@@ -1517,11 +1237,7 @@ export default function CheckoutScreen() {
             styles={styles}
           />
 
-          <PriceRow
-            label="GST"
-            value={`₹${gst.toFixed(2)}`}
-            styles={styles}
-          />
+          <PriceRow label="GST" value={`₹${gst.toFixed(2)}`} styles={styles} />
 
           <PriceRow
             label="Coupon Discount"
@@ -1531,42 +1247,36 @@ export default function CheckoutScreen() {
           />
 
           {previewLoading && (
-            <Text style={styles.previewNote}>
-              Updating prices...
-            </Text>
+            <Text style={styles.previewNote}>Updating prices...</Text>
           )}
 
           {!!previewError && (
-            <Text style={styles.previewError}>
-              {previewError}
-            </Text>
+            <Text style={styles.previewError}>{previewError}</Text>
           )}
 
           <View style={styles.totalDivider} />
 
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>
-              Total
-            </Text>
+            <Text style={styles.totalLabel}>Total</Text>
 
-            <Text style={styles.totalValue}>
-              ₹{total.toFixed(2)}
-            </Text>
+            <Text style={styles.totalValue}>₹{total.toFixed(2)}</Text>
           </View>
 
           {/* PLACE ORDER */}
           <TouchableOpacity
             style={[
               styles.placeOrderButton,
-              (
-                submitting ||
+              (submitting ||
                 previewLoading ||
                 cartLoading ||
                 cartActionId !== null ||
-                items.length === 0
-              ) && styles.placeOrderButtonDisabled,
+                items.length === 0) &&
+                styles.placeOrderButtonDisabled,
             ]}
-            onPress={placeOrder}
+            onPress={() => {
+              placeOrder();
+              router.push("/order-success");
+            }}
             disabled={
               submitting ||
               previewLoading ||
@@ -1577,22 +1287,14 @@ export default function CheckoutScreen() {
             activeOpacity={0.85}
           >
             <Text style={styles.placeOrderText}>
-              {submitting
-                ? "PLACING ORDER..."
-                : "PLACE ORDER"}
+              {submitting ? "PLACING ORDER..." : "PLACE ORDER"}
             </Text>
           </TouchableOpacity>
 
           <View style={styles.secureCheckout}>
-            <Ionicons
-              name="lock-closed"
-              size={14}
-              color={colors.warning}
-            />
+            <Ionicons name="lock-closed" size={14} color={colors.warning} />
 
-            <Text style={styles.secureText}>
-              Secure & encrypted checkout
-            </Text>
+            <Text style={styles.secureText}>Secure & encrypted checkout</Text>
           </View>
         </Card>
 
@@ -1605,9 +1307,7 @@ export default function CheckoutScreen() {
               color={colors.warning}
             />
 
-            <Text style={styles.featureText}>
-              Secure Payment
-            </Text>
+            <Text style={styles.featureText}>Secure Payment</Text>
           </View>
 
           <View style={styles.featureDivider} />
@@ -1619,23 +1319,15 @@ export default function CheckoutScreen() {
               color={colors.warning}
             />
 
-            <Text style={styles.featureText}>
-              Freshly Prepared Food
-            </Text>
+            <Text style={styles.featureText}>Freshly Prepared Food</Text>
           </View>
 
           <View style={styles.featureDivider} />
 
           <View style={styles.feature}>
-            <Ionicons
-              name="car-outline"
-              size={25}
-              color={colors.warning}
-            />
+            <Ionicons name="car-outline" size={25} color={colors.warning} />
 
-            <Text style={styles.featureText}>
-              Easy Order Tracking
-            </Text>
+            <Text style={styles.featureText}>Easy Order Tracking</Text>
           </View>
         </View>
 
@@ -1648,28 +1340,18 @@ export default function CheckoutScreen() {
           <TouchableOpacity
             style={styles.addressPickerBackdrop}
             activeOpacity={1}
-            onPress={() =>
-              setAddressPickerVisible(false)
-            }
+            onPress={() => setAddressPickerVisible(false)}
           />
 
           <View style={styles.addressPicker}>
             <View style={styles.addressPickerHeader}>
-              <Text style={styles.addressPickerTitle}>
-                Select Address
-              </Text>
+              <Text style={styles.addressPickerTitle}>Select Address</Text>
 
               <TouchableOpacity
-                onPress={() =>
-                  setAddressPickerVisible(false)
-                }
+                onPress={() => setAddressPickerVisible(false)}
                 hitSlop={12}
               >
-                <Ionicons
-                  name="close"
-                  size={21}
-                  color={colors.textPrimary}
-                />
+                <Ionicons name="close" size={21} color={colors.textPrimary} />
               </TouchableOpacity>
             </View>
 
@@ -1678,16 +1360,14 @@ export default function CheckoutScreen() {
               showsVerticalScrollIndicator={false}
             >
               {addresses.map((item) => {
-                const selected =
-                  item.id === selectedAddressId;
+                const selected = item.id === selectedAddressId;
 
                 return (
                   <TouchableOpacity
                     key={item.id}
                     style={[
                       styles.savedAddressOption,
-                      selected &&
-                      styles.savedAddressOptionSelected,
+                      selected && styles.savedAddressOptionSelected,
                     ]}
                     onPress={() => {
                       setSelectedAddressId(item.id);
@@ -1696,31 +1376,19 @@ export default function CheckoutScreen() {
                     activeOpacity={0.8}
                   >
                     <Ionicons
-                      name={
-                        selected
-                          ? "radio-button-on"
-                          : "radio-button-off"
-                      }
+                      name={selected ? "radio-button-on" : "radio-button-off"}
                       size={18}
-                      color={
-                        selected
-                          ? successColor
-                          : radioOff
-                      }
+                      color={selected ? successColor : radioOff}
                     />
 
                     <View style={styles.savedAddressDetails}>
-                      <Text style={styles.savedAddressName}>
-                        {item.name}
-                      </Text>
+                      <Text style={styles.savedAddressName}>{item.name}</Text>
 
                       <Text style={styles.savedAddressText}>
                         {item.address}
                       </Text>
 
-                      <Text style={styles.savedAddressText}>
-                        {item.city}
-                      </Text>
+                      <Text style={styles.savedAddressText}>{item.city}</Text>
 
                       {!!item.mobile && (
                         <Text style={styles.savedAddressText}>
@@ -1747,15 +1415,9 @@ export default function CheckoutScreen() {
               }}
               activeOpacity={0.85}
             >
-              <Ionicons
-                name="add"
-                size={19}
-                color="#FFFFFF"
-              />
+              <Ionicons name="add" size={19} color="#FFFFFF" />
 
-              <Text style={styles.pickerAddAddressText}>
-                Add New Address
-              </Text>
+              <Text style={styles.pickerAddAddressText}>Add New Address</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -2287,7 +1949,7 @@ const makeStyles = (colors, isDark) => {
     foodPrice: {
       color: colors.primary,
       fontFamily: Fonts.bold,
-      fontSize: 15,
+      fontSize: 1,
       marginLeft: 5,
       marginTop: 5,
     },

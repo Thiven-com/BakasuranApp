@@ -53,17 +53,11 @@ const buildHeaders = async () => {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    console.log(
-      "🔐 AUTH TOKEN:",
-      token ? "TOKEN FOUND" : "NO TOKEN"
-    );
+    console.log("🔐 AUTH TOKEN:", token ? "TOKEN FOUND" : "NO TOKEN");
 
     return headers;
   } catch (error) {
-    console.log(
-      "❌ BUILD HEADERS ERROR:",
-      error?.message
-    );
+    console.log("❌ BUILD HEADERS ERROR:", error?.message);
 
     return {
       Accept: "application/json",
@@ -86,18 +80,11 @@ const handleApiError = (error, method) => {
 
   // Server responded
   if (error?.response) {
-    console.log(
-      "HTTP STATUS:",
-      error.response.status
-    );
+    console.log("HTTP STATUS:", error.response.status);
 
     console.log(
       "SERVER RESPONSE:",
-      JSON.stringify(
-        error.response.data,
-        null,
-        2
-      )
+      JSON.stringify(error.response.data, null, 2),
     );
 
     return (
@@ -111,9 +98,7 @@ const handleApiError = (error, method) => {
 
   // Request sent but no response
   if (error?.request) {
-    console.log(
-      "❌ NO RESPONSE FROM SERVER"
-    );
+    console.log("❌ NO RESPONSE FROM SERVER");
 
     return {
       success: 0,
@@ -126,9 +111,7 @@ const handleApiError = (error, method) => {
   // Other error
   return {
     success: 0,
-    message:
-      error?.message ||
-      "Unable to complete the request.",
+    message: error?.message || "Unable to complete the request.",
     status: 0,
   };
 };
@@ -147,7 +130,7 @@ const handleApiError = (error, method) => {
 export const postMethod = async (
   endpoint,
   userOrData = null,
-  optionalData = undefined
+  optionalData = undefined,
 ) => {
   try {
     const url = buildUrl(endpoint);
@@ -172,34 +155,20 @@ export const postMethod = async (
     console.log("====================================");
     console.log("METHOD:", "POST");
     console.log("URL:", url);
-    console.log(
-      "REQUEST BODY:",
-      JSON.stringify(data, null, 2)
-    );
+    console.log("REQUEST BODY:", JSON.stringify(data, null, 2));
     console.log("====================================");
 
-    const response = await axios.post(
-      url,
-      data,
-      {
-        headers,
-        timeout: REQUEST_TIMEOUT,
-      }
-    );
+    const response = await axios.post(url, data, {
+      headers,
+      timeout: REQUEST_TIMEOUT,
+    });
 
     console.log("");
     console.log("====================================");
     console.log("📥 POST API RESPONSE");
     console.log("====================================");
     console.log("STATUS:", response.status);
-    console.log(
-      "DATA:",
-      JSON.stringify(
-        response.data,
-        null,
-        2
-      )
-    );
+    console.log("DATA:", JSON.stringify(response.data, null, 2));
     console.log("====================================");
 
     return response.data;
@@ -227,27 +196,17 @@ export const getMethod = async (endpoint) => {
     console.log("FINAL URL:", url);
     console.log("====================================");
 
-    const response = await axios.get(
-      url,
-      {
-        headers,
-        timeout: REQUEST_TIMEOUT,
-      }
-    );
+    const response = await axios.get(url, {
+      headers,
+      timeout: REQUEST_TIMEOUT,
+    });
 
     console.log("");
     console.log("====================================");
     console.log("📥 GET API RESPONSE");
     console.log("====================================");
     console.log("STATUS:", response.status);
-    console.log(
-      "DATA:",
-      JSON.stringify(
-        response.data,
-        null,
-        2
-      )
-    );
+    console.log("DATA:", JSON.stringify(response.data, null, 2));
     console.log("====================================");
 
     return response.data;
@@ -260,10 +219,7 @@ export const getMethod = async (endpoint) => {
 // PUT METHOD
 // =========================================================
 
-export const putMethod = async (
-  endpoint,
-  data = {}
-) => {
+export const putMethod = async (endpoint, data = {}) => {
   try {
     const url = buildUrl(endpoint);
     const headers = await buildHeaders();
@@ -273,29 +229,15 @@ export const putMethod = async (
     console.log("📤 PUT API REQUEST");
     console.log("====================================");
     console.log("URL:", url);
-    console.log(
-      "REQUEST BODY:",
-      JSON.stringify(data, null, 2)
-    );
+    console.log("REQUEST BODY:", JSON.stringify(data, null, 2));
 
-    const response = await axios.put(
-      url,
-      data,
-      {
-        headers,
-        timeout: REQUEST_TIMEOUT,
-      }
-    );
+    const response = await axios.put(url, data, {
+      headers,
+      timeout: REQUEST_TIMEOUT,
+    });
 
     console.log("STATUS:", response.status);
-    console.log(
-      "DATA:",
-      JSON.stringify(
-        response.data,
-        null,
-        2
-      )
-    );
+    console.log("DATA:", JSON.stringify(response.data, null, 2));
 
     return response.data;
   } catch (error) {
@@ -307,10 +249,7 @@ export const putMethod = async (
 // PATCH METHOD
 // =========================================================
 
-export const patchMethod = async (
-  endpoint,
-  data = {}
-) => {
+export const patchMethod = async (endpoint, data = {}) => {
   try {
     const url = buildUrl(endpoint);
     const headers = await buildHeaders();
@@ -320,29 +259,15 @@ export const patchMethod = async (
     console.log("📤 PATCH API REQUEST");
     console.log("====================================");
     console.log("URL:", url);
-    console.log(
-      "REQUEST BODY:",
-      JSON.stringify(data, null, 2)
-    );
+    console.log("REQUEST BODY:", JSON.stringify(data, null, 2));
 
-    const response = await axios.patch(
-      url,
-      data,
-      {
-        headers,
-        timeout: REQUEST_TIMEOUT,
-      }
-    );
+    const response = await axios.patch(url, data, {
+      headers,
+      timeout: REQUEST_TIMEOUT,
+    });
 
     console.log("STATUS:", response.status);
-    console.log(
-      "DATA:",
-      JSON.stringify(
-        response.data,
-        null,
-        2
-      )
-    );
+    console.log("DATA:", JSON.stringify(response.data, null, 2));
 
     return response.data;
   } catch (error) {
@@ -382,8 +307,7 @@ export const deleteMethod = async (endpoint) => {
       return {
         success: 1,
         message:
-          response.data?.message ||
-          "Wishlist item deleted successfully.",
+          response.data?.message || "Wishlist item deleted successfully.",
         data: response.data?.data ?? response.data,
         status: response.status,
       };
@@ -413,9 +337,7 @@ export const deleteMethod = async (endpoint) => {
     return {
       success: 0,
       message:
-        error?.response?.data?.message ||
-        error?.message ||
-        "Network error",
+        error?.response?.data?.message || error?.message || "Network error",
       data: error?.response?.data || null,
       status: error?.response?.status || 0,
     };

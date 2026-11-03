@@ -2,10 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import BASE_URL from "../constants/AppUrls";
 
-import {
-  deleteMethod,
-  getMethod
-} from "./APIServices";
+import { deleteMethod, getMethod } from "./APIServices";
 
 // =========================================================a
 // BASE URL CONFIGURATION
@@ -812,20 +809,14 @@ export const checkoutPreview = async (payload) => {
   try {
     const token = await AsyncStorage.getItem(TOKEN_KEY);
 
-    const response = await axios.post(
-      `${APP_URL}checkout/preview`,
-      payload,
-      {
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          ...(token
-            ? { Authorization: `Bearer ${token}` }
-            : {}),
-        },
-        timeout: 30000,
-      }
-    );
+    const response = await axios.post(`${APP_URL}checkout/preview`, payload, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      timeout: 30000,
+    });
 
     console.log("CHECKOUT PREVIEW RESPONSE:", response.data);
 
@@ -833,13 +824,13 @@ export const checkoutPreview = async (payload) => {
   } catch (error) {
     console.log(
       "CHECKOUT PREVIEW ERROR:",
-      error?.response?.data || error.message
+      error?.response?.data || error.message,
     );
 
     throw new Error(
       error?.response?.data?.message ||
-      error?.message ||
-      "Unable to preview checkout."
+        error?.message ||
+        "Unable to preview checkout.",
     );
   }
 };
@@ -882,10 +873,7 @@ export const getWishlist = async () => {
     console.log("GET WISHLIST API");
     console.log("METHOD: GET");
     console.log("URL:", `${APP_URL}wishlist`);
-    console.log(
-      "TOKEN:",
-      token ? "AVAILABLE" : "NOT AVAILABLE"
-    );
+    console.log("TOKEN:", token ? "AVAILABLE" : "NOT AVAILABLE");
     console.log("====================================");
 
     if (!token) {
@@ -895,24 +883,19 @@ export const getWishlist = async () => {
       };
     }
 
-    const response = await axios.get(
-      `${APP_URL}wishlist`,
-      {
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        timeout: REQUEST_TIMEOUT,
-      }
-    );
+    const response = await axios.get(`${APP_URL}wishlist`, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      timeout: REQUEST_TIMEOUT,
+    });
 
     console.log("====================================");
     console.log("GET WISHLIST RESPONSE");
     console.log("STATUS:", response.status);
-    console.log(
-      JSON.stringify(response.data, null, 2)
-    );
+    console.log(JSON.stringify(response.data, null, 2));
     console.log("====================================");
 
     return (
@@ -928,11 +911,7 @@ export const getWishlist = async () => {
     console.log("STATUS:", error?.response?.status);
     console.log(
       "SERVER RESPONSE:",
-      JSON.stringify(
-        error?.response?.data || {},
-        null,
-        2
-      )
+      JSON.stringify(error?.response?.data || {}, null, 2),
     );
     console.log("====================================");
 
@@ -949,15 +928,10 @@ export const getWishlist = async () => {
 
     return {
       success: 0,
-      message: getApiErrorMessage(
-        error,
-        "Unable to load wishlist."
-      ),
+      message: getApiErrorMessage(error, "Unable to load wishlist."),
     };
   }
 };
-
-
 
 export const addToWishlist = async (data) => {
   try {
@@ -965,10 +939,7 @@ export const addToWishlist = async (data) => {
     // addToWishlist(26)
     // addToWishlist({ product_id: 14, variant_id: 26, restaurant_id: 1 })
 
-    const variantId =
-      typeof data === "object"
-        ? data?.variant_id
-        : data;
+    const variantId = typeof data === "object" ? data?.variant_id : data;
 
     const normalizedVariantId = normalizeVariantId(variantId);
 
@@ -1007,30 +978,21 @@ export const addToWishlist = async (data) => {
     console.log("ADD TO WISHLIST REQUEST");
     console.log("METHOD: POST");
     console.log("URL:", url);
-    console.log(
-      "PAYLOAD:",
-      JSON.stringify(payload, null, 2)
-    );
+    console.log("PAYLOAD:", JSON.stringify(payload, null, 2));
     console.log("=================================");
 
-    const response = await axios.post(
-      url,
-      payload,
-      {
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        timeout: REQUEST_TIMEOUT,
-      }
-    );
+    const response = await axios.post(url, payload, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      timeout: REQUEST_TIMEOUT,
+    });
 
     console.log("=================================");
     console.log("ADD TO WISHLIST RESPONSE");
-    console.log(
-      JSON.stringify(response.data, null, 2)
-    );
+    console.log(JSON.stringify(response.data, null, 2));
     console.log("STATUS:", response.status);
     console.log("=================================");
 
@@ -1047,11 +1009,7 @@ export const addToWishlist = async (data) => {
     console.log("STATUS:", error?.response?.status);
     console.log(
       "SERVER RESPONSE:",
-      JSON.stringify(
-        error?.response?.data || {},
-        null,
-        2
-      )
+      JSON.stringify(error?.response?.data || {}, null, 2),
     );
     console.log("=================================");
 
@@ -1068,10 +1026,7 @@ export const addToWishlist = async (data) => {
 
     return {
       success: 0,
-      message: getApiErrorMessage(
-        error,
-        "Unable to add item to wishlist."
-      ),
+      message: getApiErrorMessage(error, "Unable to add item to wishlist."),
     };
   }
 };
@@ -1080,7 +1035,6 @@ export const addToWishlist = async (data) => {
 // REMOVE ITEM FROM WISHLIST
 // DELETE: /api/customer/wishlist/{wishlistId}
 // =========================================================
-
 
 export const removeFromWishlist = async (wishlistId) => {
   try {
@@ -1099,10 +1053,7 @@ export const removeFromWishlist = async (wishlistId) => {
 
     const response = await deleteMethod(endpoint);
 
-    console.log(
-      "WISHLIST DELETE RESULT:",
-      JSON.stringify(response, null, 2)
-    );
+    console.log("WISHLIST DELETE RESULT:", JSON.stringify(response, null, 2));
 
     return response;
   } catch (error) {
@@ -1110,7 +1061,7 @@ export const removeFromWishlist = async (wishlistId) => {
     console.log("STATUS:", error?.response?.status);
     console.log(
       "SERVER RESPONSE:",
-      JSON.stringify(error?.response?.data ?? {}, null, 2)
+      JSON.stringify(error?.response?.data ?? {}, null, 2),
     );
 
     return {
@@ -1123,7 +1074,6 @@ export const removeFromWishlist = async (wishlistId) => {
     };
   }
 };
-
 
 // =========================================================
 // TOGGLE WISHLIST API
@@ -1419,6 +1369,423 @@ export const getRestaurantById = async (restaurantId) => {
     return {
       success: 0,
       message: getApiErrorMessage(error, "Unable to load restaurant details."),
+    };
+  }
+};
+
+// =========================================================
+// GET AVAILABLE TABLES
+// GET: /api/customer/restaurant-available-tables
+// Query: restaurant_id, booking_date (YYYY-MM-DD),
+//        booking_time (HH:mm), end_time (HH:mm), guest_count
+// =========================================================
+
+export const getAvailableTables = async ({
+  restaurantId,
+  bookingDate,
+  bookingTime,
+  endTime,
+  guestCount,
+}) => {
+  const url = `${APP_URL}restaurant-available-tables`;
+
+  try {
+    if (
+      restaurantId === undefined ||
+      restaurantId === null ||
+      String(restaurantId).trim() === ""
+    ) {
+      return { success: 0, message: "Restaurant ID is required.", data: [] };
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(bookingDate || ""))) {
+      return {
+        success: 0,
+        message: "Booking date must be in YYYY-MM-DD format.",
+        data: [],
+      };
+    }
+
+    const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
+    if (
+      !timePattern.test(String(bookingTime || "")) ||
+      !timePattern.test(String(endTime || ""))
+    ) {
+      return {
+        success: 0,
+        message: "Booking and end time must be in HH:mm format.",
+        data: [],
+      };
+    }
+
+    if (String(endTime) <= String(bookingTime)) {
+      return {
+        success: 0,
+        message: "End time must be after the booking time.",
+        data: [],
+      };
+    }
+
+    const guests = Number(guestCount);
+    if (!Number.isInteger(guests) || guests < 1) {
+      return {
+        success: 0,
+        message: "Guest count must be at least 1.",
+        data: [],
+      };
+    }
+
+    const headers = await getAuthHeaders();
+
+    const params = {
+      restaurant_id: Number(restaurantId),
+      booking_date: bookingDate,
+      booking_time: bookingTime,
+      end_time: endTime,
+      guest_count: guests,
+    };
+
+    console.log("AVAILABLE TABLES REQUEST:", url, JSON.stringify(params));
+
+    const response = await axios.get(url, {
+      headers,
+      params,
+      timeout: REQUEST_TIMEOUT,
+    });
+
+    console.log(
+      "AVAILABLE TABLES RESPONSE:",
+      JSON.stringify(response.data, null, 2),
+    );
+
+    return (
+      response.data || {
+        success: 0,
+        message: "Empty response from server.",
+        data: [],
+      }
+    );
+  } catch (error) {
+    console.log(
+      "AVAILABLE TABLES ERROR:",
+      JSON.stringify(error?.response?.data || error?.message, null, 2),
+    );
+
+    if (error?.response?.status === 401) {
+      return {
+        success: 9,
+        message: "Your session has expired. Please login again.",
+        data: [],
+      };
+    }
+
+    if (error?.response?.data) {
+      return error.response.data;
+    }
+
+    return {
+      success: 0,
+      message: getApiErrorMessage(error, "Unable to load available tables."),
+      data: [],
+    };
+  }
+};
+
+// =========================================================
+// GET RESTAURANT TABLE BOOKINGS
+// GET: /api/customer/restaurant-table-bookings
+// =========================================================
+
+export const getRestaurantTableBookings = async () => {
+  const url = `${APP_URL}restaurant-table-bookings`;
+
+  try {
+    const headers = await getAuthHeaders();
+    const response = await axios.get(url, {
+      headers,
+      timeout: REQUEST_TIMEOUT,
+    });
+
+    console.log(
+      "RESTAURANT TABLE BOOKINGS RESPONSE:",
+      JSON.stringify(response.data, null, 2),
+    );
+
+    return (
+      response.data || {
+        success: 0,
+        message: "Empty response from server.",
+        data: [],
+      }
+    );
+  } catch (error) {
+    console.log(
+      "RESTAURANT TABLE BOOKINGS ERROR:",
+      JSON.stringify(error?.response?.data || error?.message, null, 2),
+    );
+
+    if (error?.response?.status === 401) {
+      return {
+        success: 9,
+        message: "Your session has expired. Please login again.",
+        data: [],
+      };
+    }
+
+    if (error?.response?.data) {
+      return error.response.data;
+    }
+
+    return {
+      success: 0,
+      message: getApiErrorMessage(
+        error,
+        "Unable to load restaurant table bookings.",
+      ),
+      data: [],
+    };
+  }
+};
+
+// =========================================================
+// CREATE RESTAURANT TABLE BOOKING
+// POST: /api/customer/restaurant-table-bookings
+// Body: {
+//   restaurant_id, restaurant_table_id, customer_name,
+//   customer_mobile, customer_email, booking_date (YYYY-MM-DD),
+//   booking_time (HH:mm), end_time (HH:mm), guest_count,
+//   special_requests
+// }
+// =========================================================
+
+export const createRestaurantTableBooking = async (bookingData) => {
+  const url = `${APP_URL}restaurant-table-bookings`;
+
+  try {
+    if (!bookingData) {
+      return { success: 0, message: "Booking data is required." };
+    }
+
+    const token = await getAuthToken();
+
+    if (!token) {
+      return {
+        success: 9,
+        message: "Please login to book a table.",
+      };
+    }
+
+    const isBlank = (value) =>
+      value === undefined || value === null || String(value).trim() === "";
+
+    if (isBlank(bookingData.restaurant_id)) {
+      return { success: 0, message: "Restaurant ID is required." };
+    }
+
+    if (isBlank(bookingData.restaurant_table_id)) {
+      return { success: 0, message: "Please select a table." };
+    }
+
+    const customerName = String(bookingData.customer_name || "").trim();
+    if (!customerName) {
+      return { success: 0, message: "Please enter your name." };
+    }
+
+    let mobile = String(bookingData.customer_mobile || "").replace(/\D/g, "");
+    if (mobile.length === 12 && mobile.startsWith("91")) {
+      mobile = mobile.slice(2);
+    }
+    if (mobile.length !== 10) {
+      return {
+        success: 0,
+        message: "Please enter a valid 10-digit mobile number.",
+      };
+    }
+
+    const email = String(bookingData.customer_email || "").trim();
+    if (email && !/^\S+@\S+\.\S+$/.test(email)) {
+      return { success: 0, message: "Please enter a valid email address." };
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(bookingData.booking_date || ""))) {
+      return {
+        success: 0,
+        message: "Booking date must be in YYYY-MM-DD format.",
+      };
+    }
+
+    const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
+    if (
+      !timePattern.test(String(bookingData.booking_time || "")) ||
+      !timePattern.test(String(bookingData.end_time || ""))
+    ) {
+      return {
+        success: 0,
+        message: "Booking and end time must be in HH:mm format.",
+      };
+    }
+
+    if (String(bookingData.end_time) <= String(bookingData.booking_time)) {
+      return {
+        success: 0,
+        message: "End time must be after the booking time.",
+      };
+    }
+
+    const guests = Number(bookingData.guest_count);
+    if (!Number.isInteger(guests) || guests < 1) {
+      return { success: 0, message: "Guest count must be at least 1." };
+    }
+
+    const payload = {
+      restaurant_id: Number(bookingData.restaurant_id),
+      restaurant_table_id: Number(bookingData.restaurant_table_id),
+      customer_name: customerName,
+      customer_mobile: mobile,
+      booking_date: bookingData.booking_date,
+      booking_time: bookingData.booking_time,
+      end_time: bookingData.end_time,
+      guest_count: guests,
+    };
+
+    if (email) {
+      payload.customer_email = email;
+    }
+
+    const specialRequests = String(bookingData.special_requests || "").trim();
+    if (specialRequests) {
+      payload.special_requests = specialRequests;
+    }
+
+    console.log("====================================");
+    console.log("CREATE TABLE BOOKING API");
+    console.log("METHOD: POST");
+    console.log("URL:", url);
+    console.log("REQUEST:", JSON.stringify(payload, null, 2));
+    console.log("====================================");
+
+    const response = await axios.post(url, payload, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      timeout: REQUEST_TIMEOUT,
+    });
+
+    console.log(
+      "CREATE TABLE BOOKING RESPONSE:",
+      JSON.stringify(response.data, null, 2),
+    );
+
+    return (
+      response.data || {
+        success: 0,
+        message: "Empty response from server.",
+      }
+    );
+  } catch (error) {
+    console.log(
+      "CREATE TABLE BOOKING ERROR:",
+      JSON.stringify(error?.response?.data || error?.message, null, 2),
+    );
+
+    if (error?.response?.status === 401) {
+      return {
+        success: 9,
+        message: "Your session has expired. Please login again.",
+      };
+    }
+
+    if (error?.response?.data) {
+      return error.response.data;
+    }
+
+    return {
+      success: 0,
+      message: getApiErrorMessage(error, "Unable to book your table."),
+    };
+  }
+};
+
+// =========================================================
+// CANCEL RESTAURANT TABLE BOOKING
+// POST: /api/customer/restaurant-table-bookings/{id}/cancel
+// =========================================================
+
+export const cancelRestaurantTableBooking = async (bookingId) => {
+  try {
+    if (
+      bookingId === undefined ||
+      bookingId === null ||
+      String(bookingId).trim() === ""
+    ) {
+      return { success: 0, message: "Booking ID is required." };
+    }
+
+    const token = await getAuthToken();
+
+    if (!token) {
+      return {
+        success: 9,
+        message: "Please login to cancel your booking.",
+      };
+    }
+
+    const url = `${APP_URL}restaurant-table-bookings/${encodeURIComponent(
+      String(bookingId).trim(),
+    )}/cancel`;
+
+    console.log("====================================");
+    console.log("CANCEL TABLE BOOKING API");
+    console.log("METHOD: POST");
+    console.log("URL:", url);
+    console.log("====================================");
+
+    const response = await axios.post(
+      url,
+      {},
+      {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: REQUEST_TIMEOUT,
+      },
+    );
+
+    console.log(
+      "CANCEL TABLE BOOKING RESPONSE:",
+      JSON.stringify(response.data, null, 2),
+    );
+
+    return (
+      response.data || {
+        success: 0,
+        message: "Empty response from server.",
+      }
+    );
+  } catch (error) {
+    console.log(
+      "CANCEL TABLE BOOKING ERROR:",
+      JSON.stringify(error?.response?.data || error?.message, null, 2),
+    );
+
+    if (error?.response?.status === 401) {
+      return {
+        success: 9,
+        message: "Your session has expired. Please login again.",
+      };
+    }
+
+    if (error?.response?.data) {
+      return error.response.data;
+    }
+
+    return {
+      success: 0,
+      message: getApiErrorMessage(error, "Unable to cancel your booking."),
     };
   }
 };
@@ -2020,22 +2387,18 @@ export const getFAQs = async () => {
   }
 };
 
-
 export const getRestaurantCategories = async () => {
   try {
     const response = await getMethod(`${APP_URL}restaurant-categories`);
 
     console.log(
       "GET RESTAURANT CATEGORIES:",
-      JSON.stringify(response, null, 2)
+      JSON.stringify(response, null, 2),
     );
 
     return response;
   } catch (error) {
-    console.log(
-      "GET RESTAURANT CATEGORIES ERROR:",
-      error?.message
-    );
+    console.log("GET RESTAURANT CATEGORIES ERROR:", error?.message);
 
     throw error;
   }
@@ -2059,7 +2422,7 @@ export const getCategoryRestaurants = async (categoryId) => {
     const cleanCategoryId = String(categoryId).trim();
 
     const endpoint = `${APP_URL}categories/${encodeURIComponent(
-      cleanCategoryId
+      cleanCategoryId,
     )}/restaurants`;
 
     console.log("====================================");
@@ -2073,7 +2436,7 @@ export const getCategoryRestaurants = async (categoryId) => {
 
     console.log(
       "CATEGORY RESTAURANTS RESPONSE:",
-      JSON.stringify(response, null, 2)
+      JSON.stringify(response, null, 2),
     );
 
     return response;
@@ -2094,7 +2457,7 @@ export const getCategoryRestaurants = async (categoryId) => {
 
 export const getRestaurantCategoryProducts = async (
   categoryId,
-  restaurantId
+  restaurantId,
 ) => {
   try {
     if (
@@ -2134,7 +2497,7 @@ export const getRestaurantCategoryProducts = async (
 
     console.log(
       "RESTAURANT CATEGORY PRODUCTS RESPONSE:",
-      JSON.stringify(response, null, 2)
+      JSON.stringify(response, null, 2),
     );
 
     return response;
@@ -2145,14 +2508,10 @@ export const getRestaurantCategoryProducts = async (
     console.log("STATUS:", error?.response?.status);
     console.log(
       "RESPONSE:",
-      JSON.stringify(error?.response?.data || {}, null, 2)
+      JSON.stringify(error?.response?.data || {}, null, 2),
     );
     console.log("====================================");
 
     throw error;
   }
 };
-
-
-
-
