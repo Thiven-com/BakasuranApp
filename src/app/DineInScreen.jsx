@@ -464,8 +464,6 @@ export default function DineInScreen() {
             style={styles.heroImage}
             resizeMode="cover"
           />
-          <View style={styles.heroShadeTop} />
-          <View style={styles.heroShadeBottom} />
 
           <View style={[styles.heroActions, { top: insets.top + 8 }]}>
             <TouchableOpacity
@@ -802,24 +800,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     width: "100%",
     height: "100%",
-  },
-
-  heroShadeTop: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 110,
-    backgroundColor: "rgba(0,0,0,0.38)",
-  },
-
-  heroShadeBottom: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 170,
-    backgroundColor: "rgba(5,5,5,0.82)",
   },
 
   heroActions: {

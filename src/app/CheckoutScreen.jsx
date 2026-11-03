@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Platform,
   ScrollView,
   StatusBar,
@@ -17,41 +18,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import Fonts from "../constants/Fonts";
 import { useTheme } from "../hooks/use-theme";
+
 import {
   checkoutOrder,
   checkoutPreview,
+  deleteCartItem,
+  getCart,
   getLocations,
+  updateCartQuantity,
 } from "../utils/Function";
 
-const INITIAL_ITEMS = [
-  {
-    id: 1,
-    name: "Chicken Biryani",
-    description: "500g • Full",
-    price: 249,
-    quantity: 1,
-    veg: false,
-    image: "🍛",
-  },
-  {
-    id: 2,
-    name: "Paneer Special",
-    description: "300g • Regular",
-    price: 199,
-    quantity: 1,
-    veg: true,
-    image: "🍲",
-  },
-  {
-    id: 3,
-    name: "Fried Chicken",
-    description: "1 Piece",
-    price: 60,
-    quantity: 1,
-    veg: false,
-    image: "🍗",
-  },
-];
+// ============================================================
+// CONSTANTS
+// ============================================================
 
 const PAYMENT_METHODS = [
   {
@@ -67,12 +46,11 @@ const ORDER_TYPES = [
   { id: "preorder", label: "Pre-order", icon: "calendar-outline" },
 ];
 
-// Used only until the preview API responds
 const FALLBACK_DELIVERY_FEE = 30;
 
-/* ------------------------------------------------------------------ */
-/* Alert.alert does nothing on web, so use window.alert / confirm there */
-/* ------------------------------------------------------------------ */
+// ============================================================
+// ALERT HELPERS
+// ============================================================
 
 const notify = (title, message) => {
   if (Platform.OS === "web") {
@@ -95,18 +73,50 @@ const confirmAction = (title, message, onConfirm) => {
   }
 };
 
-/* ------------------------------------------------------------------ */
-/* API response helpers                                                */
-/* ------------------------------------------------------------------ */
+// ============================================================
+// API RESPONSE HELPERS
+// ============================================================
 
-const isFailure = (response) =>
-  !response || response.success === 0 || response.success === false;
+const unwrapResponse = (response) => {
+  let result = response;
+
+  // Axios response -> response.data
+  if (result?.data !== undefined) {
+    result = result.data;
+  }
+
+  return result;
+};
+
+const isFailure = (response) => {
+  const data = unwrapResponse(response);
+
+  return (
+    !response ||
+    data?.success === 0 ||
+    data?.success === false ||
+    data?.success === "0"
+  );
+};
+
+const getErrorMessage = (response, fallback) => {
+  const data = unwrapResponse(response);
+
+  return (
+    data?.message || response?.message || response?.data?.message || fallback
+  );
+};
 
 const toNumber = (object, keys) => {
   for (const key of keys) {
     const value = object?.[key];
 
-    if (value !== undefined && value !== null && !Number.isNaN(Number(value))) {
+    if (
+      value !== undefined &&
+      value !== null &&
+      value !== "" &&
+      !Number.isNaN(Number(value))
+    ) {
       return Number(value);
     }
   }
@@ -114,50 +124,191 @@ const toNumber = (object, keys) => {
   return null;
 };
 
+// ============================================================
+// CART RESPONSE NORMALIZATION
+// ============================================================
+
+const extractCartItems = (response) => {
+  const root = unwrapResponse(response);
+  const data = root?.data ?? root;
+
+  const possibleLists = [
+    data?.cart,
+    data?.items,
+    data?.cart_items,
+    data?.cartItems,
+    data?.products,
+    root?.cart,
+    root?.items,
+    root?.cart_items,
+    Array.isArray(data) ? data : null,
+    Array.isArray(root) ? root : null,
+  ];
+
+  return possibleLists.find((list) => Array.isArray(list)) ?? [];
+};
+
+const normalizeCartItem = (raw) => {
+  const cartItem = raw?.cart_item ?? raw?.cartItem ?? raw;
+
+  const product =
+    cartItem?.product ??
+    cartItem?.product_details ??
+    cartItem?.productDetail ??
+    {};
+
+  const variant =
+    cartItem?.variant ??
+    cartItem?.product_variant ??
+    cartItem?.productVariant ??
+    {};
+
+  // Cart row ID
+  const id =
+    cartItem?.cart_item_id ??
+    cartItem?.cartItemId ??
+    cartItem?.cart_id ??
+    cartItem?.id;
+
+  const price =
+    toNumber(cartItem, [
+      "price",
+      "sale_price",
+      "unit_price",
+      "selling_price",
+      "variant_price",
+    ]) ??
+    toNumber(variant, ["price", "sale_price", "selling_price"]) ??
+    toNumber(product, ["price", "sale_price", "selling_price"]) ??
+    0;
+
+  const quantity = toNumber(cartItem, ["quantity", "qty"]) ?? 1;
+
+  // ============================================================
+  // IMAGE
+  // API gives image inside variant.image
+  // ============================================================
+  const image =
+    variant?.image ??
+    cartItem?.variant_image ??
+    cartItem?.image ??
+    product?.image ??
+    product?.thumbnail ??
+    null;
+
+  // ============================================================
+  // PRODUCT NAME
+  // ============================================================
+  const name =
+    cartItem?.name ??
+    cartItem?.product_title ??
+    product?.title ??
+    product?.product_title ??
+    "Food Item";
+
+  // ============================================================
+  // DESCRIPTION
+  // ============================================================
+  const description =
+    cartItem?.description ??
+    product?.description ??
+    variant?.description ??
+    cartItem?.variant_name ??
+    cartItem?.variantName ??
+    variant?.name ??
+    variant?.variant_name ??
+    cartItem?.size ??
+    "";
+
+  const vegValue =
+    cartItem?.is_veg ??
+    cartItem?.veg ??
+    product?.is_veg ??
+    product?.veg ??
+    false;
+
+  return {
+    id,
+    productId: product?.id ?? null,
+    variantId: variant?.id ?? null,
+
+    name,
+    description,
+
+    image,
+
+    price: Number.isFinite(price) ? price : 0,
+
+    quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+
+    veg: vegValue === true || vegValue === 1 || vegValue === "1",
+  };
+};
+
+// ============================================================
+// PREVIEW RESPONSE NORMALIZATION
+// ============================================================
+
 const normalizePreview = (response) => {
-  const data = response?.data ?? response ?? {};
-  const summary = data.summary ?? data.totals ?? data;
+  const root = unwrapResponse(response);
+  const data = root?.data ?? root;
+  const summary = data?.summary ?? data?.totals ?? data;
 
   return {
     itemTotal: toNumber(summary, ["item_total", "subtotal", "sub_total"]),
+
     deliveryFee: toNumber(summary, [
       "delivery_fee",
       "delivery_charge",
       "shipping_charge",
       "shipping",
     ]),
+
     gst: toNumber(summary, ["gst", "tax", "tax_amount"]),
+
     discount: toNumber(summary, [
       "discount",
       "discount_amount",
       "coupon_discount",
     ]),
+
     total: toNumber(summary, [
       "total",
       "grand_total",
       "total_amount",
       "payable",
     ]),
+
     deliveryCharges:
-      data.delivery_charges && typeof data.delivery_charges === "object"
+      data?.delivery_charges && typeof data.delivery_charges === "object"
         ? data.delivery_charges
         : {},
   };
 };
 
+// ============================================================
+// ADDRESS HELPERS
+// ============================================================
+
 const normalizeAddress = (raw) => ({
   id: raw?.id,
   name: raw?.address_type || raw?.type || raw?.name || "Address",
+
   address: [raw?.address, raw?.address_2, raw?.landmark]
     .filter(Boolean)
     .join(", "),
+
   city: [raw?.city, raw?.state, raw?.pincode].filter(Boolean).join(" "),
+
   mobile: raw?.mobile || "",
+
   isDefault: Boolean(raw?.default ?? raw?.is_default),
 });
 
 const extractAddresses = (response) => {
-  const data = response?.data ?? response;
+  const root = unwrapResponse(response);
+  const data = root?.data ?? root;
+
   const list = Array.isArray(data)
     ? data
     : (data?.locations ?? data?.addresses ?? data?.data ?? []);
@@ -167,10 +318,9 @@ const extractAddresses = (response) => {
     : [];
 };
 
-/* ------------------------------------------------------------------ */
-/* Small components. They receive `styles` so they stay outside the    */
-/* screen (stable identity) but still follow the active theme.         */
-/* ------------------------------------------------------------------ */
+// ============================================================
+// SMALL COMPONENTS
+// ============================================================
 
 const SectionTitle = ({ number, title, styles }) => (
   <View style={styles.sectionTitle}>
@@ -189,20 +339,26 @@ const Card = ({ children, style, styles }) => (
 const PriceRow = ({ label, value, valueStyle, styles }) => (
   <View style={styles.priceRow}>
     <Text style={styles.priceLabel}>{label}</Text>
+
     <Text style={[styles.priceValue, valueStyle]}>{value}</Text>
   </View>
 );
 
-/* ------------------------------------------------------------------ */
-/* Screen                                                              */
-/* ------------------------------------------------------------------ */
+// ============================================================
+// CHECKOUT SCREEN
+// ============================================================
 
 export default function CheckoutScreen() {
   const { colors, isDark } = useTheme();
 
   const styles = useMemo(() => makeStyles(colors, isDark), [colors, isDark]);
 
-  const [items, setItems] = useState(INITIAL_ITEMS);
+  // Cart items are loaded from the API.
+  const [items, setItems] = useState([]);
+
+  const [cartLoading, setCartLoading] = useState(true);
+  const [cartActionId, setCartActionId] = useState(null);
+
   const [submitting, setSubmitting] = useState(false);
   const [addressPickerVisible, setAddressPickerVisible] = useState(false);
 
@@ -212,7 +368,7 @@ export default function CheckoutScreen() {
   const [payment, setPayment] = useState("razorpay");
   const [orderType, setOrderType] = useState("order");
 
-  // Saved addresses from the API
+  // Saved addresses
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [addressesLoading, setAddressesLoading] = useState(true);
@@ -230,17 +386,69 @@ export default function CheckoutScreen() {
   const address =
     addresses.find((item) => item.id === selectedAddressId) ?? null;
 
-  // Theme shortcuts
   const successColor = colors.success || "#22C55E";
   const radioOff = colors.textSecondary;
 
-  /* ---------- load saved addresses (also when returning from Add Address) ---------- */
+  // Used to refresh the price preview when cart quantities change.
+  const cartSignature = items
+    .map((item) => `${item.id}:${item.quantity}:${item.price}`)
+    .join("|");
+
+  // ==========================================================
+  // LOAD CART API
+  // ==========================================================
+
+  const loadCart = useCallback(async () => {
+    setCartLoading(true);
+
+    try {
+      const response = await getCart();
+
+      console.log("CHECKOUT CART RESPONSE:", JSON.stringify(response, null, 2));
+
+      if (isFailure(response)) {
+        throw new Error(
+          getErrorMessage(response, "Unable to load cart items."),
+        );
+      }
+
+      const cartRows = extractCartItems(response);
+
+      const formattedItems = cartRows
+        .map(normalizeCartItem)
+        .filter((item) => item.id !== undefined && item.id !== null);
+
+      setItems(formattedItems);
+    } catch (error) {
+      console.log("CHECKOUT CART ERROR:", error);
+
+      setItems([]);
+
+      notify("Cart Error", error?.message || "Unable to load cart items.");
+    } finally {
+      setCartLoading(false);
+    }
+  }, []);
+
+  // ==========================================================
+  // LOAD ADDRESSES API
+  // ==========================================================
 
   const loadAddresses = useCallback(async () => {
     setAddressesLoading(true);
 
     try {
       const response = await getLocations();
+
+      console.log(
+        "CHECKOUT ADDRESSES RESPONSE:",
+        JSON.stringify(response, null, 2),
+      );
+
+      if (isFailure(response)) {
+        throw new Error(getErrorMessage(response, "Unable to load addresses."));
+      }
+
       const list = extractAddresses(response);
 
       setAddresses(list);
@@ -255,7 +463,8 @@ export default function CheckoutScreen() {
         return preferred ? preferred.id : null;
       });
     } catch (error) {
-      console.log("LOAD ADDRESSES ERROR:", error.message);
+      console.log("LOAD ADDRESSES ERROR:", error);
+
       setAddresses([]);
       setSelectedAddressId(null);
     } finally {
@@ -263,23 +472,37 @@ export default function CheckoutScreen() {
     }
   }, []);
 
+  // Refresh cart and addresses whenever the Checkout screen
+  // becomes active, including when returning from Add Address.
   useFocusEffect(
     useCallback(() => {
       loadAddresses();
-    }, [loadAddresses]),
+      loadCart();
+    }, [loadAddresses, loadCart]),
   );
 
-  /* ---------- checkout/preview ---------- */
+  // ============================================================
+  // CHECKOUT PREVIEW PAYLOAD
+  // ============================================================
 
-  const buildPreviewPayload = (code) => ({
-    order_type: orderType,
-    address_id: address?.id,
-    ...(code ? { code } : {}),
-  });
+  const buildPreviewPayload = useCallback(
+    (code) => ({
+      order_type: orderType,
+      address_id: Number(address?.id),
+      ...(code ? { code } : {}),
+    }),
+    [orderType, address?.id],
+  );
+
+  // ============================================================
+  // CHECKOUT PREVIEW API
+  // ============================================================
 
   useEffect(() => {
-    if (!address?.id) {
+    if (!address?.id || items.length === 0) {
       setPreview(null);
+      setPreviewLoading(false);
+      setPreviewError("");
       return undefined;
     }
 
@@ -288,18 +511,27 @@ export default function CheckoutScreen() {
     const loadPreview = async () => {
       setPreviewLoading(true);
       setPreviewError("");
+      setPreview(null);
 
       try {
-        const response = await checkoutPreview({
-          order_type: orderType,
-          address_id: address.id,
-          ...(appliedCode ? { code: appliedCode } : {}),
-        });
+        const payload = buildPreviewPayload(appliedCode);
 
-        console.log("CHECKOUT PREVIEW RESPONSE:", JSON.stringify(response));
+        console.log(
+          "CHECKOUT PREVIEW PAYLOAD:",
+          JSON.stringify(payload, null, 2),
+        );
+
+        const response = await checkoutPreview(payload);
+
+        console.log(
+          "CHECKOUT PREVIEW RESPONSE:",
+          JSON.stringify(response, null, 2),
+        );
 
         if (isFailure(response)) {
-          throw new Error(response?.message || "Unable to load price details.");
+          throw new Error(
+            getErrorMessage(response, "Unable to load price details."),
+          );
         }
 
         if (!cancelled) {
@@ -307,8 +539,10 @@ export default function CheckoutScreen() {
         }
       } catch (error) {
         if (!cancelled) {
+          console.log("CHECKOUT PREVIEW ERROR:", error);
+
           setPreview(null);
-          setPreviewError(error.message || "Unable to load price details.");
+          setPreviewError(error?.message || "Unable to load price details.");
         }
       } finally {
         if (!cancelled) {
@@ -322,40 +556,133 @@ export default function CheckoutScreen() {
     return () => {
       cancelled = true;
     };
-  }, [orderType, address?.id, appliedCode]);
+  }, [orderType, address?.id, appliedCode, cartSignature, buildPreviewPayload]);
+  // ==========================================================
+  // PRICE CALCULATIONS
+  // SAME BILL CALCULATION AS CART SCREEN
+  // ==========================================================
 
-  /* ---------- prices (server values win, local values are the fallback) ---------- */
+  const itemTotal = useMemo(() => {
+    return items.reduce((total, item) => {
+      const price = Number(item.price) || 0;
+      const quantity = Number(item.quantity) || 0;
 
-  const localItemTotal = items.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0,
-  );
+      return total + price * quantity;
+    }, 0);
+  });
 
-  const itemTotal = preview?.itemTotal ?? localItemTotal;
-  const deliveryFee = preview?.deliveryFee ?? FALLBACK_DELIVERY_FEE;
-  const gst = preview?.gst ?? Math.round(localItemTotal * 0.05);
-  const discount = preview?.discount ?? 0;
-  const total =
-    preview?.total ?? Math.max(itemTotal + deliveryFee + gst - discount, 0);
+  // Same CartScreen rule:
+  // Subtotal >= ₹299 -> FREE delivery
+  // Subtotal < ₹299  -> ₹30 delivery
+  const deliveryFee = useMemo(() => {
+    if (itemTotal <= 0) {
+      return 0;
+    }
 
-  const itemCount = items.reduce((count, item) => count + item.quantity, 0);
+    return itemTotal >= 299 ? 0 : 30;
+  }, [itemTotal]);
 
-  /* ---------- actions ---------- */
+  // Same CartScreen rule:
+  // GST = 5% of subtotal
+  const gst = useMemo(() => {
+    return itemTotal * 0.05;
+  }, [itemTotal]);
 
-  const updateQuantity = (id, change) => {
-    setItems((previous) =>
-      previous
-        .map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                quantity: item.quantity + change,
-              }
-            : item,
-        )
-        .filter((item) => item.quantity > 0),
+  // Coupon discount comes from checkout preview API.
+  const discount = Number(preview?.discount || 0);
+
+  // Same CartScreen total calculation,
+  // with coupon discount applied.
+  const total = useMemo(() => {
+    return Math.max(itemTotal + deliveryFee + gst - discount, 0);
+  }, [itemTotal, deliveryFee, gst, discount]);
+
+  const itemCount = useMemo(() => {
+    return items.reduce(
+      (count, item) => count + (Number(item.quantity) || 0),
+      0,
     );
+  }, [items]);
+
+  // ==========================================================
+  // UPDATE CART QUANTITY API
+  // ==========================================================
+
+  const updateQuantity = async (item, change) => {
+    if (!item?.id || cartActionId !== null) {
+      return;
+    }
+
+    const newQuantity = item.quantity + change;
+
+    // Save current cart in case the API request fails.
+    const previousItems = items;
+
+    setCartActionId(item.id);
+
+    // Optimistically update the screen so the amount changes
+    // immediately while the API request is running.
+    if (newQuantity <= 0) {
+      setItems((previous) =>
+        previous.filter((cartItem) => cartItem.id !== item.id),
+      );
+    } else {
+      setItems((previous) =>
+        previous.map((cartItem) =>
+          cartItem.id === item.id
+            ? {
+                ...cartItem,
+                quantity: newQuantity,
+              }
+            : cartItem,
+        ),
+      );
+    }
+
+    setPreview(null);
+
+    try {
+      let response;
+
+      if (newQuantity <= 0) {
+        // Quantity is zero: remove the cart item.
+        response = await deleteCartItem(item.id);
+
+        console.log(
+          "DELETE CART ITEM RESPONSE:",
+          JSON.stringify(response, null, 2),
+        );
+      } else {
+        // Quantity is greater than zero: update quantity.
+        response = await updateCartQuantity(item.id, newQuantity);
+
+        console.log(
+          "UPDATE CART QUANTITY RESPONSE:",
+          JSON.stringify(response, null, 2),
+        );
+      }
+
+      if (isFailure(response)) {
+        throw new Error(getErrorMessage(response, "Unable to update cart."));
+      }
+
+      // Fetch the latest cart values from the server.
+      await loadCart();
+    } catch (error) {
+      console.log("CART UPDATE ERROR:", error);
+
+      // Restore the previous cart if the API fails.
+      setItems(previousItems);
+
+      notify("Cart Update Failed", error?.message || "Unable to update cart.");
+    } finally {
+      setCartActionId(null);
+    }
   };
+
+  // ==========================================================
+  // APPLY DISCOUNT
+  // ==========================================================
 
   const applyDiscount = async () => {
     const code = discountCode.trim().toUpperCase();
@@ -373,19 +700,29 @@ export default function CheckoutScreen() {
     setApplyingCode(true);
 
     try {
-      // Validate the code with the preview API before applying it
-      const response = await checkoutPreview(buildPreviewPayload(code));
+      const payload = buildPreviewPayload(code);
+
+      console.log("DISCOUNT PREVIEW PAYLOAD:", JSON.stringify(payload));
+
+      const response = await checkoutPreview(payload);
+
+      console.log(
+        "DISCOUNT PREVIEW RESPONSE:",
+        JSON.stringify(response, null, 2),
+      );
 
       if (isFailure(response)) {
-        throw new Error(response?.message || "Invalid discount code.");
+        throw new Error(getErrorMessage(response, "Invalid discount code."));
       }
 
       setDiscountCode(code);
       setAppliedCode(code);
-      notify("Success", response?.message || "Discount code applied.");
+
+      notify("Success", getErrorMessage(response, "Discount code applied."));
     } catch (error) {
       setAppliedCode("");
-      notify("Invalid Code", error.message || "Invalid discount code.");
+
+      notify("Invalid Code", error?.message || "Invalid discount code.");
     } finally {
       setApplyingCode(false);
     }
@@ -394,35 +731,55 @@ export default function CheckoutScreen() {
   const removeDiscount = () => {
     setAppliedCode("");
     setDiscountCode("");
+    setPreview(null);
   };
 
+  // ==========================================================
+  // PLACE ORDER API
+  // ==========================================================
+
   const submitOrder = async () => {
+    if (!address?.id) {
+      notify("Delivery Address", "Please select a delivery address.");
+      return;
+    }
+
     const payload = {
       shipping_address_id: address.id,
       payment_method: payment,
       order_type: orderType,
+
       ...(appliedCode ? { code: appliedCode } : {}),
+
       delivery_charges: preview?.deliveryCharges ?? {},
     };
 
-    console.log("CHECKOUT PAYLOAD:", JSON.stringify(payload));
+    console.log("CHECKOUT PAYLOAD:", JSON.stringify(payload, null, 2));
 
     setSubmitting(true);
+
     try {
       const response = await checkoutOrder(payload);
 
-      console.log("CHECKOUT RESPONSE:", JSON.stringify(response));
+      console.log("CHECKOUT RESPONSE:", JSON.stringify(response, null, 2));
 
       if (isFailure(response)) {
-        throw new Error(response?.message || "Unable to place your order.");
+        throw new Error(
+          getErrorMessage(response, "Unable to place your order."),
+        );
       }
 
       notify(
         "Order placed",
-        response?.message || "Your order has been placed successfully.",
+        getErrorMessage(response, "Your order has been placed successfully."),
       );
     } catch (error) {
-      notify("Checkout failed", error.message || "Unable to place your order.");
+      console.log("CHECKOUT ORDER ERROR:", error);
+
+      notify(
+        "Checkout failed",
+        error?.message || "Unable to place your order.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -447,12 +804,21 @@ export default function CheckoutScreen() {
       return;
     }
 
+    if (cartLoading || cartActionId !== null) {
+      notify("Please wait", "Your cart is still being updated.");
+      return;
+    }
+
     confirmAction(
       "Place Order",
       `Total: ₹${total.toFixed(2)}\nPayment: ${payment.toUpperCase()}`,
       submitOrder,
     );
   };
+
+  // ==========================================================
+  // UI
+  // ==========================================================
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -475,7 +841,7 @@ export default function CheckoutScreen() {
 
         <TouchableOpacity
           style={styles.headerButton}
-          onPress={() => router.push("/CartScreen")}
+          onPress={() => notify("Cart", "Your cart is shown below.")}
           activeOpacity={0.8}
         >
           <Ionicons name="cart-outline" size={23} color={colors.textPrimary} />
@@ -692,75 +1058,136 @@ export default function CheckoutScreen() {
             <Text style={styles.itemCountText}>{itemCount} Items</Text>
           </View>
 
-          {/* FOOD ITEMS */}
-          {items.map((item) => (
-            <View style={styles.foodItem} key={item.id}>
-              <View style={styles.foodImage}>
-                <Text style={styles.foodEmoji}>{item.image}</Text>
-              </View>
+          {/* CART LOADING */}
+          {cartLoading ? (
+            <View style={styles.emptyAddress}>
+              <ActivityIndicator color={colors.primary} />
 
-              <View style={styles.foodDetails}>
-                <Text style={styles.foodName}>{item.name}</Text>
+              <Text style={styles.emptyAddressText}>Loading cart items...</Text>
+            </View>
+          ) : items.length === 0 ? (
+            <View style={styles.emptyAddress}>
+              <Ionicons
+                name="cart-outline"
+                size={30}
+                color={colors.textSecondary}
+              />
 
-                <View style={styles.foodTypeRow}>
-                  <View
-                    style={[
-                      styles.vegDot,
-                      {
-                        backgroundColor: item.veg
-                          ? successColor
-                          : colors.primary,
-                      },
-                    ]}
-                  />
-
-                  <Text
-                    style={[
-                      styles.foodType,
-                      {
-                        color: item.veg ? successColor : colors.primary,
-                      },
-                    ]}
-                  >
-                    {item.veg ? "Veg" : "Non Veg"}
-                  </Text>
-                </View>
-
-                <Text style={styles.foodDescription}>{item.description}</Text>
-
-                <Text style={styles.foodUnitPrice}>
-                  {item.quantity} × ₹{item.price.toFixed(2)}
-                </Text>
-
-                {/* QUANTITY */}
-                <View style={styles.quantityContainer}>
-                  <TouchableOpacity
-                    style={styles.quantityButton}
-                    onPress={() => updateQuantity(item.id, -1)}
-                  >
-                    <Ionicons
-                      name={item.quantity === 1 ? "trash-outline" : "remove"}
-                      size={17}
-                      color={colors.textSecondary}
-                    />
-                  </TouchableOpacity>
-
-                  <Text style={styles.quantityText}>{item.quantity}</Text>
-
-                  <TouchableOpacity
-                    style={styles.quantityButton}
-                    onPress={() => updateQuantity(item.id, 1)}
-                  >
-                    <Ionicons name="add" size={19} color={colors.textPrimary} />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              <Text style={styles.foodPrice}>
-                ₹{(item.price * item.quantity).toFixed(2)}
+              <Text style={styles.emptyAddressText}>
+                Your cart is empty. Please add food items.
               </Text>
             </View>
-          ))}
+          ) : (
+            /* FOOD ITEMS */
+            items.map((item) => {
+              const isUpdating = cartActionId === item.id;
+
+              return (
+                <View style={styles.foodItem} key={item.id}>
+                  <View style={styles.foodImage}>
+                    {item.image ? (
+                      <Image
+                        source={{ uri: item.image }}
+                        style={styles.foodImageActual}
+                        resizeMode="cover"
+                        onError={(error) => {
+                          console.log(
+                            "FOOD IMAGE ERROR:",
+                            item.image,
+                            error?.nativeEvent,
+                          );
+                        }}
+                      />
+                    ) : (
+                      <View style={styles.foodImageFallback}>
+                        <Text style={styles.foodEmoji}>🍽️</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <View style={styles.foodDetails}>
+                    <Text style={styles.foodName}>{item.name}</Text>
+
+                    <View style={styles.foodTypeRow}>
+                      <View
+                        style={[
+                          styles.vegDot,
+                          {
+                            backgroundColor: item.veg
+                              ? successColor
+                              : colors.primary,
+                          },
+                        ]}
+                      />
+
+                      <Text
+                        style={[
+                          styles.foodType,
+                          {
+                            color: item.veg ? successColor : colors.primary,
+                          },
+                        ]}
+                      >
+                        {item.veg ? "Veg" : "Non Veg"}
+                      </Text>
+                    </View>
+
+                    {!!item.description && (
+                      <Text style={styles.foodDescription}>
+                        {item.description}
+                      </Text>
+                    )}
+
+                    <Text style={styles.foodUnitPrice}>
+                      {item.quantity} × ₹{item.price.toFixed(2)}
+                    </Text>
+
+                    {/* QUANTITY */}
+                    <View style={styles.quantityContainer}>
+                      <TouchableOpacity
+                        style={styles.quantityButton}
+                        onPress={() => updateQuantity(item, -1)}
+                        disabled={isUpdating || cartActionId !== null}
+                      >
+                        {isUpdating ? (
+                          <ActivityIndicator
+                            size="small"
+                            color={colors.primary}
+                          />
+                        ) : (
+                          <Ionicons
+                            name={
+                              item.quantity === 1 ? "trash-outline" : "remove"
+                            }
+                            size={17}
+                            color={colors.textSecondary}
+                          />
+                        )}
+                      </TouchableOpacity>
+
+                      <Text style={styles.quantityText}>{item.quantity}</Text>
+
+                      <TouchableOpacity
+                        style={styles.quantityButton}
+                        onPress={() => updateQuantity(item, 1)}
+                        disabled={isUpdating || cartActionId !== null}
+                      >
+                        <Ionicons
+                          name="add"
+                          size={19}
+                          color={colors.textPrimary}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  <Text style={styles.foodPrice}>
+                    ₹{(item.price * item.quantity).toFixed(2)}
+                  </Text>
+                </View>
+              );
+            })
+          )}
 
           {/* DISCOUNT CODE */}
           <View style={styles.discountContainer}>
@@ -823,7 +1250,7 @@ export default function CheckoutScreen() {
             <Text style={styles.previewNote}>Updating prices...</Text>
           )}
 
-          {Boolean(previewError) && (
+          {!!previewError && (
             <Text style={styles.previewError}>{previewError}</Text>
           )}
 
@@ -839,10 +1266,24 @@ export default function CheckoutScreen() {
           <TouchableOpacity
             style={[
               styles.placeOrderButton,
-              (submitting || previewLoading) && styles.placeOrderButtonDisabled,
+              (submitting ||
+                previewLoading ||
+                cartLoading ||
+                cartActionId !== null ||
+                items.length === 0) &&
+                styles.placeOrderButtonDisabled,
             ]}
-            onPress={placeOrder}
-            disabled={submitting || previewLoading}
+            onPress={() => {
+              placeOrder();
+              router.push("/order-success");
+            }}
+            disabled={
+              submitting ||
+              previewLoading ||
+              cartLoading ||
+              cartActionId !== null ||
+              items.length === 0
+            }
             activeOpacity={0.85}
           >
             <Text style={styles.placeOrderText}>
@@ -949,7 +1390,7 @@ export default function CheckoutScreen() {
 
                       <Text style={styles.savedAddressText}>{item.city}</Text>
 
-                      {Boolean(item.mobile) && (
+                      {!!item.mobile && (
                         <Text style={styles.savedAddressText}>
                           {item.mobile}
                         </Text>
@@ -1443,14 +1884,25 @@ const makeStyles = (colors, isDark) => {
       height: 65,
       borderRadius: 11,
       backgroundColor: isDark ? "#242424" : "#F2F2F2",
+      overflow: "hidden",
+    },
+
+    foodImageActual: {
+      width: "100%",
+      height: "100%",
+      borderRadius: 11,
+    },
+
+    foodImageFallback: {
+      width: "100%",
+      height: "100%",
       alignItems: "center",
       justifyContent: "center",
     },
 
     foodEmoji: {
-      fontSize: 32,
+      fontSize: 30,
     },
-
     foodDetails: {
       flex: 1,
       marginLeft: 11,

@@ -440,6 +440,7 @@ export default function CartScreen() {
   const [updatingQuantityId, setUpdatingQuantityId] = useState(null);
 
   const [deletingCartItemId, setDeletingCartItemId] = useState(null);
+  const [clearingCart, setClearingCart] = useState(false);
 
   /* =======================================================
      FETCH CART
@@ -691,29 +692,97 @@ export default function CartScreen() {
     [updateQuantity, removeItem],
   );
 
-  /* =======================================================
-     CLEAR CART
-  ======================================================= */
+  /* =========================================================
+   CLEAR CART - DELETE API
+========================================================= */
 
   const clearCart = useCallback(() => {
-    if (cartItems.length === 0) {
+    if (cartItems.length === 0 || clearingCart) {
       return;
     }
 
-    Alert.alert("Clear Cart", "Are you sure you want to remove all items?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Clear",
-        style: "destructive",
-        onPress: () => {
-          setCartItems([]);
+    Alert.alert(
+      "Clear Cart",
+      "Are you sure you want to remove all items from your cart?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
         },
-      },
-    ]);
-  }, [cartItems.length]);
+        {
+          text: "Clear",
+          style: "destructive",
+          onPress: async () => {
+            setClearingCart(true);
+
+            try {
+              console.log("========== CLEAR CART DELETE API ==========");
+
+              // Delete every cart item using its cart item ID.
+              for (const item of cartItems) {
+                const cartItemId = item.cartItemId;
+
+                if (
+                  cartItemId === null ||
+                  cartItemId === undefined ||
+                  String(cartItemId).trim() === ""
+                ) {
+                  throw new Error(
+                    `Cart item ID is missing for ${item.name || "an item"}.`,
+                  );
+                }
+
+                console.log("Deleting cart item ID:", cartItemId);
+
+                const response = await deleteCartItem(String(cartItemId));
+
+                console.log(
+                  "DELETE CART ITEM RESPONSE:",
+                  JSON.stringify(response, null, 2),
+                );
+
+                const result = response?.data ?? response;
+
+                if (
+                  result?.success !== undefined &&
+                  ![1, true, "1", "success", "SUCCESS"].includes(result.success)
+                ) {
+                  throw new Error(
+                    result?.message || `Failed to delete item ${cartItemId}.`,
+                  );
+                }
+              }
+
+              // Fetch the latest cart after all deletions succeed.
+              await fetchCart(false);
+
+              Alert.alert(
+                "Success",
+                "All cart items have been removed successfully.",
+              );
+            } catch (error) {
+              console.log(
+                "CLEAR CART ERROR:",
+                error?.response?.data || error?.message || error,
+              );
+
+              // Reload the cart to show the actual server state.
+              await fetchCart(false);
+
+              Alert.alert(
+                "Clear Cart Failed",
+                error?.response?.data?.message ||
+                  error?.message ||
+                  "Unable to clear your cart. Please try again.",
+              );
+            } finally {
+              setClearingCart(false);
+            }
+          },
+        },
+      ],
+    );
+  }, [cartItems, clearingCart, fetchCart]);
 
   /* =======================================================
      PRICE CALCULATIONS
@@ -833,18 +902,23 @@ export default function CartScreen() {
           <TouchableOpacity
             style={styles.clearButton}
             onPress={clearCart}
+            disabled={clearingCart}
             activeOpacity={0.8}
           >
-            <Text
-              style={[
-                styles.clearText,
-                {
-                  color: colors.primary,
-                },
-              ]}
-            >
-              Clear
-            </Text>
+            {clearingCart ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Text
+                style={[
+                  styles.clearText,
+                  {
+                    color: colors.primary,
+                  },
+                ]}
+              >
+                Clear
+              </Text>
+            )}
           </TouchableOpacity>
         ) : (
           <View style={styles.headerRightPlaceholder} />

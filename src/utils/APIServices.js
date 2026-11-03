@@ -5,14 +5,12 @@ import axios from "axios";
 import BASE_URL from "../constants/AppUrls";
 
 // =========================================================
-// TOKEN KEY
+// CONFIG
 // =========================================================
 
-const TOKEN_KEY = "bakasuran_token";
+export const TOKEN_KEY = "bakasuran_token";
 
-// =========================================================
-// BASE URL
-// =========================================================
+const REQUEST_TIMEOUT = 30000;
 
 const API_BASE_URL = String(BASE_URL || "").replace(/\/+$/, "");
 
@@ -20,7 +18,7 @@ const API_BASE_URL = String(BASE_URL || "").replace(/\/+$/, "");
 // BUILD URL
 // =========================================================
 
-const buildUrl = (endpoint) => {
+const buildUrl = (endpoint = "") => {
   if (!endpoint) {
     throw new Error("API endpoint is required.");
   }
@@ -55,11 +53,11 @@ const buildHeaders = async () => {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    console.log("AUTH TOKEN:", token ? "TOKEN FOUND" : "NO TOKEN");
+    console.log("🔐 AUTH TOKEN:", token ? "TOKEN FOUND" : "NO TOKEN");
 
     return headers;
   } catch (error) {
-    console.log("BUILD HEADERS ERROR:", error?.message);
+    console.log("❌ BUILD HEADERS ERROR:", error?.message);
 
     return {
       Accept: "application/json",
@@ -73,11 +71,14 @@ const buildHeaders = async () => {
 // =========================================================
 
 const handleApiError = (error, method) => {
-  console.log(`========== ${method} API ERROR ==========`);
+  console.log("");
+  console.log("====================================");
+  console.log(`${method} API ERROR`);
+  console.log("====================================");
 
   console.log("MESSAGE:", error?.message);
 
-  // Server responded with error
+  // Server responded
   if (error?.response) {
     console.log("HTTP STATUS:", error.response.status);
 
@@ -90,25 +91,28 @@ const handleApiError = (error, method) => {
       error.response.data || {
         success: 0,
         message: `Request failed with status ${error.response.status}.`,
+        status: error.response.status,
       }
     );
   }
 
-  // Request was sent but server did not respond
+  // Request sent but no response
   if (error?.request) {
-    console.log("NO RESPONSE FROM SERVER");
+    console.log("❌ NO RESPONSE FROM SERVER");
 
     return {
       success: 0,
       message:
         "No response from server. Check the API server and network connection.",
+      status: 0,
     };
   }
 
-  // Something else happened
+  // Other error
   return {
     success: 0,
     message: error?.message || "Unable to complete the request.",
+    status: 0,
   };
 };
 
@@ -116,8 +120,10 @@ const handleApiError = (error, method) => {
 // POST METHOD
 //
 // Supports:
-// postMethod(url, null, data)
+//
 // postMethod(url, data)
+//
+// postMethod(url, null, data)
 //
 // =========================================================
 
@@ -131,7 +137,7 @@ export const postMethod = async (
 
     let data = {};
 
-    // Old Function.js format:
+    // Old format:
     // postMethod(url, null, data)
     if (optionalData !== undefined) {
       data = optionalData || {};
@@ -143,26 +149,69 @@ export const postMethod = async (
 
     const headers = await buildHeaders();
 
-    console.log("========== POST API ==========");
+    console.log("");
+    console.log("====================================");
+    console.log("📤 POST API REQUEST");
+    console.log("====================================");
     console.log("METHOD:", "POST");
     console.log("URL:", url);
-
     console.log("REQUEST BODY:", JSON.stringify(data, null, 2));
+    console.log("====================================");
 
     const response = await axios.post(url, data, {
       headers,
-      timeout: 30000,
+      timeout: REQUEST_TIMEOUT,
     });
 
-    console.log("POST API STATUS:", response.status);
+    console.log("");
+    console.log("====================================");
+    console.log("📥 POST API RESPONSE");
+    console.log("====================================");
+    console.log("STATUS:", response.status);
+    console.log("DATA:", JSON.stringify(response.data, null, 2));
+    console.log("====================================");
 
-    console.log("POST API RESPONSE:", JSON.stringify(response.data, null, 2));
-
-    // IMPORTANT:
-    // Return response.data
     return response.data;
   } catch (error) {
     return handleApiError(error, "POST");
+  }
+};
+
+// =========================================================
+// GET METHOD
+// =========================================================
+
+export const getMethod = async (endpoint) => {
+  try {
+    const url = buildUrl(endpoint);
+
+    const headers = await buildHeaders();
+
+    console.log("");
+    console.log("====================================");
+    console.log("📥 GET API REQUEST");
+    console.log("====================================");
+    console.log("METHOD:", "GET");
+    console.log("ENDPOINT:", endpoint);
+    console.log("FINAL URL:", url);
+    console.log("====================================");
+
+    const response = await axios.get(url, {
+      headers,
+      timeout: REQUEST_TIMEOUT,
+    });
+
+    console.log("");
+    console.log("====================================");
+    console.log("📥 GET API RESPONSE");
+    console.log("====================================");
+    console.log("STATUS:", response.status);
+    console.log("DATA:", JSON.stringify(response.data, null, 2));
+    console.log("====================================");
+
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, "GET");
   }
 };
 
@@ -175,20 +224,20 @@ export const putMethod = async (endpoint, data = {}) => {
     const url = buildUrl(endpoint);
     const headers = await buildHeaders();
 
-    console.log("========== PUT API ==========");
-    console.log("METHOD:", "PUT");
+    console.log("");
+    console.log("====================================");
+    console.log("📤 PUT API REQUEST");
+    console.log("====================================");
     console.log("URL:", url);
-
     console.log("REQUEST BODY:", JSON.stringify(data, null, 2));
 
     const response = await axios.put(url, data, {
       headers,
-      timeout: 30000,
+      timeout: REQUEST_TIMEOUT,
     });
 
-    console.log("PUT API STATUS:", response.status);
-
-    console.log("PUT API RESPONSE:", JSON.stringify(response.data, null, 2));
+    console.log("STATUS:", response.status);
+    console.log("DATA:", JSON.stringify(response.data, null, 2));
 
     return response.data;
   } catch (error) {
@@ -205,20 +254,20 @@ export const patchMethod = async (endpoint, data = {}) => {
     const url = buildUrl(endpoint);
     const headers = await buildHeaders();
 
-    console.log("========== PATCH API ==========");
-    console.log("METHOD:", "PATCH");
+    console.log("");
+    console.log("====================================");
+    console.log("📤 PATCH API REQUEST");
+    console.log("====================================");
     console.log("URL:", url);
-
     console.log("REQUEST BODY:", JSON.stringify(data, null, 2));
 
     const response = await axios.patch(url, data, {
       headers,
-      timeout: 30000,
+      timeout: REQUEST_TIMEOUT,
     });
 
-    console.log("PATCH API STATUS:", response.status);
-
-    console.log("PATCH API RESPONSE:", JSON.stringify(response.data, null, 2));
+    console.log("STATUS:", response.status);
+    console.log("DATA:", JSON.stringify(response.data, null, 2));
 
     return response.data;
   } catch (error) {
@@ -232,22 +281,15 @@ export const patchMethod = async (endpoint, data = {}) => {
 
 export const deleteMethod = async (endpoint) => {
   try {
-    if (!endpoint) {
-      return {
-        success: 0,
-        message: "Delete API endpoint is required.",
-      };
-    }
-
     const url = buildUrl(endpoint);
     const headers = await buildHeaders();
 
     console.log("====================================");
     console.log("DELETE API REQUEST");
+    console.log("ENDPOINT:", endpoint);
+    console.log("FINAL URL:", url);
+    console.log("HEADERS:", headers);
     console.log("====================================");
-    console.log("METHOD: DELETE");
-    console.log("URL:", url);
-    console.log("HEADERS:", JSON.stringify(headers, null, 2));
 
     const response = await axios.delete(url, {
       headers,
@@ -257,117 +299,47 @@ export const deleteMethod = async (endpoint) => {
 
     console.log("====================================");
     console.log("DELETE API RESPONSE");
-    console.log("====================================");
     console.log("STATUS:", response.status);
     console.log("DATA:", JSON.stringify(response.data, null, 2));
-
-    // -----------------------------------------
-    // SUCCESS RESPONSE
-    // -----------------------------------------
+    console.log("====================================");
 
     if (response.status >= 200 && response.status < 300) {
       return {
         success: 1,
-        message: response.data?.message || "Item deleted successfully.",
-        data: response.data?.data ?? response.data ?? null,
+        message:
+          response.data?.message || "Wishlist item deleted successfully.",
+        data: response.data?.data ?? response.data,
         status: response.status,
       };
     }
-
-    // -----------------------------------------
-    // SERVER ERROR RESPONSE
-    // -----------------------------------------
 
     return {
       success: 0,
       message:
         response.data?.message ||
         response.data?.error ||
-        `Delete failed with status ${response.status}.`,
-      data: response.data?.data ?? response.data ?? null,
+        `Request failed with status ${response.status}`,
+      data: response.data,
       status: response.status,
     };
   } catch (error) {
     console.log("====================================");
     console.log("DELETE API ERROR");
-    console.log("====================================");
     console.log("MESSAGE:", error?.message);
-
-    // -----------------------------------------
-    // SERVER RESPONSE ERROR
-    // -----------------------------------------
-
-    if (error?.response) {
-      console.log("STATUS:", error.response.status);
-
-      console.log(
-        "SERVER RESPONSE:",
-        JSON.stringify(error.response.data, null, 2),
-      );
-
-      return {
-        success: 0,
-        message:
-          error.response.data?.message ||
-          `Delete failed with status ${error.response.status}.`,
-        data: error.response.data?.data ?? null,
-        status: error.response.status,
-      };
-    }
-
-    // -----------------------------------------
-    // NO SERVER RESPONSE
-    // -----------------------------------------
-
-    if (error?.request) {
-      console.log("NO RESPONSE FROM SERVER");
-
-      return {
-        success: 0,
-        message:
-          "No response from server. Check the API server and network connection.",
-        data: null,
-        status: 0,
-      };
-    }
-
-    // -----------------------------------------
-    // OTHER ERROR
-    // -----------------------------------------
+    console.log("URL:", error?.config?.url);
+    console.log("METHOD:", error?.config?.method);
+    console.log("BASE URL:", error?.config?.baseURL);
+    console.log("RESPONSE:", error?.response?.data);
+    console.log("STATUS:", error?.response?.status);
+    console.log("CODE:", error?.code);
+    console.log("====================================");
 
     return {
       success: 0,
-      message: error?.message || "Unable to delete the item.",
-      data: null,
-      status: 0,
+      message:
+        error?.response?.data?.message || error?.message || "Network error",
+      data: error?.response?.data || null,
+      status: error?.response?.status || 0,
     };
-  }
-};
-
-export const getMethod = async (url) => {
-  try {
-    const token = await AsyncStorage.getItem("bakasuran_token");
-
-    console.log("GET REQUEST URL:", url);
-    console.log("AUTH TOKEN EXISTS:", !!token);
-
-    const response = await axios.get(url, {
-      headers: {
-        Accept: "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      timeout: 15000,
-    });
-
-    console.log("GET STATUS:", response.status);
-    console.log("GET RESPONSE DATA:", response.data);
-
-    return response.data;
-  } catch (error) {
-    console.log("GET ERROR MESSAGE:", error.message);
-    console.log("GET ERROR STATUS:", error.response?.status);
-    console.log("GET ERROR DATA:", error.response?.data);
-
-    throw error;
   }
 };

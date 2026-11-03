@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-
 import {
   ActivityIndicator,
   Image,
@@ -15,19 +14,26 @@ import {
   View,
 } from "react-native";
 
+import { BASE_URL } from "../../constants/AppUrls";
 import Fonts from "../../constants/Fonts";
 import { useTheme } from "../../hooks/use-theme";
 
-import { APP_URL, getCategories, getRestaurants } from "../../utils/Function";
+import {
+  getCategoryRestaurants,
+  getProductsByCategoryAndRestaurant,
+  getRestaurantCategories,
+  getRestaurants,
+} from "../../utils/Function";
 
-// IMPORTANT:
-// Local restaurant data in ../Restaurant/[id].jsx is now ONLY a fallback
-// (used when the API fails or returns an empty list).
-import { restaurants } from "../Restaurant/[id]";
+// ============================================================
+// API BASE URL
+// ============================================================
 
-/* ============================================================
-   FALLBACK CATEGORY IMAGES
-============================================================ */
+const API_BASE_URL = String(BASE_URL || "").replace(/\/+$/, "");
+
+// ============================================================
+// FALLBACK CATEGORY IMAGES
+// ============================================================
 
 const FALLBACK_CATEGORY_IMAGES = {
   all: require("../../../assets/images/all.png"),
@@ -48,9 +54,9 @@ const FALLBACK_CATEGORY_IMAGES = {
   drink: require("../../../assets/images/drinks.png"),
 };
 
-/* ============================================================
-   DEFAULT / FALLBACK CATEGORIES
-============================================================ */
+// ============================================================
+// DEFAULT CATEGORIES
+// ============================================================
 
 const DEFAULT_CATEGORIES = [
   {
@@ -59,178 +65,167 @@ const DEFAULT_CATEGORIES = [
     image: FALLBACK_CATEGORY_IMAGES.all,
   },
   {
-    id: "dosa",
+    id: "1",
     name: "Dosa",
     image: FALLBACK_CATEGORY_IMAGES.dosa,
   },
   {
-    id: "south-indian",
+    id: "2",
     name: "South Indian",
     image: FALLBACK_CATEGORY_IMAGES["south indian"],
   },
   {
-    id: "biryani",
+    id: "3",
     name: "Biryani",
     image: FALLBACK_CATEGORY_IMAGES.biryani,
   },
   {
-    id: "idli",
+    id: "4",
     name: "Idli",
     image: FALLBACK_CATEGORY_IMAGES.idli,
   },
   {
-    id: "pizza",
+    id: "5",
     name: "Pizza",
     image: FALLBACK_CATEGORY_IMAGES.pizza,
   },
   {
-    id: "burgers",
+    id: "6",
     name: "Burgers",
     image: FALLBACK_CATEGORY_IMAGES.burgers,
   },
   {
-    id: "chinese",
+    id: "7",
     name: "Chinese",
     image: FALLBACK_CATEGORY_IMAGES.chinese,
   },
   {
-    id: "chicken",
+    id: "8",
     name: "Chicken",
     image: FALLBACK_CATEGORY_IMAGES.chicken,
   },
   {
-    id: "desserts",
+    id: "9",
     name: "Desserts",
     image: FALLBACK_CATEGORY_IMAGES.desserts,
   },
   {
-    id: "drinks",
+    id: "10",
     name: "Drinks",
     image: FALLBACK_CATEGORY_IMAGES.drinks,
   },
 ];
 
-/* ============================================================
-   POPULAR CUISINES
-============================================================ */
+// ============================================================
+// HELPERS
+// ============================================================
 
-const popularCuisines = [
-  {
-    id: "1",
-    name: "Biryani",
-    places: "120+ places",
-    image: require("../../../assets/images/Customer1.png"),
-  },
-  {
-    id: "2",
-    name: "South Indian",
-    places: "150+ places",
-    image: require("../../../assets/images/Customer2.png"),
-  },
-  {
-    id: "3",
-    name: "Dosa",
-    places: "100+ places",
-    image: require("../../../assets/images/Customer3.png"),
-  },
-  {
-    id: "4",
-    name: "Pizza",
-    places: "90+ places",
-    image: require("../../../assets/images/Customer4.png"),
-  },
-  {
-    id: "5",
-    name: "Burgers",
-    places: "80+ places",
-    image: require("../../../assets/images/burgers.png"),
-  },
-  {
-    id: "6",
-    name: "Chinese",
-    places: "110+ places",
-    image: require("../../../assets/images/chinese.png"),
-  },
-  {
-    id: "7",
-    name: "Desserts",
-    places: "70+ places",
-    image: require("../../../assets/images/desserts.png"),
-  },
-];
-
-/* ============================================================
-   HELPERS
-============================================================ */
-
-const normalize = (value) => {
-  return String(value || "")
+const normalize = (value) =>
+  String(value ?? "")
     .toLowerCase()
     .trim();
-};
+
+const isAll = (value) => normalize(value) === "all";
 
 const getFirstMinutes = (time) => {
-  const match = String(time || "").match(/\d+/);
-
+  const match = String(time ?? "").match(/\d+/);
   return match ? Number(match[0]) : 999;
 };
 
 const getPrice = (price) => {
-  const match = String(price || "")
+  const match = String(price ?? "")
     .replace(/,/g, "")
     .match(/\d+/);
 
   return match ? Number(match[0]) : 0;
 };
 
-const getBaseUrl = () =>
-  String(APP_URL || "").replace(/\/api\/customer\/?$/, "");
+const isTruthy = (value) => {
+  return (
+    value === true ||
+    value === 1 ||
+    value === "1" ||
+    normalize(value) === "true" ||
+    normalize(value) === "yes"
+  );
+};
 
-/* ============================================================
-   EXTRACT CATEGORY LIST
-============================================================ */
+// ============================================================
+// IMAGE URL
+// ============================================================
 
-const extractCategoryList = (response) => {
+const getImageSource = (imageValue, fallback = null) => {
+  if (!imageValue) {
+    return fallback;
+  }
+
+  if (typeof imageValue === "object" && imageValue?.uri) {
+    return imageValue;
+  }
+
+  if (typeof imageValue !== "string") {
+    return fallback;
+  }
+
+  const cleanValue = imageValue.trim();
+
+  if (!cleanValue) {
+    return fallback;
+  }
+
+  if (/^https?:\/\//i.test(cleanValue)) {
+    return {
+      uri: cleanValue,
+    };
+  }
+
+  if (!API_BASE_URL) {
+    return fallback;
+  }
+
+  return {
+    uri: `${API_BASE_URL}/${cleanValue.replace(/^\/+/, "")}`,
+  };
+};
+
+// ============================================================
+// EXTRACT ARRAY
+// ============================================================
+
+const extractArray = (response) => {
   if (!response) {
     return [];
   }
 
-  // Response itself is array
   if (Array.isArray(response)) {
     return response;
   }
 
-  // { data: [] }
-  if (Array.isArray(response?.data)) {
-    return response.data;
-  }
+  const possibleArrays = [
+    response?.data,
+    response?.data?.data,
+    response?.data?.items,
+    response?.data?.restaurants,
+    response?.data?.products,
+    response?.restaurants,
+    response?.products,
+    response?.items,
+    response?.result,
+    response?.data?.result,
+  ];
 
-  // { data: { data: [] } }
-  if (Array.isArray(response?.data?.data)) {
-    return response.data.data;
-  }
-
-  // { categories: [] }
-  if (Array.isArray(response?.categories)) {
-    return response.categories;
-  }
-
-  // { data: { categories: [] } }
-  if (Array.isArray(response?.data?.categories)) {
-    return response.data.categories;
-  }
-
-  // { result: [] }
-  if (Array.isArray(response?.result)) {
-    return response.result;
+  for (const value of possibleArrays) {
+    if (Array.isArray(value)) {
+      return value;
+    }
   }
 
   return [];
 };
 
-/* ============================================================
-   GET IMAGE URL
-============================================================ */
+// ============================================================
+// CATEGORY IMAGE
+// ============================================================
 
 const getCategoryImage = (category) => {
   if (!category) {
@@ -240,9 +235,9 @@ const getCategoryImage = (category) => {
   const categoryName = normalize(
     category?.name ||
       category?.category_name ||
+      category?.categoryName ||
       category?.title ||
-      category?.slug ||
-      "",
+      category?.slug,
   );
 
   const apiImage =
@@ -253,34 +248,13 @@ const getCategoryImage = (category) => {
     category?.category_image ||
     category?.categoryImage ||
     category?.photo ||
-    category?.thumbnail ||
-    "";
+    category?.thumbnail;
 
-  /* ----------------------------------------------------------
-     ABSOLUTE IMAGE URL
-  ---------------------------------------------------------- */
+  const image = getImageSource(apiImage);
 
-  if (typeof apiImage === "string" && /^https?:\/\//i.test(apiImage)) {
-    return {
-      uri: apiImage,
-    };
+  if (image) {
+    return image;
   }
-
-  /* ----------------------------------------------------------
-     RELATIVE IMAGE URL
-  ---------------------------------------------------------- */
-
-  if (typeof apiImage === "string" && apiImage.trim().length > 0) {
-    const cleanPath = apiImage.trim().replace(/^\/+/, "");
-
-    return {
-      uri: `${getBaseUrl()}/${cleanPath}`,
-    };
-  }
-
-  /* ----------------------------------------------------------
-     LOCAL FALLBACK
-  ---------------------------------------------------------- */
 
   if (FALLBACK_CATEGORY_IMAGES[categoryName]) {
     return FALLBACK_CATEGORY_IMAGES[categoryName];
@@ -297,45 +271,36 @@ const getCategoryImage = (category) => {
   return FALLBACK_CATEGORY_IMAGES.all;
 };
 
-/* ============================================================
-   NORMALIZE API CATEGORIES
-============================================================ */
+// ============================================================
+// NORMALIZE CATEGORIES
+// ============================================================
 
 const normalizeCategories = (response) => {
-  const apiCategories = extractCategoryList(response);
+  const apiCategories = extractArray(response);
 
-  console.log("CATEGORY ARRAY LENGTH:", apiCategories.length);
+  const validCategories = apiCategories.filter(Boolean).map((item, index) => {
+    const id =
+      item?.id ??
+      item?.category_id ??
+      item?.categoryId ??
+      item?.slug ??
+      index + 1;
 
-  const validCategories = apiCategories
-    .filter((item) => item)
-    .filter((item) => {
-      const name =
-        item?.name || item?.category_name || item?.title || item?.slug;
+    const name =
+      item?.name ||
+      item?.category_name ||
+      item?.categoryName ||
+      item?.title ||
+      item?.slug ||
+      `Category ${index + 1}`;
 
-      return Boolean(name);
-    })
-    .map((item, index) => {
-      const id =
-        item?.id ??
-        item?.category_id ??
-        item?.categoryId ??
-        item?.slug ??
-        index + 1;
-
-      const name =
-        item?.name ||
-        item?.category_name ||
-        item?.title ||
-        item?.slug ||
-        `Category ${index + 1}`;
-
-      return {
-        id: String(id),
-        name: String(name),
-        image: getCategoryImage(item),
-        original: item,
-      };
-    });
+    return {
+      id: String(id),
+      name: String(name),
+      image: getCategoryImage(item),
+      original: item,
+    };
+  });
 
   return [
     {
@@ -343,176 +308,155 @@ const normalizeCategories = (response) => {
       name: "All",
       image: FALLBACK_CATEGORY_IMAGES.all,
     },
-    ...validCategories,
+    ...validCategories.filter((item) => !isAll(item.name)),
   ];
 };
 
-/* ============================================================
-   RESTAURANT HELPERS (API)
-============================================================ */
+// ============================================================
+// NORMALIZE RESTAURANT
+// ============================================================
 
-const isPlainObject = (value) =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
+const normalizeRestaurant = (item, index) => {
+  const restaurant = item?.restaurant || item;
 
-const looksLikeRestaurant = (value) =>
-  isPlainObject(value) &&
-  ("name" in value || "restaurant_name" in value || "id" in value);
+  const id =
+    restaurant?.id ??
+    restaurant?.restaurant_id ??
+    restaurant?.restaurantId ??
+    index + 1;
 
-/*
- * Finds the restaurant array no matter how the API wraps it:
- *   [...]                         { data: [...] }
- *   { data: { data: [...] } }     (Laravel pagination)
- *   { data: { restaurants: [...] } }
- *   { data: { 1: {...}, 2: {...} } }   (object keyed by id)
- */
-const extractRestaurantList = (value, depth = 0) => {
-  if (!value || depth > 4) {
-    return [];
-  }
+  const name =
+    restaurant?.name ||
+    restaurant?.restaurant_name ||
+    restaurant?.restaurantName ||
+    "Restaurant";
 
-  if (Array.isArray(value)) {
-    return value;
-  }
+  const imageValue =
+    restaurant?.image_url ||
+    restaurant?.imageUrl ||
+    restaurant?.image ||
+    restaurant?.restaurant_image ||
+    restaurant?.restaurantImage ||
+    restaurant?.photo ||
+    restaurant?.thumbnail;
 
-  if (!isPlainObject(value)) {
-    return [];
-  }
+  const image = getImageSource(imageValue, FALLBACK_CATEGORY_IMAGES.all);
 
-  // Object keyed by id: { "1": {...}, "2": {...} }
-  const values = Object.values(value);
+  const cuisine =
+    restaurant?.cuisine ||
+    restaurant?.cuisines ||
+    restaurant?.category_name ||
+    restaurant?.category ||
+    "Various cuisines";
 
-  if (values.length > 0 && values.every(looksLikeRestaurant)) {
-    return values;
-  }
+  const rating =
+    restaurant?.rating ??
+    restaurant?.average_rating ??
+    restaurant?.avg_rating ??
+    restaurant?.ratings ??
+    0;
 
-  const preferredKeys = [
-    "restaurants",
-    "data",
-    "result",
-    "results",
-    "items",
-    "list",
-  ];
+  const reviews =
+    restaurant?.reviews ??
+    restaurant?.review_count ??
+    restaurant?.ratings_count ??
+    0;
 
-  for (const key of preferredKeys) {
-    if (key in value) {
-      const found = extractRestaurantList(value[key], depth + 1);
+  const time =
+    restaurant?.time ||
+    restaurant?.delivery_time ||
+    restaurant?.deliveryTime ||
+    "30-40 min";
 
-      if (found.length > 0) {
-        return found;
-      }
-    }
-  }
+  const price =
+    restaurant?.price ||
+    restaurant?.price_for_two ||
+    restaurant?.cost_for_two ||
+    "₹200 for two";
 
-  for (const item of values) {
-    if (Array.isArray(item) && item.some(looksLikeRestaurant)) {
-      return item;
-    }
-  }
+  const offer =
+    restaurant?.offer || restaurant?.offer_text || restaurant?.discount || "";
 
-  return [];
-};
-
-const getRestaurantId = (item) =>
-  item?.id ?? item?.restaurant_id ?? item?.restaurantId ?? item?.slug ?? null;
-
-const getRestaurantImage = (item) => {
-  // Local fallback data already holds a require() image (number) or { uri }
-  if (item?.image && typeof item.image !== "string") {
-    return item.image;
-  }
-
-  const img =
-    (typeof item?.image === "string" ? item.image : "") ||
-    item?.image_url ||
-    item?.imageUrl ||
-    item?.logo ||
-    item?.banner ||
-    item?.thumbnail ||
-    "";
-
-  if (typeof img === "string" && /^https?:\/\//i.test(img)) {
-    return { uri: img };
-  }
-
-  if (typeof img === "string" && img.trim().length > 0) {
-    return {
-      uri: `${getBaseUrl()}/${img.trim().replace(/^\/+/, "")}`,
-    };
-  }
-
-  // Replace with a dedicated restaurant placeholder if you have one
-  return FALLBACK_CATEGORY_IMAGES.all;
-};
-
-const buildRestaurant = (restaurant) => {
-  const menu =
-    restaurant?.menu && typeof restaurant.menu === "object"
-      ? restaurant.menu
-      : {};
-
-  const menuItems = Object.values(menu).flat();
-
-  const isVeg =
-    typeof restaurant?.isVeg === "boolean"
-      ? restaurant.isVeg
-      : typeof restaurant?.is_veg === "boolean"
-        ? restaurant.is_veg
-        : menuItems.length > 0 &&
-          menuItems.every((item) => item?.isVeg === true);
-
-  const cuisine = Array.isArray(restaurant?.cuisines)
-    ? restaurant.cuisines
-        .map((c) => (typeof c === "string" ? c : c?.name))
-        .filter(Boolean)
-        .join(" • ")
-    : typeof restaurant?.cuisine === "string"
-      ? restaurant.cuisine
-      : "";
+  const isVeg = isTruthy(
+    restaurant?.isVeg ??
+      restaurant?.is_veg ??
+      restaurant?.pure_veg ??
+      restaurant?.is_pure_veg,
+  );
 
   return {
     ...restaurant,
 
-    id: getRestaurantId(restaurant),
+    id: String(id),
+    name: String(name),
+    image,
 
-    name: restaurant?.name || restaurant?.restaurant_name || "Restaurant",
+    cuisine: Array.isArray(cuisine) ? cuisine.join(" • ") : String(cuisine),
 
-    image: getRestaurantImage(restaurant),
-
-    cuisine,
-
-    address: restaurant?.address || "",
-
-    rating: restaurant?.rating ?? restaurant?.avg_rating,
-
-    time: restaurant?.time || restaurant?.delivery_time,
-
-    price: restaurant?.price || restaurant?.cost_for_two,
-
-    offer: restaurant?.offer || restaurant?.discount,
-
-    reviews: restaurant?.reviews ?? restaurant?.reviews_count,
-
+    rating,
+    reviews,
+    time,
+    price,
+    offer,
     isVeg,
 
-    categories: cuisine
-      .split("•")
-      .map((item) => item.trim())
-      .filter(Boolean),
+    original: restaurant,
   };
 };
 
-/* ============================================================
-   FALLBACK RESTAURANT DATA (local)
-============================================================ */
+// ============================================================
+// NORMALIZE PRODUCT
+// ============================================================
 
-const FALLBACK_RESTAURANTS = Object.values(restaurants || {}).map(
-  buildRestaurant,
-);
+const normalizeProduct = (item, index) => {
+  const product = item?.product || item?.item || item;
 
-/* ============================================================
-   SCREEN
-============================================================ */
+  const id =
+    product?.id ?? product?.product_id ?? product?.productId ?? index + 1;
+
+  const name =
+    product?.name ||
+    product?.product_name ||
+    product?.productName ||
+    product?.title ||
+    "Product";
+
+  const imageValue =
+    product?.image_url ||
+    product?.imageUrl ||
+    product?.image ||
+    product?.product_image ||
+    product?.productImage ||
+    product?.photo ||
+    product?.thumbnail;
+
+  return {
+    ...product,
+
+    id: String(id),
+
+    name: String(name),
+
+    image: getImageSource(imageValue),
+
+    price:
+      product?.price ??
+      product?.selling_price ??
+      product?.sale_price ??
+      product?.amount ??
+      0,
+
+    description: product?.description || product?.short_description || "",
+
+    isVeg: isTruthy(product?.isVeg ?? product?.is_veg),
+
+    original: product,
+  };
+};
+
+// ============================================================
+// SCREEN
+// ============================================================
 
 export default function ExploreScreen() {
   const params = useLocalSearchParams();
@@ -521,9 +465,9 @@ export default function ExploreScreen() {
 
   const styles = useMemo(() => makeStyles(Colors, isDark), [Colors, isDark]);
 
-  /* ==========================================================
-     PARAMS
-  ========================================================== */
+  // ==========================================================
+  // ROUTE PARAMS
+  // ==========================================================
 
   const incomingSearch = typeof params.search === "string" ? params.search : "";
 
@@ -531,18 +475,19 @@ export default function ExploreScreen() {
     typeof params.category === "string" ? params.category : "All";
 
   const incomingCategoryId =
-    typeof params.categoryId === "string" ? params.categoryId : "";
+    typeof params.categoryId === "string" ? params.categoryId : "all";
 
-  /* ==========================================================
-     STATE
-  ========================================================== */
+  // ==========================================================
+  // STATE
+  // ==========================================================
 
   const [searchText, setSearchText] = useState(incomingSearch);
 
   const [selectedCategory, setSelectedCategory] = useState(incomingCategory);
 
-  const [selectedCategoryId, setSelectedCategoryId] =
-    useState(incomingCategoryId);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(
+    incomingCategoryId || "all",
+  );
 
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
 
@@ -550,17 +495,23 @@ export default function ExploreScreen() {
 
   const [categoriesError, setCategoriesError] = useState("");
 
-  const [restaurantList, setRestaurantList] = useState(FALLBACK_RESTAURANTS);
+  const [restaurants, setRestaurants] = useState([]);
 
   const [restaurantsLoading, setRestaurantsLoading] = useState(false);
 
   const [restaurantsError, setRestaurantsError] = useState("");
 
+  const [restaurantProducts, setRestaurantProducts] = useState({});
+
+  const [favorites, setFavorites] = useState([]);
+
+  // ==========================================================
+  // FILTER STATE
+  // ==========================================================
+
   const [selectedFilter, setSelectedFilter] = useState("All");
 
   const [sortBy, setSortBy] = useState("default");
-
-  const [favorites, setFavorites] = useState([]);
 
   const [showFilterModal, setShowFilterModal] = useState(false);
 
@@ -568,9 +519,9 @@ export default function ExploreScreen() {
 
   const [tempSort, setTempSort] = useState("default");
 
-  /* ==========================================================
-     CATEGORIES GET API
-  ========================================================== */
+  // ==========================================================
+  // LOAD CATEGORIES
+  // ==========================================================
 
   const loadCategories = async () => {
     try {
@@ -578,47 +529,42 @@ export default function ExploreScreen() {
       setCategoriesError("");
 
       console.log("====================================");
-      console.log("EXPLORE SCREEN - CATEGORIES API");
-      console.log("METHOD: GET");
-      console.log("FUNCTION: getCategories()");
-      console.log("====================================");
+      console.log("RESTAURANT CATEGORIES API");
+      console.log("GET /api/customer/restaurant-categories");
 
-      const response = await getCategories();
+      const response = await getRestaurantCategories();
 
-      const apiCategories = normalizeCategories(response);
+      console.log("CATEGORY RESPONSE:", JSON.stringify(response, null, 2));
 
-      if (apiCategories.length > 1) {
-        console.log("API CATEGORIES USED:", apiCategories.length);
+      const normalized = normalizeCategories(response);
 
-        setCategories(apiCategories);
+      if (normalized.length > 0) {
+        setCategories(normalized);
 
-        /*
-         * Match incoming categoryId from HomeScreen.
-         */
+        const routeCategoryId = incomingCategoryId;
 
-        if (incomingCategoryId) {
-          const matchedCategory = apiCategories.find(
-            (item) => String(item.id) === String(incomingCategoryId),
+        if (routeCategoryId) {
+          const matched = normalized.find(
+            (category) => String(category.id) === String(routeCategoryId),
           );
 
-          if (matchedCategory) {
-            setSelectedCategory(matchedCategory.name);
+          if (matched) {
+            setSelectedCategory(matched.name);
 
-            setSelectedCategoryId(String(matchedCategory.id));
+            setSelectedCategoryId(String(matched.id));
           }
         }
       } else {
-        console.log("No API categories found. Using fallback categories.");
-
         setCategories(DEFAULT_CATEGORIES);
       }
     } catch (error) {
-      console.log("====================================");
-      console.log("CATEGORIES API ERROR");
-      console.log("MESSAGE:", error?.message);
-      console.log("====================================");
+      console.log("CATEGORY ERROR:", error?.message);
 
-      setCategoriesError(error?.message || "Unable to load categories.");
+      setCategoriesError(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Unable to load categories.",
+      );
 
       setCategories(DEFAULT_CATEGORIES);
     } finally {
@@ -626,72 +572,212 @@ export default function ExploreScreen() {
     }
   };
 
-  /* ==========================================================
-     RESTAURANTS GET API
-     NOTE: getRestaurants() never throws. It returns
-     { success: 0, message } on failure, so we check the list
-     instead of relying only on catch.
-  ========================================================== */
+  // ==========================================================
+  // LOAD PRODUCTS
+  // ==========================================================
 
-  const loadRestaurants = async () => {
+  const loadProductsForRestaurants = async (categoryId, restaurantList) => {
+    if (
+      !categoryId ||
+      !Array.isArray(restaurantList) ||
+      restaurantList.length === 0
+    ) {
+      return;
+    }
+
+    console.log("====================================");
+    console.log("LOADING RESTAURANT PRODUCTS");
+    console.log("CATEGORY:", categoryId);
+    console.log("RESTAURANTS:", restaurantList.length);
+    console.log("====================================");
+
+    setRestaurantProducts((previous) => {
+      const next = {
+        ...previous,
+      };
+
+      restaurantList.forEach((restaurant) => {
+        next[String(restaurant.id)] = {
+          loading: true,
+          error: "",
+          products: [],
+        };
+      });
+
+      return next;
+    });
+
+    await Promise.all(
+      restaurantList.map(async (restaurant) => {
+        const restaurantId = restaurant?.id;
+
+        if (!restaurantId) {
+          return;
+        }
+
+        try {
+          console.log("------------------------------------");
+
+          console.log("PRODUCT API CALL");
+
+          console.log("CATEGORY ID:", categoryId);
+
+          console.log("RESTAURANT ID:", restaurantId);
+
+          const response = await getProductsByCategoryAndRestaurant(
+            categoryId,
+            restaurantId,
+          );
+
+          console.log("PRODUCT RESPONSE:", JSON.stringify(response, null, 2));
+
+          const apiProducts = extractArray(response);
+
+          const products = apiProducts.map(normalizeProduct);
+
+          console.log("PRODUCT COUNT:", products.length);
+
+          setRestaurantProducts((previous) => ({
+            ...previous,
+
+            [String(restaurantId)]: {
+              loading: false,
+              error: "",
+              products,
+            },
+          }));
+        } catch (error) {
+          console.log("PRODUCT API ERROR:", error?.message);
+
+          setRestaurantProducts((previous) => ({
+            ...previous,
+
+            [String(restaurantId)]: {
+              loading: false,
+
+              error:
+                error?.response?.data?.message ||
+                error?.message ||
+                "Unable to load menu.",
+
+              products: [],
+            },
+          }));
+        }
+      }),
+    );
+  };
+
+  // ==========================================================
+  // LOAD RESTAURANTS
+  // ==========================================================
+
+  const loadCategoryRestaurants = async (categoryId) => {
+    const safeCategoryId = String(categoryId || "all");
+
     try {
       setRestaurantsLoading(true);
       setRestaurantsError("");
+      setRestaurantProducts({});
 
       console.log("====================================");
-      console.log("EXPLORE SCREEN - RESTAURANTS API");
-      console.log("METHOD: GET");
-      console.log("FUNCTION: getRestaurants()");
-      console.log("====================================");
 
-      const response = await getRestaurants();
+      console.log("LOAD RESTAURANTS");
 
-      const rawList = extractRestaurantList(response);
+      console.log("CATEGORY ID:", safeCategoryId);
 
-      console.log("RAW RESTAURANTS COUNT:", rawList.length);
-      console.log("FIRST RESTAURANT KEYS:", Object.keys(rawList[0] || {}));
+      let response;
 
-      const apiRestaurants = rawList.filter(
-        (item) => item && getRestaurantId(item) !== null,
-      );
+      // ------------------------------------------------------
+      // ALL
+      // ------------------------------------------------------
 
-      console.log("API RESTAURANTS COUNT:", apiRestaurants.length);
+      if (isAll(safeCategoryId)) {
+        console.log("ALL CATEGORY SELECTED");
 
-      if (apiRestaurants.length > 0) {
-        setRestaurantList(apiRestaurants.map(buildRestaurant));
-      } else {
-        console.log("No API restaurants found. Using fallback restaurants.");
+        console.log("GET /api/customer/restaurants");
 
-        setRestaurantsError(response?.message || "No restaurants available.");
+        response = await getRestaurants();
+      }
 
-        setRestaurantList(FALLBACK_RESTAURANTS);
+      // ------------------------------------------------------
+      // SPECIFIC CATEGORY
+      // ------------------------------------------------------
+      else {
+        console.log(
+          `GET /api/customer/categories/${safeCategoryId}/restaurants`,
+        );
+
+        response = await getCategoryRestaurants(safeCategoryId);
+      }
+
+      console.log("RESTAURANT RESPONSE:", JSON.stringify(response, null, 2));
+
+      const apiRestaurants = extractArray(response);
+
+      console.log("RESTAURANT COUNT:", apiRestaurants.length);
+
+      const normalizedRestaurants = apiRestaurants.map(normalizeRestaurant);
+
+      setRestaurants(normalizedRestaurants);
+
+      // ------------------------------------------------------
+      // LOAD PRODUCTS FOR EVERY RESTAURANT
+      // ------------------------------------------------------
+
+      if (normalizedRestaurants.length > 0) {
+        loadProductsForRestaurants(safeCategoryId, normalizedRestaurants);
       }
     } catch (error) {
       console.log("====================================");
-      console.log("RESTAURANTS API ERROR");
+
+      console.log("RESTAURANT API ERROR");
+
       console.log("MESSAGE:", error?.message);
-      console.log("====================================");
 
-      setRestaurantsError(error?.message || "Unable to load restaurants.");
+      console.log("STATUS:", error?.response?.status);
 
-      setRestaurantList(FALLBACK_RESTAURANTS);
+      console.log(
+        "RESPONSE:",
+        JSON.stringify(error?.response?.data || {}, null, 2),
+      );
+
+      setRestaurantsError(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Unable to load restaurants.",
+      );
+
+      setRestaurants([]);
+      setRestaurantProducts({});
     } finally {
       setRestaurantsLoading(false);
     }
   };
 
-  /* ==========================================================
-     CALL APIS ON MOUNT
-  ========================================================== */
+  // ==========================================================
+  // INITIAL LOAD
+  // ==========================================================
 
   useEffect(() => {
     loadCategories();
-    loadRestaurants();
   }, []);
 
-  /* ==========================================================
-     UPDATE ROUTE PARAMS
-  ========================================================== */
+  // ==========================================================
+  // CATEGORY CHANGE
+  // ==========================================================
+
+  useEffect(() => {
+    if (!selectedCategoryId) {
+      return;
+    }
+
+    loadCategoryRestaurants(selectedCategoryId);
+  }, [selectedCategoryId]);
+
+  // ==========================================================
+  // ROUTE PARAM UPDATE
+  // ==========================================================
 
   useEffect(() => {
     if (typeof params.search === "string") {
@@ -703,25 +789,32 @@ export default function ExploreScreen() {
     }
 
     if (typeof params.categoryId === "string") {
-      setSelectedCategoryId(params.categoryId);
+      setSelectedCategoryId(params.categoryId || "all");
     }
   }, [params.search, params.category, params.categoryId]);
 
-  /* ==========================================================
-     SELECT CATEGORY
-  ========================================================== */
+  // ==========================================================
+  // SELECT CATEGORY
+  // ==========================================================
 
-  const selectCategory = (categoryName, categoryId = "") => {
+  const selectCategory = (categoryName, categoryId) => {
+    const id = String(categoryId || "all");
+
+    console.log("====================================");
+
+    console.log("SELECTED CATEGORY:", categoryName);
+
+    console.log("SELECTED CATEGORY ID:", id);
+
     setSelectedCategory(categoryName);
 
-    setSelectedCategoryId(String(categoryId || ""));
-
+    setSelectedCategoryId(id);
     setSearchText("");
   };
 
-  /* ==========================================================
-     FAVORITE
-  ========================================================== */
+  // ==========================================================
+  // FAVORITE
+  // ==========================================================
 
   const toggleFavorite = (id) => {
     setFavorites((previous) => {
@@ -733,23 +826,20 @@ export default function ExploreScreen() {
     });
   };
 
-  /* ==========================================================
-     FILTER RESTAURANTS
-  ========================================================== */
+  // ==========================================================
+  // FILTER + SORT
+  // ==========================================================
 
   const filteredRestaurants = useMemo(() => {
-    let result = [...restaurantList];
+    let result = [...restaurants];
 
-    /* --------------------------------------------------------
-       SEARCH
-    -------------------------------------------------------- */
+    // ------------------------------------------------------
+    // SEARCH
+    // ------------------------------------------------------
 
     const search = normalize(searchText);
 
-    const isRestaurantBrowseQuery =
-      search === "restaurant" || search === "restaurants";
-
-    if (search && !isRestaurantBrowseQuery) {
+    if (search) {
       result = result.filter((restaurant) => {
         const name = normalize(restaurant?.name);
 
@@ -757,86 +847,35 @@ export default function ExploreScreen() {
 
         const address = normalize(restaurant?.address);
 
-        const categoryText = (restaurant?.categories || [])
-          .map(normalize)
-          .join(" ");
-
-        const menu =
-          restaurant?.menu && typeof restaurant.menu === "object"
-            ? restaurant.menu
-            : {};
-
-        const foodNames = Object.values(menu)
-          .flat()
-          .map((item) => normalize(item?.name))
-          .join(" ");
-
-        const foodDescriptions = Object.values(menu)
-          .flat()
-          .map((item) => normalize(item?.description))
-          .join(" ");
-
         return (
           name.includes(search) ||
           cuisine.includes(search) ||
-          address.includes(search) ||
-          categoryText.includes(search) ||
-          foodNames.includes(search) ||
-          foodDescriptions.includes(search)
+          address.includes(search)
         );
       });
     }
 
-    /* --------------------------------------------------------
-       CATEGORY
-    -------------------------------------------------------- */
-
-    if (selectedCategory && normalize(selectedCategory) !== "all") {
-      const category = normalize(selectedCategory);
-
-      result = result.filter((restaurant) => {
-        const cuisineMatch = (restaurant?.categories || []).some((item) => {
-          const current = normalize(item);
-
-          return (
-            current === category ||
-            current.includes(category) ||
-            category.includes(current)
-          );
-        });
-
-        const menu =
-          restaurant?.menu && typeof restaurant.menu === "object"
-            ? restaurant.menu
-            : {};
-
-        const foodMatch = Object.values(menu)
-          .flat()
-          .some((item) => {
-            const itemName = normalize(item?.name);
-
-            const description = normalize(item?.description);
-
-            return (
-              itemName.includes(category) || description.includes(category)
-            );
-          });
-
-        return cuisineMatch || foodMatch;
-      });
-    }
-
-    /* --------------------------------------------------------
-       FILTER
-    -------------------------------------------------------- */
+    // ------------------------------------------------------
+    // PURE VEG
+    // ------------------------------------------------------
 
     if (selectedFilter === "Pure Veg") {
       result = result.filter((restaurant) => restaurant?.isVeg === true);
     }
 
+    // ------------------------------------------------------
+    // RATING
+    // ------------------------------------------------------
+
     if (selectedFilter === "Rating 4.0+") {
-      result = result.filter((restaurant) => Number(restaurant?.rating) >= 4);
+      result = result.filter(
+        (restaurant) => Number(restaurant?.rating || 0) >= 4,
+      );
     }
+
+    // ------------------------------------------------------
+    // FAST DELIVERY
+    // ------------------------------------------------------
 
     if (selectedFilter === "Fast Delivery") {
       result = result.filter(
@@ -844,13 +883,17 @@ export default function ExploreScreen() {
       );
     }
 
+    // ------------------------------------------------------
+    // OFFERS
+    // ------------------------------------------------------
+
     if (selectedFilter === "Offers") {
       result = result.filter((restaurant) => Boolean(restaurant?.offer));
     }
 
-    /* --------------------------------------------------------
-       SORT
-    -------------------------------------------------------- */
+    // ------------------------------------------------------
+    // SORT
+    // ------------------------------------------------------
 
     if (sortBy === "rating") {
       result.sort((a, b) => Number(b?.rating || 0) - Number(a?.rating || 0));
@@ -871,27 +914,31 @@ export default function ExploreScreen() {
     }
 
     return result;
-  }, [restaurantList, searchText, selectedCategory, selectedFilter, sortBy]);
+  }, [restaurants, searchText, selectedFilter, sortBy]);
 
-  /* ==========================================================
-     CLEAR ALL
-  ========================================================== */
+  // ==========================================================
+  // CLEAR ALL FILTERS
+  // ==========================================================
 
   const clearAll = () => {
     setSearchText("");
 
     setSelectedCategory("All");
 
-    setSelectedCategoryId("");
+    setSelectedCategoryId("all");
 
     setSelectedFilter("All");
 
     setSortBy("default");
+
+    setRestaurantsError("");
+
+    setShowFilterModal(false);
   };
 
-  /* ==========================================================
-     OPEN FILTER
-  ========================================================== */
+  // ==========================================================
+  // OPEN FILTER
+  // ==========================================================
 
   const openFilter = () => {
     setTempFilter(selectedFilter);
@@ -901,9 +948,9 @@ export default function ExploreScreen() {
     setShowFilterModal(true);
   };
 
-  /* ==========================================================
-     APPLY FILTER
-  ========================================================== */
+  // ==========================================================
+  // APPLY FILTER
+  // ==========================================================
 
   const applyFilter = () => {
     setSelectedFilter(tempFilter);
@@ -913,9 +960,9 @@ export default function ExploreScreen() {
     setShowFilterModal(false);
   };
 
-  /* ==========================================================
-     OPEN RESTAURANT
-  ========================================================== */
+  // ==========================================================
+  // OPEN RESTAURANT
+  // ==========================================================
 
   const openRestaurant = (restaurant) => {
     if (!restaurant?.id) {
@@ -924,15 +971,86 @@ export default function ExploreScreen() {
 
     router.push({
       pathname: "/Restaurant/[id]",
+
       params: {
         id: String(restaurant.id),
+
+        categoryId: String(selectedCategoryId || "all"),
       },
     });
   };
 
-  /* ==========================================================
-     RESTAURANT CARD
-  ========================================================== */
+  // ==========================================================
+  // PRODUCT INFO
+  // ==========================================================
+
+  const renderProductInfo = (restaurant) => {
+    const restaurantId = String(restaurant?.id);
+
+    const productState = restaurantProducts[restaurantId];
+
+    if (!productState) {
+      return null;
+    }
+
+    if (productState.loading) {
+      return (
+        <View style={styles.productInfo}>
+          <ActivityIndicator size="small" color={Colors.primary || "#F9080C"} />
+
+          <Text style={styles.productInfoText}>Loading menu...</Text>
+        </View>
+      );
+    }
+
+    if (productState.error) {
+      return (
+        <View style={styles.productInfo}>
+          {/*<Ionicons
+            name="alert-circle-outline"
+            size={14}
+            color={Colors.error || "#E53935"}
+          />*/}
+
+          {/*<Text style={styles.productErrorText} numberOfLines={1}>
+            Unable to load menu
+          </Text>*/}
+        </View>
+      );
+    }
+
+    if (productState.products?.length > 0) {
+      return (
+        <View style={styles.productInfo}>
+          <Ionicons
+            name="fast-food-outline"
+            size={14}
+            color={Colors.primary || "#F9080C"}
+          />
+
+          <Text style={styles.productInfoText}>
+            {productState.products.length} menu items
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.productInfo}>
+        <Ionicons
+          name="fast-food-outline"
+          size={14}
+          color={Colors.textSecondary}
+        />
+
+        <Text style={styles.productInfoText}>No menu items</Text>
+      </View>
+    );
+  };
+
+  // ==========================================================
+  // RESTAURANT CARD
+  // ==========================================================
 
   const renderRestaurant = (restaurant) => {
     const favorite = favorites.includes(restaurant.id);
@@ -948,34 +1066,26 @@ export default function ExploreScreen() {
 
         <View style={styles.imageContainer}>
           <Image
-            source={restaurant.image}
+            source={restaurant.image || FALLBACK_CATEGORY_IMAGES.all}
             style={styles.restaurantImage}
             resizeMode="cover"
           />
 
-          {/* OFFER */}
-
-          {restaurant.offer && (
+          {restaurant.offer ? (
             <View style={styles.offerBadge}>
               <Text style={styles.offerText}>{restaurant.offer}</Text>
             </View>
-          )}
-
-          {/* FAVORITE */}
+          ) : null}
 
           <TouchableOpacity
             activeOpacity={0.8}
             style={styles.favoriteButton}
-            onPress={(event) => {
-              event.stopPropagation?.();
-
-              toggleFavorite(restaurant.id);
-            }}
+            onPress={() => toggleFavorite(restaurant.id)}
           >
             <Ionicons
               name={favorite ? "heart" : "heart-outline"}
               size={21}
-              color={favorite ? Colors.error : Colors.textSecondary}
+              color={favorite ? Colors.error || "#E53935" : "#444"}
             />
           </TouchableOpacity>
         </View>
@@ -989,14 +1099,14 @@ export default function ExploreScreen() {
             </Text>
 
             <View style={styles.ratingBadge}>
-              <Ionicons name="star" size={11} color={Colors.white} />
+              <Ionicons name="star" size={11} color="#FFFFFF" />
 
-              <Text style={styles.ratingText}>{restaurant.rating || "—"}</Text>
+              <Text style={styles.ratingText}>{restaurant.rating || "0"}</Text>
             </View>
           </View>
 
           <Text style={styles.cuisine} numberOfLines={1}>
-            {restaurant.cuisine || "Various cuisines"}
+            {restaurant.cuisine}
           </Text>
 
           <View style={styles.infoRow}>
@@ -1007,17 +1117,15 @@ export default function ExploreScreen() {
                 color={Colors.textSecondary}
               />
 
-              <Text style={styles.infoText}>
-                {restaurant.time || "30-40 min"}
-              </Text>
+              <Text style={styles.infoText}>{restaurant.time}</Text>
             </View>
 
             <View style={styles.dot} />
 
-            <Text style={styles.infoText}>
-              {restaurant.price || "₹200 for two"}
-            </Text>
+            <Text style={styles.infoText}>{restaurant.price}</Text>
           </View>
+
+          {renderProductInfo(restaurant)}
 
           <View style={styles.cardBottom}>
             <View style={styles.delivery}>
@@ -1039,41 +1147,86 @@ export default function ExploreScreen() {
     );
   };
 
-  /* ==========================================================
-     EMPTY
-  ========================================================== */
+  // ==========================================================
+  // EMPTY / LOADING
+  // ==========================================================
 
   const renderEmpty = () => {
-    return (
-      <View style={styles.emptyContainer}>
-        <View style={styles.emptyIcon}>
+    if (restaurantsLoading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary || "#F9080C"} />
+
+          <Text style={styles.loadingText}>Loading restaurants...</Text>
+        </View>
+      );
+    }
+
+    if (restaurantsError) {
+      return (
+        <View style={styles.emptyContainer}>
           <Ionicons
-            name="restaurant-outline"
-            size={42}
+            name="alert-circle-outline"
+            size={45}
             color={Colors.textMuted}
           />
+
+          <Text style={styles.emptyTitle}>Unable to load restaurants</Text>
+
+          <Text style={styles.emptyDescription}>{restaurantsError}</Text>
+
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={() => loadCategoryRestaurants(selectedCategoryId || "all")}
+          >
+            <Text style={styles.clearButtonText}>Retry</Text>
+          </TouchableOpacity>
         </View>
+      );
+    }
+
+    if (restaurants.length > 0 && filteredRestaurants.length === 0) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="search-outline" size={45} color={Colors.textMuted} />
+
+          <Text style={styles.emptyTitle}>No matching restaurants</Text>
+
+          <Text style={styles.emptyDescription}>
+            Try another search or clear your filters.
+          </Text>
+
+          <TouchableOpacity style={styles.clearButton} onPress={clearAll}>
+            <Text style={styles.clearButtonText}>Clear Filters</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.emptyContainer}>
+        <Ionicons
+          name="restaurant-outline"
+          size={45}
+          color={Colors.textMuted}
+        />
 
         <Text style={styles.emptyTitle}>No restaurants found</Text>
 
         <Text style={styles.emptyDescription}>
-          We couldn't find restaurants matching your search or filters.
+          No restaurants are available for this category.
         </Text>
 
-        <TouchableOpacity
-          style={styles.clearButton}
-          activeOpacity={0.85}
-          onPress={clearAll}
-        >
-          <Text style={styles.clearButtonText}>Clear Filters</Text>
+        <TouchableOpacity style={styles.clearButton} onPress={clearAll}>
+          <Text style={styles.clearButtonText}>View All Restaurants</Text>
         </TouchableOpacity>
       </View>
     );
   };
 
-  /* ==========================================================
-     UI
-  ========================================================== */
+  // ==========================================================
+  // UI
+  // ==========================================================
 
   return (
     <View style={styles.container}>
@@ -1088,33 +1241,25 @@ export default function ExploreScreen() {
       >
         {/* HEADER */}
 
-        {/*<View style={styles.header}>
+        <View style={styles.header}>
           <View style={styles.locationWrapper}>
             <View style={styles.locationIcon}>
               <Ionicons
                 name="location"
                 size={18}
-                color={Colors.primary || "#E85D04"}
+                color={Colors.primary || "#F9080C"}
               />
             </View>
 
             <View>
               <Text style={styles.deliverText}>Delivering to</Text>
 
-              <View style={styles.locationRow}>
-                <Text style={styles.location}>Hitech City</Text>
-
-                <Ionicons
-                  name="chevron-down"
-                  size={14}
-                  color={Colors.textPrimary}
-                />
-              </View>
+              <Text style={styles.location}>Hitech City</Text>
 
               <Text style={styles.city}>Hyderabad</Text>
             </View>
           </View>
-        </View>*/}
+        </View>
 
         {/* TITLE */}
 
@@ -1138,7 +1283,7 @@ export default function ExploreScreen() {
               style={styles.searchInput}
             />
 
-            {searchText.length > 0 && (
+            {searchText.length > 0 ? (
               <TouchableOpacity onPress={() => setSearchText("")}>
                 <Ionicons
                   name="close-circle"
@@ -1146,39 +1291,30 @@ export default function ExploreScreen() {
                   color={Colors.textMuted}
                 />
               </TouchableOpacity>
-            )}
+            ) : null}
           </View>
 
-          <TouchableOpacity
-            style={styles.filterButton}
-            activeOpacity={0.85}
-            onPress={openFilter}
-          >
-            <Ionicons name="options-outline" size={22} color={Colors.white} />
+          <TouchableOpacity style={styles.filterButton} onPress={openFilter}>
+            <Ionicons name="options-outline" size={22} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
-        {/* ====================================================
-            CATEGORIES
-        ==================================================== */}
+        {/* CATEGORIES */}
 
         <View style={styles.sectionHeader}>
           <View style={styles.categoryTitleRow}>
             <Text style={styles.sectionTitle}>Eat what makes you happy</Text>
 
-            {categoriesLoading && (
+            {categoriesLoading ? (
               <ActivityIndicator
                 size="small"
-                color={Colors.primary || "#E85D04"}
+                color={Colors.primary || "#F9080C"}
               />
-            )}
+            ) : null}
           </View>
 
           {categoriesError ? (
-            <TouchableOpacity
-              onPress={loadCategories}
-              style={styles.retryCategory}
-            >
+            <TouchableOpacity onPress={loadCategories}>
               <Text style={styles.retryCategoryText}>
                 Unable to load categories. Tap to retry.
               </Text>
@@ -1192,8 +1328,7 @@ export default function ExploreScreen() {
           contentContainerStyle={styles.categoryList}
         >
           {categories.map((category) => {
-            const active =
-              normalize(selectedCategory) === normalize(category.name);
+            const active = String(selectedCategoryId) === String(category.id);
 
             return (
               <TouchableOpacity
@@ -1229,75 +1364,22 @@ export default function ExploreScreen() {
           })}
         </ScrollView>
 
-        {/* FILTER CHIPS */}
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipsContainer}
-        >
-          {["All", "Pure Veg", "Rating 4.0+", "Fast Delivery", "Offers"].map(
-            (filter) => {
-              const active = selectedFilter === filter;
-
-              return (
-                <TouchableOpacity
-                  key={filter}
-                  activeOpacity={0.85}
-                  style={[styles.chip, active && styles.activeChip]}
-                  onPress={() => setSelectedFilter(filter)}
-                >
-                  {filter !== "All" && (
-                    <Ionicons
-                      name={
-                        filter === "Pure Veg"
-                          ? "leaf-outline"
-                          : filter === "Rating 4.0+"
-                            ? "star-outline"
-                            : filter === "Fast Delivery"
-                              ? "flash-outline"
-                              : "pricetag-outline"
-                      }
-                      size={14}
-                      color={active ? Colors.white : Colors.gold}
-                    />
-                  )}
-
-                  <Text
-                    style={[styles.chipText, active && styles.activeChipText]}
-                  >
-                    {filter}
-                  </Text>
-                </TouchableOpacity>
-              );
-            },
-          )}
-        </ScrollView>
-
         {/* RESTAURANT HEADER */}
 
         <View style={styles.restaurantHeader}>
           <View>
-            <Text style={styles.restaurantTitle}>Top restaurants near you</Text>
+            <Text style={styles.restaurantTitle}>Restaurants</Text>
 
             <Text style={styles.resultText}>
               {filteredRestaurants.length} restaurants
             </Text>
           </View>
 
-          <TouchableOpacity
-            style={styles.sortButton}
-            activeOpacity={0.8}
-            onPress={openFilter}
-          >
-            <Ionicons
-              name="swap-vertical-outline"
-              size={17}
-              color={Colors.textSecondary}
-            />
-
-            <Text style={styles.sortText}>Sort</Text>
-          </TouchableOpacity>
+          {selectedFilter !== "All" || sortBy !== "default" ? (
+            <TouchableOpacity onPress={clearAll}>
+              <Text style={styles.clearFilterText}>Clear</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         {/* RESTAURANTS LOADING / ERROR */}
@@ -1312,7 +1394,7 @@ export default function ExploreScreen() {
 
         {restaurantsError ? (
           <TouchableOpacity
-            onPress={loadRestaurants}
+            onPress={() => loadCategoryRestaurants(selectedCategoryId)}
             style={styles.retryRestaurants}
           >
             <Text style={styles.retryCategoryText}>
@@ -1324,52 +1406,15 @@ export default function ExploreScreen() {
         {/* RESTAURANTS */}
 
         <View style={styles.restaurantList}>
-          {filteredRestaurants.length > 0
-            ? filteredRestaurants.map(renderRestaurant)
-            : renderEmpty()}
+          {restaurantsLoading || filteredRestaurants.length === 0
+            ? renderEmpty()
+            : filteredRestaurants.map(renderRestaurant)}
         </View>
-
-        {/* POPULAR CUISINES */}
-
-        <View style={styles.popularHeader}>
-          <Text style={styles.sectionTitle}>Popular cuisines</Text>
-
-          <TouchableOpacity onPress={() => selectCategory("All")}>
-            <Text style={styles.viewAll}>View all</Text>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.popularList}
-        >
-          {popularCuisines.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              activeOpacity={0.9}
-              style={styles.popularCard}
-              onPress={() => selectCategory(item.name)}
-            >
-              <Image
-                source={item.image}
-                style={styles.popularImage}
-                resizeMode="cover"
-              />
-
-              <Text style={styles.popularName}>{item.name}</Text>
-
-              <Text style={styles.popularPlaces}>{item.places}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
 
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* ====================================================
-          FILTER MODAL
-      ==================================================== */}
+      {/* FILTER MODAL */}
 
       <Modal
         visible={showFilterModal}
@@ -1379,6 +1424,8 @@ export default function ExploreScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
+            {/* MODAL HEADER */}
+
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Filters & Sort</Text>
 
@@ -1402,7 +1449,7 @@ export default function ExploreScreen() {
                     onPress={() => setTempFilter(filter)}
                   >
                     <View style={[styles.radio, active && styles.radioActive]}>
-                      {active && <View style={styles.radioDot} />}
+                      {active ? <View style={styles.radioDot} /> : null}
                     </View>
 
                     <Text
@@ -1462,7 +1509,7 @@ export default function ExploreScreen() {
                   onPress={() => setTempSort(sort.value)}
                 >
                   <View style={[styles.radio, active && styles.radioActive]}>
-                    {active && <View style={styles.radioDot} />}
+                    {active ? <View style={styles.radioDot} /> : null}
                   </View>
 
                   <Text
@@ -1484,6 +1531,7 @@ export default function ExploreScreen() {
                 style={styles.clearModalButton}
                 onPress={() => {
                   setTempFilter("All");
+
                   setTempSort("default");
                 }}
               >
@@ -1504,9 +1552,9 @@ export default function ExploreScreen() {
   );
 }
 
-/* ============================================================
-   STYLES
-============================================================ */
+// ============================================================
+// STYLES
+// ============================================================
 
 const makeStyles = (Colors, isDark) =>
   StyleSheet.create({
@@ -1515,15 +1563,10 @@ const makeStyles = (Colors, isDark) =>
       backgroundColor: Colors.background,
     },
 
-    /* HEADER */
-
     header: {
       paddingHorizontal: 18,
       paddingTop: 18,
       paddingBottom: 8,
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
     },
 
     locationWrapper: {
@@ -1545,12 +1588,6 @@ const makeStyles = (Colors, isDark) =>
       fontFamily: Fonts.regular,
       fontSize: 10,
       color: Colors.textSecondary,
-      marginBottom: 2,
-    },
-
-    locationRow: {
-      flexDirection: "row",
-      alignItems: "center",
     },
 
     location: {
@@ -1561,23 +1598,9 @@ const makeStyles = (Colors, isDark) =>
 
     city: {
       fontFamily: Fonts.regular,
-      fontSize: 14,
+      fontSize: 13,
       color: Colors.textSecondary,
-      marginTop: 2,
     },
-
-    profileButton: {
-      width: 42,
-      height: 42,
-      borderRadius: 21,
-      backgroundColor: Colors.surface,
-      justifyContent: "center",
-      alignItems: "center",
-      borderWidth: 1,
-      borderColor: Colors.border,
-    },
-
-    /* TITLE */
 
     titleContainer: {
       paddingHorizontal: 18,
@@ -1588,7 +1611,6 @@ const makeStyles = (Colors, isDark) =>
       fontFamily: Fonts.bold,
       fontSize: 30,
       color: Colors.textPrimary,
-      letterSpacing: -0.5,
     },
 
     subtitle: {
@@ -1597,8 +1619,6 @@ const makeStyles = (Colors, isDark) =>
       color: Colors.textSecondary,
       marginTop: 4,
     },
-
-    /* SEARCH */
 
     searchRow: {
       paddingHorizontal: 18,
@@ -1623,23 +1643,19 @@ const makeStyles = (Colors, isDark) =>
     searchInput: {
       flex: 1,
       fontFamily: Fonts.regular,
-      fontSize: 13,
+      fontSize: 16,
       color: Colors.textPrimary,
       marginLeft: 9,
-      paddingVertical: 0,
     },
 
     filterButton: {
       width: 52,
       height: 52,
       borderRadius: 15,
-      backgroundColor: Colors.primary || "#E85D04",
+      backgroundColor: Colors.primary || "#F9080C",
       justifyContent: "center",
       alignItems: "center",
-      elevation: 3,
     },
-
-    /* SECTION */
 
     sectionHeader: {
       paddingHorizontal: 18,
@@ -1655,22 +1671,16 @@ const makeStyles = (Colors, isDark) =>
 
     sectionTitle: {
       fontFamily: Fonts.bold,
-      fontSize: 24,
+      fontSize: 22,
       color: Colors.textPrimary,
-      letterSpacing: -0.2,
-    },
-
-    retryCategory: {
-      marginTop: 6,
     },
 
     retryCategoryText: {
+      marginTop: 7,
       fontFamily: Fonts.medium,
       fontSize: 11,
-      color: Colors.primary || "#E85D04",
+      color: Colors.primary || "#F9080C",
     },
-
-    /* CATEGORY */
 
     categoryList: {
       paddingHorizontal: 18,
@@ -1693,7 +1703,7 @@ const makeStyles = (Colors, isDark) =>
     },
 
     categoryImageBoxActive: {
-      borderColor: Colors.primary || "#E85D04",
+      borderColor: Colors.primary || "#F9080C",
       transform: [
         {
           scale: 1.04,
@@ -1709,54 +1719,15 @@ const makeStyles = (Colors, isDark) =>
     categoryText: {
       marginTop: 8,
       fontFamily: Fonts.medium,
-      fontSize: 14,
+      fontSize: 13,
       color: Colors.textPrimary,
       textAlign: "center",
     },
 
     categoryTextActive: {
-      color: Colors.primary || "#E85D04",
+      color: Colors.primary || "#F9080C",
       fontFamily: Fonts.bold,
     },
-
-    /* FILTER CHIPS */
-
-    chipsContainer: {
-      paddingHorizontal: 18,
-      paddingTop: 21,
-      gap: 8,
-    },
-
-    chip: {
-      height: 36,
-      paddingHorizontal: 13,
-      borderRadius: 18,
-      borderWidth: 1,
-      borderColor: Colors.border,
-      backgroundColor: Colors.surface,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 5,
-    },
-
-    activeChip: {
-      backgroundColor: Colors.primary || "#E85D04",
-      borderColor: Colors.primary || "#E85D04",
-    },
-
-    chipText: {
-      fontFamily: Fonts.bold,
-      fontSize: 14,
-      color: Colors.textPrimary,
-    },
-
-    activeChipText: {
-      color: Colors.white,
-      fontFamily: Fonts.semiBold,
-    },
-
-    /* RESTAURANT HEADER */
 
     restaurantHeader: {
       marginTop: 27,
@@ -1771,7 +1742,6 @@ const makeStyles = (Colors, isDark) =>
       fontFamily: Fonts.bold,
       fontSize: 24,
       color: Colors.textPrimary,
-      letterSpacing: -0.2,
     },
 
     resultText: {
@@ -1781,43 +1751,15 @@ const makeStyles = (Colors, isDark) =>
       marginTop: 4,
     },
 
-    sortButton: {
-      height: 35,
-      paddingHorizontal: 12,
-      borderRadius: 10,
-      backgroundColor: Colors.surface,
-      borderWidth: 1,
-      borderColor: Colors.border,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 5,
+    clearFilterText: {
+      fontFamily: Fonts.bold,
+      fontSize: 13,
+      color: Colors.primary || "#F9080C",
     },
-
-    sortText: {
-      fontFamily: Fonts.semiBold,
-      fontSize: 11,
-      color: Colors.textSecondary,
-    },
-
-    /* RESTAURANT LOADING / ERROR */
-
-    restaurantLoader: {
-      marginVertical: 16,
-    },
-
-    retryRestaurants: {
-      paddingHorizontal: 18,
-      marginBottom: 12,
-    },
-
-    /* RESTAURANT LIST */
 
     restaurantList: {
       paddingHorizontal: 18,
     },
-
-    /* RESTAURANT CARD */
 
     restaurantCard: {
       backgroundColor: Colors.card,
@@ -1855,7 +1797,6 @@ const makeStyles = (Colors, isDark) =>
       color: "#FFFFFF",
       fontFamily: Fonts.bold,
       fontSize: 10,
-      letterSpacing: 0.2,
     },
 
     favoriteButton: {
@@ -1868,10 +1809,7 @@ const makeStyles = (Colors, isDark) =>
       backgroundColor: "rgba(255,255,255,0.96)",
       alignItems: "center",
       justifyContent: "center",
-      elevation: 2,
     },
-
-    /* DETAILS */
 
     restaurantDetails: {
       paddingHorizontal: 14,
@@ -1889,38 +1827,36 @@ const makeStyles = (Colors, isDark) =>
       fontFamily: Fonts.bold,
       fontSize: 20,
       color: Colors.textPrimary,
-      letterSpacing: -0.2,
       marginRight: 8,
     },
 
     ratingBadge: {
-      backgroundColor: "#00420f",
-      borderRadius: 6,
+      backgroundColor: "#2E7D32",
+      borderRadius: 7,
       paddingHorizontal: 7,
-      paddingVertical: 5,
+      paddingVertical: 4,
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "center",
       gap: 3,
     },
 
     ratingText: {
       color: "#FFFFFF",
       fontFamily: Fonts.bold,
-      fontSize: 15,
+      fontSize: 11,
     },
 
     cuisine: {
-      marginTop: 6,
       fontFamily: Fonts.regular,
-      fontSize: 17,
-      color: Colors.logoGold,
+      fontSize: 13,
+      color: Colors.textSecondary,
+      marginTop: 5,
     },
 
     infoRow: {
       flexDirection: "row",
       alignItems: "center",
-      marginTop: 10,
+      marginTop: 9,
     },
 
     infoItem: {
@@ -1930,229 +1866,195 @@ const makeStyles = (Colors, isDark) =>
     },
 
     infoText: {
-      fontFamily: Fonts.bold,
-      fontSize: 15,
-      color: Colors.success,
+      fontFamily: Fonts.regular,
+      fontSize: 12,
+      color: Colors.textSecondary,
     },
 
     dot: {
-      width: 3,
-      height: 3,
+      width: 4,
+      height: 4,
       borderRadius: 2,
-      backgroundColor: Colors.divider,
+      backgroundColor: Colors.textMuted,
       marginHorizontal: 8,
     },
 
+    productInfo: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 10,
+      gap: 5,
+    },
+
+    productInfoText: {
+      fontFamily: Fonts.medium,
+      fontSize: 11,
+      color: Colors.textSecondary,
+    },
+
+    productErrorText: {
+      flex: 1,
+      fontFamily: Fonts.regular,
+      fontSize: 11,
+      color: Colors.error || "#E53935",
+    },
+
     cardBottom: {
-      marginTop: 12,
+      marginTop: 11,
       paddingTop: 10,
       borderTopWidth: 1,
-      borderTopColor: Colors.divider,
+      borderTopColor: Colors.border,
       flexDirection: "row",
+      justifyContent: "space-between",
       alignItems: "center",
     },
 
     delivery: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 4,
+      gap: 5,
     },
 
     deliveryText: {
       fontFamily: Fonts.medium,
-      fontSize: 14,
-      color: Colors.textPrimary,
+      fontSize: 11,
+      color: Colors.textSecondary,
     },
 
     reviews: {
-      marginLeft: "auto",
       fontFamily: Fonts.regular,
-      fontSize: 13,
+      fontSize: 11,
       color: Colors.textSecondary,
     },
 
-    /* EMPTY */
+    loadingContainer: {
+      minHeight: 180,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+
+    loadingText: {
+      marginTop: 12,
+      fontFamily: Fonts.medium,
+      fontSize: 14,
+      color: Colors.textSecondary,
+    },
 
     emptyContainer: {
-      alignItems: "center",
+      minHeight: 220,
       justifyContent: "center",
-      paddingVertical: 55,
+      alignItems: "center",
       paddingHorizontal: 30,
     },
 
-    emptyIcon: {
-      width: 82,
-      height: 82,
-      borderRadius: 41,
-      backgroundColor: Colors.backgroundElement,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
     emptyTitle: {
+      marginTop: 12,
       fontFamily: Fonts.bold,
       fontSize: 18,
       color: Colors.textPrimary,
-      marginTop: 16,
+      textAlign: "center",
     },
 
     emptyDescription: {
+      marginTop: 7,
       fontFamily: Fonts.regular,
-      fontSize: 12,
+      fontSize: 13,
       color: Colors.textSecondary,
       textAlign: "center",
-      marginTop: 7,
       lineHeight: 19,
     },
 
     clearButton: {
-      marginTop: 18,
-      backgroundColor: Colors.primary || "#E85D04",
-      paddingHorizontal: 23,
-      paddingVertical: 11,
-      borderRadius: 11,
+      marginTop: 16,
+      paddingHorizontal: 18,
+      paddingVertical: 10,
+      borderRadius: 10,
+      backgroundColor: Colors.primary || "#F9080C",
     },
 
     clearButtonText: {
-      color: "#FFFFFF",
+      color: Colors.white || "#FFFFFF",
       fontFamily: Fonts.bold,
-      fontSize: 12,
-    },
-
-    /* POPULAR CUISINES */
-
-    popularHeader: {
-      paddingHorizontal: 18,
-      marginTop: 12,
-      marginBottom: 14,
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
-
-    viewAll: {
-      fontFamily: Fonts.bold,
-      fontSize: 14,
-      color: Colors.primary || "#E85D04",
-    },
-
-    popularList: {
-      paddingHorizontal: 18,
-      gap: 12,
-    },
-
-    popularCard: {
-      width: 145,
-      borderRadius: 15,
-      backgroundColor: Colors.card,
-      overflow: "hidden",
-      borderWidth: 1,
-      borderColor: Colors.border,
-      paddingBottom: 11,
-      elevation: 2,
-    },
-
-    popularImage: {
-      width: "100%",
-      height: 100,
-    },
-
-    popularName: {
-      fontFamily: Fonts.bold,
-      fontSize: 14,
-      color: Colors.textPrimary,
-      paddingHorizontal: 10,
-      marginTop: 9,
-    },
-
-    popularPlaces: {
-      fontFamily: Fonts.regular,
       fontSize: 13,
-      color: Colors.textSecondary,
-      paddingHorizontal: 10,
-      marginTop: 3,
     },
-
-    /* MODAL */
 
     modalOverlay: {
       flex: 1,
-      backgroundColor: "rgba(0,0,0,0.45)",
+      backgroundColor: "rgba(0,0,0,0.65)",
       justifyContent: "flex-end",
     },
 
     modal: {
-      backgroundColor: Colors.surface,
-      borderTopLeftRadius: 26,
-      borderTopRightRadius: 26,
-      paddingHorizontal: 20,
-      paddingTop: 20,
+      backgroundColor: Colors.background,
+      borderTopLeftRadius: 25,
+      borderTopRightRadius: 25,
+      padding: 20,
       paddingBottom: 30,
     },
 
     modalHeader: {
       flexDirection: "row",
-      alignItems: "center",
       justifyContent: "space-between",
-      marginBottom: 20,
+      alignItems: "center",
+      marginBottom: 18,
     },
 
     modalTitle: {
       fontFamily: Fonts.bold,
-      fontSize: 21,
+      fontSize: 22,
       color: Colors.textPrimary,
     },
 
     modalHeading: {
       fontFamily: Fonts.bold,
-      fontSize: 14,
+      fontSize: 15,
       color: Colors.textPrimary,
       marginBottom: 8,
     },
 
     modalOption: {
-      minHeight: 43,
       flexDirection: "row",
       alignItems: "center",
+      paddingVertical: 10,
     },
 
     radio: {
       width: 20,
       height: 20,
       borderRadius: 10,
-      borderWidth: 1.5,
+      borderWidth: 2,
       borderColor: Colors.border,
-      alignItems: "center",
       justifyContent: "center",
-      marginRight: 11,
+      alignItems: "center",
+      marginRight: 10,
     },
 
     radioActive: {
-      borderColor: Colors.primary || "#E85D04",
+      borderColor: Colors.primary || "#F9080C",
     },
 
     radioDot: {
       width: 10,
       height: 10,
       borderRadius: 5,
-      backgroundColor: Colors.primary || "#E85D04",
+      backgroundColor: Colors.primary || "#F9080C",
     },
 
     modalOptionText: {
-      fontFamily: Fonts.regular,
-      fontSize: 13,
+      fontFamily: Fonts.medium,
+      fontSize: 14,
       color: Colors.textSecondary,
     },
 
     modalOptionTextActive: {
-      color: Colors.primary || "#E85D04",
-      fontFamily: Fonts.semiBold,
+      color: Colors.textPrimary,
+      fontFamily: Fonts.bold,
     },
 
     modalButtons: {
       flexDirection: "row",
       gap: 10,
-      marginTop: 22,
+      marginTop: 20,
     },
 
     clearModalButton: {
@@ -2161,29 +2063,26 @@ const makeStyles = (Colors, isDark) =>
       borderRadius: 12,
       borderWidth: 1,
       borderColor: Colors.border,
-      alignItems: "center",
       justifyContent: "center",
-      backgroundColor: Colors.surface,
+      alignItems: "center",
     },
 
     clearModalText: {
-      color: Colors.textPrimary,
       fontFamily: Fonts.bold,
-      fontSize: 13,
+      color: Colors.textPrimary,
     },
 
     applyModalButton: {
-      flex: 2,
+      flex: 1,
       height: 48,
       borderRadius: 12,
-      backgroundColor: Colors.primary || "#E85D04",
-      alignItems: "center",
+      backgroundColor: Colors.primary || "#F9080C",
       justifyContent: "center",
+      alignItems: "center",
     },
 
     applyModalText: {
-      color: "#FFFFFF",
       fontFamily: Fonts.bold,
-      fontSize: 13,
+      color: Colors.white || "#FFFFFF",
     },
   });

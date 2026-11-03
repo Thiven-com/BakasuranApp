@@ -17,8 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import Fonts from "../constants/Fonts";
 import { useTheme } from "../hooks/use-theme";
-
-import { BASE_URL, getBlogCategories, getBlogs } from "../utils/Function";
+import { getBlogCategories, getBlogs } from "../utils/Function";
 
 // =========================================================
 // FALLBACK BLOG IMAGES
@@ -136,7 +135,6 @@ const getImageSource = (image) => {
 
   // Relative URL
   const baseUrl = String(BASE_URL || "").replace(/\/+$/, "");
-
   const imagePath = value.replace(/^\/+/, "");
 
   return {
@@ -409,7 +407,7 @@ export default function BlogsScreen() {
   }, []);
 
   // =======================================================
-  // LOAD APIs WHEN SCREEN OPENS
+  // LOAD APIs
   // =======================================================
 
   useFocusEffect(
@@ -553,7 +551,7 @@ export default function BlogsScreen() {
   }, [filteredBlogs, featuredBlog]);
 
   // =======================================================
-  // OPEN ARTICLE
+  // OPEN BLOG DETAILS
   // =======================================================
 
   const openArticle = useCallback((item) => {
@@ -668,7 +666,7 @@ export default function BlogsScreen() {
             onPress={() => router.back()}
             activeOpacity={0.8}
           >
-            <Ionicons name="arrow-back" size={22} color={colors.text} />
+            <Ionicons name="arrow-back" size={23} color={colors.text} />
           </TouchableOpacity>
 
           <View style={styles.headerTextContainer}>
@@ -711,7 +709,7 @@ export default function BlogsScreen() {
         >
           <Ionicons
             name="search-outline"
-            size={21}
+            size={23}
             color={colors.textSecondary}
           />
 
@@ -732,7 +730,7 @@ export default function BlogsScreen() {
             <TouchableOpacity onPress={() => setSearch("")}>
               <Ionicons
                 name="close-circle"
-                size={20}
+                size={22}
                 color={colors.textSecondary}
               />
             </TouchableOpacity>
@@ -872,7 +870,7 @@ export default function BlogsScreen() {
           >
             <Ionicons
               name="cloud-offline-outline"
-              size={42}
+              size={45}
               color={colors.primary}
             />
 
@@ -913,12 +911,12 @@ export default function BlogsScreen() {
         ) : null}
 
         {/* =================================================
-            FEATURED
+            FEATURED BLOG
         ================================================= */}
 
         {featuredBlog ? (
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
+            <View style={styles.sectionHeaderInside}>
               <Text
                 style={[
                   styles.sectionTitle,
@@ -932,67 +930,115 @@ export default function BlogsScreen() {
             </View>
 
             <TouchableOpacity
-              activeOpacity={0.9}
+              activeOpacity={0.92}
               onPress={() => openArticle(featuredBlog)}
               style={[
                 styles.featuredCard,
                 {
                   backgroundColor: colors.card,
+                  borderColor: colors.border,
                 },
               ]}
             >
+              {/* IMAGE */}
               <Image
                 source={getBlogImage(featuredBlog, 0)}
                 style={styles.featuredImage}
                 resizeMode="cover"
               />
 
-              <View style={styles.featuredOverlay} />
-
+              {/* FEATURED CONTENT */}
               <View style={styles.featuredContent}>
+                {/* CATEGORY */}
                 <View
                   style={[
                     styles.featuredCategory,
                     {
-                      backgroundColor: colors.primary,
+                      backgroundColor: `${colors.primary}18`,
                     },
                   ]}
                 >
-                  <Text style={styles.featuredCategoryText}>
+                  <Text
+                    style={[
+                      styles.featuredCategoryText,
+                      {
+                        color: colors.primary,
+                      },
+                    ]}
+                  >
                     {featuredBlog.category}
                   </Text>
                 </View>
 
-                <Text numberOfLines={2} style={styles.featuredTitle}>
+                {/* TITLE */}
+                <Text
+                  numberOfLines={2}
+                  style={[
+                    styles.featuredTitle,
+                    {
+                      color: colors.text,
+                    },
+                  ]}
+                >
                   {featuredBlog.title}
                 </Text>
 
+                {/* DESCRIPTION */}
                 {featuredBlog.description ? (
-                  <Text numberOfLines={2} style={styles.featuredDescription}>
+                  <Text
+                    numberOfLines={3}
+                    style={[
+                      styles.featuredDescription,
+                      {
+                        color: colors.textSecondary,
+                      },
+                    ]}
+                  >
                     {featuredBlog.description}
                   </Text>
                 ) : null}
 
+                {/* META */}
                 <View style={styles.featuredMeta}>
                   {featuredBlog.date ? (
-                    <View style={styles.metaItem}>
+                    <View style={styles.metaItemDark}>
                       <Ionicons
                         name="calendar-outline"
-                        size={14}
-                        color="#FFFFFF"
+                        size={16}
+                        color={colors.textSecondary}
                       />
 
-                      <Text style={styles.metaText}>
+                      <Text
+                        style={[
+                          styles.metaTextDark,
+                          {
+                            color: colors.textSecondary,
+                          },
+                        ]}
+                      >
                         {formatDate(featuredBlog.date)}
                       </Text>
                     </View>
                   ) : null}
 
                   {featuredBlog.time ? (
-                    <View style={styles.metaItem}>
-                      <Ionicons name="time-outline" size={14} color="#FFFFFF" />
+                    <View style={styles.metaItemDark}>
+                      <Ionicons
+                        name="time-outline"
+                        size={16}
+                        color={colors.textSecondary}
+                      />
 
-                      <Text style={styles.metaText}>{featuredBlog.time}</Text>
+                      <Text
+                        style={[
+                          styles.metaTextDark,
+                          {
+                            color: colors.textSecondary,
+                          },
+                        ]}
+                      >
+                        {featuredBlog.time}
+                      </Text>
                     </View>
                   ) : null}
                 </View>
@@ -1007,7 +1053,7 @@ export default function BlogsScreen() {
 
         {latestBlogs.length > 0 ? (
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
+            <View style={styles.sectionHeaderInside}>
               <Text
                 style={[
                   styles.sectionTitle,
@@ -1027,14 +1073,15 @@ export default function BlogsScreen() {
                   },
                 ]}
               >
-                {latestBlogs.length} articles
+                {latestBlogs.length}{" "}
+                {latestBlogs.length === 1 ? "article" : "articles"}
               </Text>
             </View>
 
             {latestBlogs.map((item, index) => (
               <TouchableOpacity
-                key={String(item.id)}
-                activeOpacity={0.85}
+                key={`${item.id}-${index}`}
+                activeOpacity={0.9}
                 onPress={() => openArticle(item)}
                 style={[
                   styles.articleCard,
@@ -1044,37 +1091,45 @@ export default function BlogsScreen() {
                   },
                 ]}
               >
+                {/* =================================================
+                      IMAGE ON TOP
+                  ================================================= */}
+
                 <Image
                   source={getBlogImage(item, index + 1)}
                   style={styles.articleImage}
                   resizeMode="cover"
                 />
 
+                {/* =================================================
+                      CONTENT BELOW IMAGE
+                  ================================================= */}
+
                 <View style={styles.articleContent}>
-                  <View style={styles.articleTopRow}>
-                    <View
+                  {/* CATEGORY */}
+                  <View
+                    style={[
+                      styles.articleCategory,
+                      {
+                        backgroundColor: `${colors.primary}18`,
+                      },
+                    ]}
+                  >
+                    <Text
                       style={[
-                        styles.articleCategory,
+                        styles.articleCategoryText,
                         {
-                          backgroundColor: `${colors.primary}22`,
+                          color: colors.primary,
                         },
                       ]}
                     >
-                      <Text
-                        style={[
-                          styles.articleCategoryText,
-                          {
-                            color: colors.primary,
-                          },
-                        ]}
-                      >
-                        {item.category}
-                      </Text>
-                    </View>
+                      {item.category}
+                    </Text>
                   </View>
 
+                  {/* TITLE */}
                   <Text
-                    numberOfLines={2}
+                    numberOfLines={3}
                     style={[
                       styles.articleTitle,
                       {
@@ -1085,9 +1140,10 @@ export default function BlogsScreen() {
                     {item.title}
                   </Text>
 
+                  {/* DESCRIPTION */}
                   {item.description ? (
                     <Text
-                      numberOfLines={2}
+                      numberOfLines={4}
                       style={[
                         styles.articleDescription,
                         {
@@ -1099,12 +1155,13 @@ export default function BlogsScreen() {
                     </Text>
                   ) : null}
 
+                  {/* META */}
                   <View style={styles.articleMeta}>
                     {item.date ? (
                       <View style={styles.metaItemDark}>
                         <Ionicons
                           name="calendar-outline"
-                          size={13}
+                          size={16}
                           color={colors.textSecondary}
                         />
 
@@ -1125,7 +1182,7 @@ export default function BlogsScreen() {
                       <View style={styles.metaItemDark}>
                         <Ionicons
                           name="time-outline"
-                          size={13}
+                          size={16}
                           color={colors.textSecondary}
                         />
 
@@ -1142,14 +1199,34 @@ export default function BlogsScreen() {
                       </View>
                     ) : null}
                   </View>
-                </View>
 
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={colors.textSecondary}
-                  style={styles.articleArrow}
-                />
+                  {/* READ MORE */}
+                  <View
+                    style={[
+                      styles.readMoreRow,
+                      {
+                        borderTopColor: colors.border,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.readMoreText,
+                        {
+                          color: colors.primary,
+                        },
+                      ]}
+                    >
+                      Read Full Article
+                    </Text>
+
+                    <Ionicons
+                      name="arrow-forward"
+                      size={18}
+                      color={colors.primary}
+                    />
+                  </View>
+                </View>
               </TouchableOpacity>
             ))}
           </View>
@@ -1161,11 +1238,20 @@ export default function BlogsScreen() {
 
         {!loading && blogs.length > 0 && filteredBlogs.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Ionicons
-              name="document-text-outline"
-              size={55}
-              color={colors.textSecondary}
-            />
+            <View
+              style={[
+                styles.emptyIcon,
+                {
+                  backgroundColor: `${colors.primary}15`,
+                },
+              ]}
+            >
+              <Ionicons
+                name="document-text-outline"
+                size={45}
+                color={colors.primary}
+              />
+            </View>
 
             <Text
               style={[
@@ -1213,11 +1299,20 @@ export default function BlogsScreen() {
 
         {!loading && !error && blogs.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Ionicons
-              name="newspaper-outline"
-              size={55}
-              color={colors.textSecondary}
-            />
+            <View
+              style={[
+                styles.emptyIcon,
+                {
+                  backgroundColor: `${colors.primary}15`,
+                },
+              ]}
+            >
+              <Ionicons
+                name="newspaper-outline"
+                size={45}
+                color={colors.primary}
+              />
+            </View>
 
             <Text
               style={[
@@ -1270,6 +1365,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
+  // =======================================================
+  // LOADING
+  // =======================================================
+
   loadingContainer: {
     flex: 1,
     alignItems: "center",
@@ -1278,26 +1377,30 @@ const styles = StyleSheet.create({
   },
 
   loadingText: {
-    marginTop: 12,
-    fontSize: 15,
+    marginTop: 14,
+    fontSize: 17,
     fontFamily: Fonts?.medium,
   },
+
+  // =======================================================
+  // HEADER
+  // =======================================================
 
   header: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 18,
-    paddingTop: 12,
-    paddingBottom: 16,
+    paddingTop: 14,
+    paddingBottom: 18,
   },
 
   backButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: 13,
   },
 
   headerTextContainer: {
@@ -1305,326 +1408,355 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    fontSize: 26,
+    fontSize: 30,
+    lineHeight: 36,
     fontFamily: Fonts?.bold,
   },
 
   headerSubtitle: {
-    marginTop: 3,
-    fontSize: 13,
+    marginTop: 4,
+    fontSize: 15,
+    lineHeight: 20,
     fontFamily: Fonts?.regular,
   },
 
+  // =======================================================
+  // SEARCH
+  // =======================================================
+
   searchContainer: {
     marginHorizontal: 18,
-    minHeight: 50,
-    borderRadius: 14,
+    minHeight: 56,
+    borderRadius: 16,
     borderWidth: 1,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 15,
+    paddingHorizontal: 16,
   },
 
   searchInput: {
     flex: 1,
-    marginLeft: 10,
-    fontSize: 15,
+    marginLeft: 11,
+    fontSize: 16,
     fontFamily: Fonts?.regular,
     paddingVertical: 12,
   },
 
+  // =======================================================
+  // SECTION
+  // =======================================================
+
   section: {
-    marginTop: 22,
+    marginTop: 25,
     paddingHorizontal: 18,
   },
 
   sectionHeader: {
-    marginTop: 20,
+    marginTop: 24,
     paddingHorizontal: 18,
+    marginBottom: 13,
+  },
+
+  sectionHeaderInside: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: 14,
   },
 
   sectionTitle: {
-    fontSize: 19,
+    fontSize: 22,
+    lineHeight: 28,
     fontFamily: Fonts?.bold,
   },
 
   countText: {
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: Fonts?.medium,
   },
+
+  // =======================================================
+  // CATEGORY
+  // =======================================================
 
   categoryScroll: {
     paddingHorizontal: 18,
     paddingBottom: 3,
-    gap: 9,
+    gap: 10,
   },
 
   categoryChip: {
-    paddingHorizontal: 17,
-    paddingVertical: 9,
-    borderRadius: 20,
+    paddingHorizontal: 19,
+    paddingVertical: 11,
+    borderRadius: 24,
     borderWidth: 1,
   },
 
   categoryText: {
-    fontSize: 13,
+    fontSize: 15,
     fontFamily: Fonts?.semiBold,
   },
 
   categoryLoading: {
-    minHeight: 45,
+    minHeight: 50,
     paddingHorizontal: 18,
     flexDirection: "row",
     alignItems: "center",
   },
 
   categoryLoadingText: {
-    marginLeft: 9,
-    fontSize: 13,
+    marginLeft: 10,
+    fontSize: 14,
     fontFamily: Fonts?.regular,
   },
 
+  // =======================================================
+  // FEATURED CARD
+  // =======================================================
+
   featuredCard: {
-    height: 290,
     borderRadius: 20,
     overflow: "hidden",
+    borderWidth: 1,
   },
 
   featuredImage: {
     width: "100%",
-    height: "100%",
-  },
-
-  featuredOverlay: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: "65%",
-    backgroundColor: "rgba(0,0,0,0.65)",
+    height: 235,
   },
 
   featuredContent: {
-    position: "absolute",
-    left: 18,
-    right: 18,
-    bottom: 17,
+    paddingHorizontal: 18,
+    paddingVertical: 17,
   },
 
   featuredCategory: {
     alignSelf: "flex-start",
-    paddingHorizontal: 11,
-    paddingVertical: 6,
-    borderRadius: 15,
-    marginBottom: 9,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 18,
+    marginBottom: 10,
   },
 
   featuredCategoryText: {
-    color: "#FFFFFF",
-    fontSize: 11,
-    fontFamily: Fonts?.bold,
+    fontSize: 14,
+    fontFamily: Fonts?.semiBold,
   },
 
   featuredTitle: {
-    color: "#FFFFFF",
-    fontSize: 21,
-    lineHeight: 27,
+    fontSize: 24,
+    lineHeight: 31,
     fontFamily: Fonts?.bold,
   },
 
   featuredDescription: {
-    color: "#E5E5E5",
-    fontSize: 12,
-    lineHeight: 18,
-    marginTop: 6,
+    fontSize: 16,
+    lineHeight: 23,
+    marginTop: 8,
     fontFamily: Fonts?.regular,
   },
 
   featuredMeta: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 10,
-    gap: 15,
+    gap: 18,
+    marginTop: 13,
   },
 
-  metaItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-  },
-
-  metaText: {
-    color: "#FFFFFF",
-    fontSize: 11,
-    fontFamily: Fonts?.medium,
-  },
+  // =======================================================
+  // ARTICLE CARD - VERTICAL
+  // =======================================================
 
   articleCard: {
-    minHeight: 130,
-    borderRadius: 16,
+    width: "100%",
+    borderRadius: 19,
     borderWidth: 1,
-    marginBottom: 12,
-    padding: 10,
-    flexDirection: "row",
-    alignItems: "center",
+    marginBottom: 17,
+    overflow: "hidden",
   },
 
+  // IMAGE ON TOP
   articleImage: {
-    width: 105,
-    height: 110,
-    borderRadius: 12,
+    width: "100%",
+    height: 220,
   },
 
+  // CONTENT BELOW IMAGE
   articleContent: {
-    flex: 1,
-    marginLeft: 12,
-    marginRight: 5,
-  },
-
-  articleTopRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    paddingHorizontal: 17,
+    paddingTop: 16,
+    paddingBottom: 17,
   },
 
   articleCategory: {
     alignSelf: "flex-start",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: 15,
   },
 
   articleCategoryText: {
-    fontSize: 9,
-    fontFamily: Fonts?.bold,
+    fontSize: 14,
+    fontFamily: Fonts?.semiBold,
   },
 
   articleTitle: {
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: 22,
+    lineHeight: 29,
     fontFamily: Fonts?.bold,
-    marginTop: 6,
+    marginTop: 10,
   },
 
   articleDescription: {
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: 16,
+    lineHeight: 24,
     fontFamily: Fonts?.regular,
-    marginTop: 4,
+    marginTop: 8,
   },
+
+  // =======================================================
+  // META
+  // =======================================================
 
   articleMeta: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    marginTop: 7,
+    gap: 18,
+    marginTop: 13,
   },
 
   metaItemDark: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 6,
   },
 
   metaTextDark: {
-    fontSize: 9,
-    fontFamily: Fonts?.regular,
+    fontSize: 13,
+    fontFamily: Fonts?.medium,
   },
 
-  articleArrow: {
-    marginRight: 2,
+  // =======================================================
+  // READ MORE
+  // =======================================================
+
+  readMoreRow: {
+    marginTop: 15,
+    paddingTop: 13,
+    borderTopWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
+
+  readMoreText: {
+    fontSize: 15,
+    fontFamily: Fonts?.bold,
+  },
+
+  // =======================================================
+  // ERRORS
+  // =======================================================
 
   errorBox: {
     marginHorizontal: 18,
-    marginTop: 20,
-    padding: 25,
+    marginTop: 22,
+    padding: 27,
     borderRadius: 18,
     borderWidth: 1,
     alignItems: "center",
   },
 
   errorTitle: {
-    fontSize: 17,
+    fontSize: 19,
     fontFamily: Fonts?.bold,
-    marginTop: 10,
+    marginTop: 11,
   },
 
   errorText: {
     textAlign: "center",
-    fontSize: 12,
-    lineHeight: 18,
-    marginTop: 7,
+    fontSize: 14,
+    lineHeight: 21,
+    marginTop: 8,
     fontFamily: Fonts?.regular,
   },
 
   retryButton: {
-    marginTop: 16,
-    paddingHorizontal: 25,
-    paddingVertical: 11,
+    marginTop: 17,
+    paddingHorizontal: 27,
+    paddingVertical: 12,
     borderRadius: 12,
   },
 
   retrySmallButton: {
-    marginTop: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 7,
-    borderRadius: 9,
+    marginTop: 9,
+    paddingHorizontal: 17,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
 
   retryButtonText: {
     color: "#FFFFFF",
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: Fonts?.bold,
   },
 
   smallErrorBox: {
     marginHorizontal: 18,
-    padding: 12,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 13,
     borderWidth: 1,
     alignItems: "center",
   },
+
+  // =======================================================
+  // EMPTY
+  // =======================================================
 
   emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 30,
-    paddingTop: 55,
-    paddingBottom: 30,
+    paddingTop: 65,
+    paddingBottom: 35,
+  },
+
+  emptyIcon: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   emptyTitle: {
-    fontSize: 18,
+    fontSize: 21,
     fontFamily: Fonts?.bold,
-    marginTop: 12,
+    marginTop: 15,
   },
 
   emptyText: {
-    fontSize: 13,
+    fontSize: 15,
     textAlign: "center",
-    marginTop: 6,
-    lineHeight: 19,
+    marginTop: 7,
+    lineHeight: 22,
     fontFamily: Fonts?.regular,
   },
 
   clearButton: {
-    marginTop: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 11,
+    marginTop: 18,
+    paddingHorizontal: 23,
+    paddingVertical: 12,
+    borderRadius: 12,
   },
 
   clearButtonText: {
     color: "#FFFFFF",
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: Fonts?.bold,
   },
 
   bottomSpace: {
-    height: 35,
+    height: 40,
   },
 });

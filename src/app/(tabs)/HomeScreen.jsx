@@ -1662,7 +1662,7 @@ const makeStyles = (colors) =>
 
     searchWrap: {
       marginTop: 4,
-      fontSize: 18,
+      fontSize: 20,
     },
 
     // =================================================
@@ -1774,7 +1774,7 @@ const makeStyles = (colors) =>
 
     productsSubtitle: {
       color: colors.textSecondary,
-      fontSize: 12,
+      fontSize: 18,
       marginTop: 4,
     },
 
@@ -1848,14 +1848,14 @@ const makeStyles = (colors) =>
 
     productName: {
       color: colors.textPrimary,
-      fontSize: 14,
+      fontSize: 18,
       fontWeight: "600",
       lineHeight: 20,
     },
 
     productCategory: {
       color: colors.textSecondary,
-      fontSize: 11,
+      fontSize: 15,
       marginTop: 4,
     },
 
@@ -1906,19 +1906,19 @@ const makeStyles = (colors) =>
 
     restaurantSectionTitle: {
       color: colors.textPrimary,
-      fontSize: 20,
+      fontSize: 23,
       fontWeight: "700",
     },
 
     restaurantSectionSubtitle: {
       color: colors.textSecondary,
-      fontSize: 12,
+      fontSize: 15,
       marginTop: 4,
     },
 
     restaurantCount: {
       color: colors.primary,
-      fontSize: 12,
+      fontSize: 14,
       fontWeight: "700",
     },
 
@@ -1984,7 +1984,7 @@ const makeStyles = (colors) =>
 
     openBadgeText: {
       color: "#FFFFFF",
-      fontSize: 10,
+      fontSize: 13,
       fontWeight: "700",
     },
 
@@ -2001,7 +2001,7 @@ const makeStyles = (colors) =>
     restaurantName: {
       flex: 1,
       color: colors.textPrimary,
-      fontSize: 17,
+      fontSize: 20,
       fontWeight: "700",
       marginRight: 10,
     },
@@ -2024,7 +2024,7 @@ const makeStyles = (colors) =>
 
     restaurantCuisine: {
       color: colors.textSecondary,
-      fontSize: 12,
+      fontSize: 15,
       marginTop: 6,
     },
 
@@ -2045,7 +2045,7 @@ const makeStyles = (colors) =>
     restaurantInfoText: {
       flex: 1,
       color: colors.textSecondary,
-      fontSize: 11,
+      fontSize: 15,
     },
 
     restaurantBottomRow: {
@@ -2060,7 +2060,7 @@ const makeStyles = (colors) =>
 
     restaurantDeliveryText: {
       color: colors.primary,
-      fontSize: 11,
+      fontSize: 18,
       fontWeight: "600",
     },
 
