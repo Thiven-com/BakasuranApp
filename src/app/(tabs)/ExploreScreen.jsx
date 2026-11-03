@@ -1400,23 +1400,7 @@ export default function ExploreScreen() {
             styles.productInfo
           }
         >
-          <Ionicons
-            name="alert-circle-outline"
-            size={14}
-            color={
-              Colors.error ||
-              "#E53935"
-            }
-          />
-
-          <Text
-            style={
-              styles.productErrorText
-            }
-            numberOfLines={1}
-          >
-            Unable to load menu
-          </Text>
+          
         </View>
       );
     }
@@ -1541,32 +1525,7 @@ export default function ExploreScreen() {
             </View>
           ) : null}
 
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={
-              styles.favoriteButton
-            }
-            onPress={() =>
-              toggleFavorite(
-                restaurant.id
-              )
-            }
-          >
-            <Ionicons
-              name={
-                favorite
-                  ? "heart"
-                  : "heart-outline"
-              }
-              size={21}
-              color={
-                favorite
-                  ? Colors.error ||
-                    "#E53935"
-                  : "#444"
-              }
-            />
-          </TouchableOpacity>
+          
         </View>
 
         {/* DETAILS */}
