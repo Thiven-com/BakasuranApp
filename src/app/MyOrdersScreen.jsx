@@ -190,10 +190,16 @@ const formatOrder = (order) => {
   );
 
   return {
-    id: String(order?.id ?? order?.order_id ?? ""),
+    id: String(
+      order?.restaurant_food_order_id ??
+        order?.id ??
+        order?.order_id ??
+        "",
+    ),
     number: String(
       order?.invoice_id ??
         order?.order_number ??
+        order?.restaurant_food_order_id ??
         order?.id ??
         order?.order_id ??
         "",

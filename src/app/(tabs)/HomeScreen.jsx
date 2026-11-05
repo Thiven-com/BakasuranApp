@@ -1488,11 +1488,11 @@ const HomeScreen = () => {
 
         {!hasSearchQuery && (
           <View style={styles.bookingCard}>
-            <Image
+            {/*<Image
               source={require("../../../assets/images/book_table.jpg")}
               style={styles.bookingImage}
               resizeMode="cover"
-            />
+            />*/}
 
             <TouchableOpacity
               style={styles.findTableButton}

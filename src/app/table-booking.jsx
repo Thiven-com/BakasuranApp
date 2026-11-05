@@ -433,7 +433,25 @@ export default function SelectTableScreen() {
       "Booking confirmed",
       result?.message ||
         `Table ${selectedTable.label} is booked for ${dateLabel} at ${timeLabel}.`,
-      [{ text: "OK", onPress: () => router.replace("/my-bookings") }],
+      [
+        {
+          text: "My Bookings",
+          onPress: () => router.replace("/my-bookings"),
+        },
+        {
+          text: "Order Food",
+          onPress: () =>
+            router.replace({
+              pathname: "/TableFoodMenu",
+              params: {
+                restaurantId: String(restaurantId),
+                restaurantName: restaurant || "",
+                tableId: String(selectedTable.id),
+                tableNumber: String(selectedTable.label),
+              },
+            }),
+        },
+      ],
     );
   };
 

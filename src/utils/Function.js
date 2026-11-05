@@ -1235,9 +1235,156 @@ export const getOrderDetails = async (orderId) => {
   } catch (error) {
     console.error(
       "GET ORDER DETAILS API ERROR:",
-      error?.response?.data ?? error?.message,
+      {
+        orderId: String(orderId).trim(),
+        url: `${APP_URL}order/${encodeURIComponent(String(orderId).trim())}`,
+        response: error?.response?.data ?? error?.message,
+      },
     );
     return orderApiError(error, "Unable to load order details.");
+  }
+};
+
+// =========================================================
+// UPDATE ORDER ITEMS
+// PUT: /api/customer/orders/{order}/items
+// Body: { products: [{ product_variant_id, quantity }] }
+// =========================================================
+export const updateOrderItems = async (orderId, products) => {
+  if (
+    orderId === undefined ||
+    orderId === null ||
+    String(orderId).trim() === ""
+  ) {
+    return { success: 0, message: "An order ID is required." };
+  }
+
+  if (!Array.isArray(products) || products.length === 0) {
+    return { success: 0, message: "Add at least one product to your order." };
+  }
+
+  const normalizedProducts = products.map((product) => {
+    const productVariantId = normalizeVariantId(
+      product?.product_variant_id,
+    );
+    const quantity = Number(product?.quantity);
+
+    if (
+      !productVariantId ||
+      !Number.isSafeInteger(quantity) ||
+      quantity <= 0
+    ) {
+      return null;
+    }
+
+    return {
+      product_variant_id: productVariantId,
+      quantity,
+    };
+  });
+
+  if (normalizedProducts.some((product) => product === null)) {
+    return {
+      success: 0,
+      message: "Each order item must have a valid product variant and quantity.",
+    };
+  }
+
+  try {
+    const token = await AsyncStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      return { success: 9, message: "Please login to update your order." };
+    }
+
+    const response = await axios.put(
+      `${APP_URL}orders/${encodeURIComponent(String(orderId).trim())}/items`,
+      { products: normalizedProducts },
+      {
+        headers: getOrderAuthHeaders(token),
+        timeout: 20000,
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "UPDATE ORDER ITEMS API ERROR:",
+      error?.response?.data ?? error?.message,
+    );
+    return orderApiError(error, "Unable to update order items.");
+  }
+};
+
+// =========================================================
+// CREATE DINE-IN ORDER
+// POST: /api/customer/order
+// =========================================================
+export const createDineInOrder = async ({
+  restaurant_table_id,
+  special_instructions = "",
+  products,
+} = {}) => {
+  const tableId = Number(restaurant_table_id);
+  if (!Number.isSafeInteger(tableId) || tableId <= 0) {
+    return { success: 0, message: "A valid restaurant table ID is required." };
+  }
+
+  if (!Array.isArray(products) || products.length === 0) {
+    return { success: 0, message: "Add at least one product to your order." };
+  }
+
+  const normalizedProducts = products.map((product) => {
+    const productVariantId = normalizeVariantId(
+      product?.product_variant_id,
+    );
+    const quantity = Number(product?.quantity);
+
+    if (
+      !productVariantId ||
+      !Number.isSafeInteger(quantity) ||
+      quantity <= 0
+    ) {
+      return null;
+    }
+
+    return {
+      product_variant_id: productVariantId,
+      quantity,
+    };
+  });
+
+  if (normalizedProducts.some((product) => product === null)) {
+    return {
+      success: 0,
+      message: "Each order item must have a valid product variant and quantity.",
+    };
+  }
+
+  const payload = {
+    restaurant_table_id: tableId,
+    special_instructions:
+      typeof special_instructions === "string" ? special_instructions : "",
+    products: normalizedProducts,
+  };
+
+  try {
+    const token = await AsyncStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      return { success: 9, message: "Please login to place this order." };
+    }
+
+    const response = await axios.post(`${APP_URL}order`, payload, {
+      headers: getOrderAuthHeaders(token),
+      timeout: 20000,
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "CREATE DINE-IN ORDER API ERROR:",
+      error?.response?.data ?? error?.message,
+    );
+    return orderApiError(error, "Unable to place your dine-in order.");
   }
 };
 
@@ -1369,6 +1516,49 @@ export const getRestaurantById = async (restaurantId) => {
     return {
       success: 0,
       message: getApiErrorMessage(error, "Unable to load restaurant details."),
+    };
+  }
+};
+
+// =========================================================
+// GET RESTAURANT MENU
+// GET: /api/customer/menu/{restaurantId}
+// =========================================================
+export const getRestaurantMenu = async (restaurantId) => {
+  if (
+    restaurantId === null ||
+    restaurantId === undefined ||
+    String(restaurantId).trim() === ""
+  ) {
+    return {
+      success: 0,
+      message: "Restaurant ID is required.",
+    };
+  }
+
+  try {
+    const response = await axios.get(
+      `${APP_URL}menu/${encodeURIComponent(String(restaurantId))}`,
+      {
+        headers: await getAuthHeaders(),
+        timeout: REQUEST_TIMEOUT,
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "GET RESTAURANT MENU API ERROR:",
+      error?.response?.data ?? error?.message,
+    );
+
+    if (error?.response?.data) {
+      return error.response.data;
+    }
+
+    return {
+      success: 0,
+      message: getApiErrorMessage(error, "Unable to load restaurant menu."),
     };
   }
 };
