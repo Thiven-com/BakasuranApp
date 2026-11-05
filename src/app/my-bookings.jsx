@@ -71,6 +71,23 @@ const normalizeBooking = (booking, index) => {
         booking?.reference_number ??
         index + 1,
     ),
+    restaurantId: String(
+      booking?.restaurant_id ??
+        booking?.restaurantId ??
+        booking?.restaurant?.id ??
+        booking?.restaurant?.restaurant_id ??
+        "",
+    ),
+    restaurantTableId: String(
+      booking?.restaurant_table_id ??
+        booking?.table_id ??
+        booking?.tableId ??
+        booking?.table?.id ??
+        booking?.table?.table_id ??
+        booking?.restaurant_table?.id ??
+        booking?.restaurant_table?.table_id ??
+        "",
+    ),
     restaurant:
       typeof rawRestaurant === "string"
         ? rawRestaurant
@@ -96,6 +113,7 @@ const normalizeBooking = (booking, index) => {
     ),
     table: String(
       booking?.table?.table_number ??
+        booking?.restaurant_table?.table_number ??
         booking?.table_number ??
         booking?.table_no ??
         booking?.table?.id ??
@@ -526,14 +544,32 @@ export default function MyBookingsScreen() {
                 <TouchableOpacity
                   style={[styles.actionButton, styles.modifyButton]}
                   activeOpacity={0.8}
-                  onPress={() => handleModify(booking)}
+                  onPress={() => {
+                    if (!booking.restaurantId || !booking.restaurantTableId) {
+                      Alert.alert(
+                        "Table details unavailable",
+                        "This booking does not include the restaurant and table IDs needed to place a food order. Refresh your bookings or contact the restaurant.",
+                      );
+                      return;
+                    }
+
+                    router.push({
+                      pathname: "/TableFoodMenu",
+                      params: {
+                        restaurantId: booking.restaurantId,
+                        restaurantName: booking.restaurant,
+                        tableId: booking.restaurantTableId,
+                        tableNumber: booking.table,
+                      },
+                    });
+                  }}
                 >
                   <Ionicons
                     name="create-outline"
                     size={19}
                     color={colors.white}
                   />
-                  <Text style={styles.modifyButtonText}>Modify</Text>
+                  <Text style={styles.modifyButtonText}>FoodOrder</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
