@@ -4,6 +4,7 @@ import BASE_URL from "../constants/AppUrls";
 
 import { deleteMethod, getMethod } from "./APIServices";
 
+
 // =========================================================a
 // BASE URL CONFIGURATION
 // =========================================================

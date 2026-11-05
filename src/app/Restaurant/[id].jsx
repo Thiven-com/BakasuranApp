@@ -1306,7 +1306,7 @@ export default function RestaurantDetails() {
           {restaurant.name}
         </Text>
 
-        <TouchableOpacity
+        {/*<TouchableOpacity
           style={styles.headerButton}
           onPress={() => setFavorite((previous) => !previous)}
         >
@@ -1315,7 +1315,7 @@ export default function RestaurantDetails() {
             size={24}
             color={favorite ? "#F9080C" : colors.text}
           />
-        </TouchableOpacity>
+        </TouchableOpacity>*/}
       </View>
 
       <ScrollView
@@ -2262,7 +2262,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: "center",
-    fontSize: 18,
+    fontSize: 25,
     marginHorizontal: 8,
   },
 
@@ -2368,7 +2368,7 @@ const styles = StyleSheet.create({
 
   offerBadgeText: {
     color: "#FFFFFF",
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: "800",
   },
 
@@ -2384,7 +2384,7 @@ const styles = StyleSheet.create({
 
   cuisine: {
     marginTop: 5,
-    fontSize: 14,
+    fontSize: 18,
   },
 
   infoRow: {
@@ -2418,7 +2418,7 @@ const styles = StyleSheet.create({
   },
 
   infoText: {
-    fontSize: 12,
+    fontSize: 13,
   },
 
   dot: {
@@ -2437,7 +2437,7 @@ const styles = StyleSheet.create({
 
   addressText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 17,
     lineHeight: 19,
   },
 
@@ -2459,7 +2459,7 @@ const styles = StyleSheet.create({
   },
 
   actionText: {
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: "600",
   },
 
@@ -2483,17 +2483,17 @@ const styles = StyleSheet.create({
   },
 
   offerTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: "800",
   },
 
   offerDescription: {
-    fontSize: 12,
+    fontSize: 15,
     marginTop: 3,
   },
 
   offerCode: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: "800",
     marginTop: 5,
   },
@@ -2512,7 +2512,7 @@ const styles = StyleSheet.create({
   },
 
   menuCount: {
-    fontSize: 13,
+    fontSize: 15,
   },
 
   categoryContainer: {
@@ -2520,7 +2520,7 @@ const styles = StyleSheet.create({
   },
 
   categoryTitle: {
-    fontSize: 18,
+    fontSize: 20,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
@@ -2541,13 +2541,13 @@ const styles = StyleSheet.create({
   },
 
   foodName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "700",
   },
 
   foodPrice: {
     marginTop: 7,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "700",
   },
 
@@ -2559,11 +2559,11 @@ const styles = StyleSheet.create({
   },
 
   foodRatingText: {
-    fontSize: 11,
+    fontSize: 14,
   },
 
   foodDescription: {
-    fontSize: 12,
+    fontSize: 15,
     lineHeight: 17,
     marginTop: 7,
   },
@@ -2593,8 +2593,8 @@ const styles = StyleSheet.create({
   },
 
   addButtonText: {
-    fontSize: 13,
-    fontWeight: "900",
+    fontSize: 15,
+    fontWeight: "700",
   },
 
   quantityContainer: {

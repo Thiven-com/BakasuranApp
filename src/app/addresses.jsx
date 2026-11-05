@@ -579,7 +579,7 @@ export default function AddAddressScreen() {
               ) : null}
             </InputField>
 
-            <InputField
+           {/* <InputField
               {...fieldProps("pincode")}
               label="Pincode"
               placeholder="Enter 6-digit pincode"
@@ -589,14 +589,14 @@ export default function AddAddressScreen() {
               maxLength={6}
             />
 
-            <InputField
+            {/*<InputField
               {...fieldProps("gst")}
               label="GST Number"
               placeholder="Enter GST number (optional)"
               icon="document-text-outline"
               autoCapitalize="characters"
               maxLength={15}
-            />
+            />*/}
           </View>
 
           {/* DEFAULT ADDRESS */}
@@ -772,14 +772,14 @@ const makeStyles = (colors, isDark) => {
 
     sectionTitle: {
       color: colors.textPrimary,
-      fontSize: 19,
-      fontFamily: Fonts.semiBold,
+      fontSize: 23,
+      fontFamily: Fonts.regular,
     },
 
     sectionSubtitle: {
       color: colors.textSecondary,
       fontFamily: Fonts.medium,
-      fontSize: 15,
+      fontSize: 17,
       marginTop: 5,
     },
 
@@ -821,8 +821,8 @@ const makeStyles = (colors, isDark) => {
 
     addressTypeText: {
       color: colors.textSecondary,
-      fontFamily: Fonts.semiBold,
-      fontSize: 15,
+      fontFamily: Fonts.regular,
+      fontSize: 18,
       marginTop: 8,
     },
 
@@ -837,8 +837,8 @@ const makeStyles = (colors, isDark) => {
 
     label: {
       color: colors.textSecondary,
-      fontSize: 15,
-      fontFamily: Fonts.medium,
+      fontSize: 19,
+      fontFamily: Fonts.regular,
       marginBottom: 8,
     },
 
@@ -871,7 +871,7 @@ const makeStyles = (colors, isDark) => {
       flex: 1,
       minHeight: 49,
       color: colors.textPrimary,
-      fontSize: 15,
+      fontSize: 17,
       marginLeft: 12,
       paddingVertical: 10,
     },
@@ -888,8 +888,8 @@ const makeStyles = (colors, isDark) => {
 
     errorText: {
       color: colors.primary,
-      fontFamily: Fonts.medium,
-      fontSize: 11,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
       marginTop: 5,
     },
 
@@ -912,8 +912,8 @@ const makeStyles = (colors, isDark) => {
 
     locationSuggestionText: {
       color: colors.textPrimary,
-      fontFamily: Fonts.medium,
-      fontSize: 15,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
     },
 
     locationHint: {
@@ -958,14 +958,14 @@ const makeStyles = (colors, isDark) => {
 
     defaultAddressTitle: {
       color: colors.textPrimary,
-      fontFamily: Fonts.bold,
-      fontSize: 15,
+      fontFamily: Fonts.regular,
+      fontSize: 18,
     },
 
     defaultAddressSubtitle: {
       color: colors.textSecondary,
-      fontFamily: Fonts.medium,
-      fontSize: 13,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
       marginTop: 5,
     },
 
@@ -1014,8 +1014,8 @@ const makeStyles = (colors, isDark) => {
 
     saveButtonText: {
       color: "#FFFFFF",
-      fontFamily: Fonts.bold,
-      fontSize: 15,
+      fontFamily: Fonts.regular,
+      fontSize: 20,
       marginLeft: 9,
     },
 
@@ -1028,8 +1028,8 @@ const makeStyles = (colors, isDark) => {
 
     secureText: {
       color: colors.textSecondary,
-      fontFamily: Fonts.medium,
-      fontSize: 15,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
       marginLeft: 6,
     },
   });

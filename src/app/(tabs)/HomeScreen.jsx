@@ -1484,25 +1484,25 @@ const HomeScreen = () => {
 
         {/* =================================================
             TABLE BOOKING
-        ================================================= */}
+        ================================================= 
 
         {!hasSearchQuery && (
           <View style={styles.bookingCard}>
-            <Image
-              source={require("../../../assets/images/book_table.jpg")}
-              style={styles.bookingImage}
-              resizeMode="cover"
-            />
+           // <Image
+              //source={require("../../../assets/images/book_table.jpg")}
+              //style={styles.bookingImage}
+              //resizeMode="cover"
+           // />
 
-            <TouchableOpacity
-              style={styles.findTableButton}
-              activeOpacity={0.8}
-              accessibilityRole="button"
-              accessibilityLabel="Find a table"
-              onPress={() => router.push("/table-booking")}
+            //<TouchableOpacity
+              //style={styles.findTableButton}
+             // activeOpacity={0.8}
+             // accessibilityRole="button"
+             // accessibilityLabel="Find a table"
+             // onPress={() => router.push("/table-booking")}
             />
           </View>
-        )}
+        )}*/}
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
@@ -1665,40 +1665,45 @@ const makeStyles = (colors) =>
       fontSize: 20,
     },
 
-    // =================================================
-    // CATEGORIES
-    // =================================================
+   // =================================================
+// CATEGORIES
+// =================================================
 
-    cuisineTopSection: {
-      backgroundColor: colors.background,
-      marginTop: 4,
-      paddingVertical: 5,
-    },
+cuisineTopSection: {
+  backgroundColor: colors.background,
+  marginTop: 4,
+  paddingVertical: 5,
+},
 
-    cuisineTopList: {
-      paddingHorizontal: 2,
-    },
+cuisineTopList: {
+  paddingHorizontal: 2,
+},
 
-    cuisineTopItem: {
-      width: 115,
-      alignItems: "center",
-      justifyContent: "flex-start",
-      marginRight: 5,
-    },
+cuisineTopItem: {
+  width: 115,
+  alignItems: "center",
+  justifyContent: "flex-start",
+  marginRight: 5,
+},
 
-    cuisineTopImage: {
-      width: 110,
-      height: 100,
-      marginBottom: 3,
-    },
+cuisineTopImage: {
+  width: 100,
+  height: 100,
+  borderRadius: 50,
+  overflow: "hidden",
+  marginBottom: 5,
+  resizeMode: "cover",
+  borderWidth: 2,
+  borderColor: colors.border,
+},
 
-    cuisineTopText: {
-      width: 115,
-      color: colors.textPrimary,
-      fontSize: 18,
-      fontWeight: "500",
-      textAlign: "center",
-    },
+cuisineTopText: {
+  width: 115,
+  color: colors.textPrimary,
+  fontSize: 18,
+  fontWeight: "500",
+  textAlign: "center",
+},
 
     // =================================================
     // FEATURED CATEGORIES

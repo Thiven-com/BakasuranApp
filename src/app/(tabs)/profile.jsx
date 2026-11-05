@@ -294,7 +294,7 @@ export default function ProfileScreen() {
       route: "/addresses",
     },
     {
-      title: "Tablebookings",
+      title: "Table Bookings",
       subtitle: "Table History",
       icon: "restaurant-outline",
       color: colors.primary,

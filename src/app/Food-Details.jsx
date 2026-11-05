@@ -1869,7 +1869,7 @@ export default function FoodDetailsScreen() {
               </View>
             </View>
 
-            {/* SHARE */}
+            {/* SHARE 
 
             <TouchableOpacity
               style={
@@ -1885,7 +1885,7 @@ export default function FoodDetailsScreen() {
                 size={24}
                 color="#FFFFFF"
               />
-            </TouchableOpacity>
+            </TouchableOpacity>*/}
           </View>
 
           {/* PRICE */}
@@ -2365,7 +2365,7 @@ const createStyles = (
     foodName: {
       color: text,
       fontFamily:
-        Fonts?.bold,
+        Fonts?.regular,
       fontSize: 27,
       lineHeight: 35,
       marginTop: 8,
@@ -2374,8 +2374,8 @@ const createStyles = (
     variantText: {
       color: primary,
       fontFamily:
-        Fonts?.medium,
-      fontSize: 14,
+        Fonts?.regular,
+      fontSize: 17,
       marginTop: 5,
     },
 
@@ -2389,15 +2389,15 @@ const createStyles = (
     rating: {
       color: "#FFC107",
       fontFamily:
-        Fonts?.bold,
-      fontSize: 17,
+        Fonts?.regular,
+      fontSize: 19,
     },
 
     reviews: {
       color: secondaryText,
       fontFamily:
         Fonts?.regular,
-      fontSize: 14,
+      fontSize: 17,
     },
 
     shareButton: {
@@ -2454,15 +2454,15 @@ const createStyles = (
     discountText: {
       color: "#FFFFFF",
       fontFamily:
-        Fonts?.bold,
-      fontSize: 14,
+        Fonts?.regular,
+      fontSize: 15,
     },
 
     stockText: {
       color: "#45D483",
       fontFamily:
-        Fonts?.medium,
-      fontSize: 13,
+        Fonts?.regular,
+      fontSize: 16,
       marginTop: 8,
     },
 
@@ -2474,8 +2474,8 @@ const createStyles = (
       color: secondaryText,
       fontFamily:
         Fonts?.regular,
-      fontSize: 15,
-      lineHeight: 24,
+      fontSize: 18,
+      lineHeight: 26,
       marginTop: 20,
       marginBottom: 22,
     },
@@ -2504,8 +2504,8 @@ const createStyles = (
     optionLabel: {
       color: secondaryText,
       fontFamily:
-        Fonts?.medium,
-      fontSize: 16,
+        Fonts?.regular,
+      fontSize: 19,
       marginBottom: 12,
     },
 
@@ -2539,8 +2539,8 @@ const createStyles = (
     spiceText: {
       color: text,
       fontFamily:
-        Fonts?.semiBold,
-      fontSize: 15,
+        Fonts?.regular,
+      fontSize: 17,
     },
 
     spiceTextSelected: {
@@ -2593,7 +2593,7 @@ const createStyles = (
     quantityValue: {
       color: text,
       fontFamily:
-        Fonts?.bold,
+        Fonts?.regular,
       fontSize: 20,
     },
 
@@ -2630,15 +2630,15 @@ const createStyles = (
     addToCartText: {
       color: "#FFFFFF",
       fontFamily:
-        Fonts?.bold,
-      fontSize: 18,
+        Fonts?.regular,
+      fontSize: 20,
     },
 
     addToCartPrice: {
       color: "#FFFFFF",
       fontFamily:
-        Fonts?.bold,
-      fontSize: 18,
+        Fonts?.regular,
+      fontSize: 20,
     },
   });
 };

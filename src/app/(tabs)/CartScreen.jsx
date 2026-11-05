@@ -950,7 +950,7 @@ export default function CartScreen() {
             style={[
               styles.errorMessage,
               {
-                color: colors.textSecondary || "#8F8F8F",
+                color: colors.textSecondary || "#222222",
               },
             ]}
           >
@@ -1354,7 +1354,7 @@ export default function CartScreen() {
               style={[
                 styles.summaryTitle,
                 {
-                  color: colors.text,
+                  color: colors.textSecondary,
                 },
               ]}
             >
@@ -1366,7 +1366,7 @@ export default function CartScreen() {
                 style={[
                   styles.summaryLabel,
                   {
-                    color: colors.textSecondary || "#8F8F8F",
+                    color: colors.textPrimary || "#FFFFFF",
                   },
                 ]}
               >
@@ -1390,7 +1390,7 @@ export default function CartScreen() {
                 style={[
                   styles.summaryLabel,
                   {
-                    color: colors.textSecondary || "#8F8F8F",
+                    color: colors.textPrimary || "#FFFFFF",
                   },
                 ]}
               >
@@ -1417,7 +1417,7 @@ export default function CartScreen() {
                 style={[
                   styles.summaryLabel,
                   {
-                    color: colors.textSecondary || "#8F8F8F",
+                    color: colors.textPrimary || "#FFFFFF",
                   },
                 ]}
               >
@@ -1491,7 +1491,7 @@ export default function CartScreen() {
               style={[
                 styles.checkoutLabel,
                 {
-                  color: colors.textSecondary || "#8F8F8F",
+                  color: colors.textSecondary || "#111010",
                 },
               ]}
             >
@@ -1560,14 +1560,14 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    fontSize: 21,
-    fontFamily: Fonts?.bold || undefined,
+    fontSize: 25,
+    fontFamily: Fonts?.regular,
   },
 
   headerSubtitle: {
-    fontSize: 12,
+    fontSize: 19,
     marginTop: 2,
-    fontFamily: Fonts?.regular || undefined,
+    fontFamily: Fonts?.regular,
   },
 
   clearButton: {
@@ -1576,8 +1576,8 @@ const styles = StyleSheet.create({
   },
 
   clearText: {
-    fontSize: 14,
-    fontFamily: Fonts?.semiBold || undefined,
+    fontSize: 19,
+    fontFamily: Fonts?.regular,
   },
 
   headerRightPlaceholder: {
@@ -1620,7 +1620,7 @@ const styles = StyleSheet.create({
   retryText: {
     color: "#FFFFFF",
     fontSize: 14,
-    fontFamily: Fonts?.semiBold || undefined,
+    fontFamily: Fonts?.regular,
   },
 
   emptyContainer: {
@@ -1730,15 +1730,15 @@ const styles = StyleSheet.create({
   },
 
   itemName: {
-    fontSize: 17,
+    fontSize: 18,
     lineHeight: 20,
-    fontFamily: Fonts?.semiBold || undefined,
+    fontFamily: Fonts?.regular,
   },
 
   restaurantText: {
-    fontSize: 15,
+    fontSize: 19,
     marginTop: 4,
-    fontFamily: Fonts?.regular || undefined,
+    fontFamily: Fonts?.regular,
   },
 
   variantText: {
@@ -1762,8 +1762,8 @@ const styles = StyleSheet.create({
   },
 
   price: {
-    fontSize: 16,
-    fontFamily: Fonts?.bold || undefined,
+    fontSize: 18,
+    fontFamily: Fonts?.regular,
   },
 
   unitPrice: {
@@ -1797,7 +1797,7 @@ const styles = StyleSheet.create({
 
   quantityText: {
     fontSize: 15,
-    fontFamily: Fonts?.bold || undefined,
+    fontFamily: Fonts?.regular || undefined,
   },
 
   deliveryMessage: {
@@ -1815,9 +1815,9 @@ const styles = StyleSheet.create({
   deliveryMessageText: {
     flex: 1,
     marginLeft: 10,
-    fontSize: 12,
+    fontSize: 15,
     lineHeight: 18,
-    fontFamily: Fonts?.regular || undefined,
+    fontFamily: Fonts?.regular,
   },
 
   summaryCard: {
@@ -1828,9 +1828,9 @@ const styles = StyleSheet.create({
   },
 
   summaryTitle: {
-    fontSize: 17,
+    fontSize: 19,
     marginBottom: 16,
-    fontFamily: Fonts?.bold || undefined,
+    fontFamily: Fonts?.regular,
   },
 
   summaryRow: {
@@ -1841,13 +1841,13 @@ const styles = StyleSheet.create({
   },
 
   summaryLabel: {
-    fontSize: 14,
-    fontFamily: Fonts?.regular || undefined,
+    fontSize: 17,
+    fontFamily: Fonts?.regular,
   },
 
   summaryValue: {
-    fontSize: 14,
-    fontFamily: Fonts?.semiBold || undefined,
+    fontSize: 17,
+    fontFamily: Fonts?.regular,
   },
 
   summaryDivider: {
@@ -1863,13 +1863,13 @@ const styles = StyleSheet.create({
   },
 
   totalLabel: {
-    fontSize: 17,
-    fontFamily: Fonts?.bold || undefined,
+    fontSize: 19,
+    fontFamily: Fonts?.regular || undefined,
   },
 
   totalValue: {
     fontSize: 20,
-    fontFamily: Fonts?.bold || undefined,
+    fontFamily: Fonts?.regular || undefined,
   },
 
   checkoutContainer: {
@@ -1890,14 +1890,14 @@ const styles = StyleSheet.create({
   },
 
   checkoutLabel: {
-    fontSize: 11,
+    fontSize: 18,
     marginBottom: 2,
     fontFamily: Fonts?.regular || undefined,
   },
 
   checkoutTotal: {
-    fontSize: 18,
-    fontFamily: Fonts?.bold || undefined,
+    fontSize: 19,
+    fontFamily: Fonts?.regular || undefined,
   },
 
   checkoutButton: {
@@ -1913,7 +1913,7 @@ const styles = StyleSheet.create({
 
   checkoutButtonText: {
     color: "#FFFFFF",
-    fontSize: 14,
-    fontFamily: Fonts?.bold || undefined,
+    fontSize: 17,
+    fontFamily: Fonts?.regular || undefined,
   },
 });
