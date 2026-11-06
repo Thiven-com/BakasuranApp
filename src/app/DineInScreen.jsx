@@ -15,21 +15,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BASE_URL from "../constants/AppUrls";
+import { useTheme } from "../hooks/use-theme";
 import { getAvailableTables, getRestaurantById } from "../utils/Function";
-
-const COLORS = {
-  background: "#050505",
-  card: "#101010",
-  surface: "#161616",
-  input: "#151515",
-  border: "#262626",
-  red: "#FF101C",
-  redSoft: "rgba(255,16,28,0.14)",
-  white: "#FFFFFF",
-  gray: "#A0A0A0",
-  muted: "#6F6F6F",
-  gold: "#FFC52F",
-};
 
 const FOOD_IMAGE = require("../../assets/images/chicken_biryani.jpg");
 
@@ -40,13 +27,12 @@ const HERO_HEIGHT = 260;
 // The availability API needs an end_time, so we assume a fixed stay.
 const BOOKING_DURATION_HOURS = 2;
 
-// Quick-pick time slots (24h "HH:mm"). Keep every slot at least
-// BOOKING_DURATION_HOURS before midnight.
+// Quick-pick time slots (24h "HH:mm").
 const TIME_SLOTS = [
   { label: "Lunch", times: ["12:00", "12:30", "13:00", "13:30", "14:00"] },
   {
     label: "Dinner",
-    times: ["19:00", "19:30", "20:00", "20:30", "21:00", "21:30"],
+    times: ["19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "23:00"],
   },
 ];
 
@@ -147,11 +133,11 @@ const getDayChipLabel = (value) => {
 };
 
 /* Defined OUTSIDE the screen so they aren't re-created on every render. */
-function SectionHeader({ icon, title, hint }) {
+function SectionHeader({ icon, title, hint, styles, colors }) {
   return (
     <View style={styles.sectionHeader}>
       <View style={styles.sectionIcon}>
-        <Ionicons name={icon} size={17} color={COLORS.red} />
+        <Ionicons name={icon} size={17} color={colors.primary} />
       </View>
       <Text style={styles.sectionTitle}>{title}</Text>
       {hint ? <Text style={styles.sectionHint}>{hint}</Text> : null}
@@ -159,7 +145,7 @@ function SectionHeader({ icon, title, hint }) {
   );
 }
 
-function Chip({ label, active, disabled, onPress, icon }) {
+function Chip({ label, active, disabled, onPress, icon, styles, colors }) {
   return (
     <TouchableOpacity
       style={[
@@ -178,7 +164,7 @@ function Chip({ label, active, disabled, onPress, icon }) {
         <Ionicons
           name={icon}
           size={15}
-          color={active ? COLORS.white : COLORS.gray}
+          color={active ? colors.white : colors.textSecondary}
           style={{ marginRight: 6 }}
         />
       ) : null}
@@ -196,6 +182,8 @@ function Chip({ label, active, disabled, onPress, icon }) {
 }
 
 export default function DineInScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const restaurantId = Array.isArray(params.restaurantId)
@@ -227,9 +215,11 @@ export default function DineInScreen() {
   );
 
   const dateIsQuickDay = dayOptions.some((d) => isSameDay(d, date));
+  const selectedTime = toInputTime(time);
   const timeIsSlot = TIME_SLOTS.some((group) =>
-    group.times.includes(toInputTime(time)),
+    group.times.includes(selectedTime),
   );
+  const isLastBookingSlot = selectedTime === "23:00";
 
   useEffect(() => {
     let active = true;
@@ -390,13 +380,8 @@ export default function DineInScreen() {
     }
 
     const end = new Date(start);
-    end.setHours(end.getHours() + BOOKING_DURATION_HOURS);
-
-    // The API takes a single booking_date, so don't allow stays crossing midnight.
-    if (!isSameDay(start, end)) {
-      Alert.alert("Choose an earlier time", "Bookings must end by midnight.");
-      return;
-    }
+    if (isLastBookingSlot) end.setHours(23, 59, 0, 0);
+    else end.setHours(end.getHours() + BOOKING_DURATION_HOURS);
 
     setLoading(true);
     let result;
@@ -472,7 +457,7 @@ export default function DineInScreen() {
               accessibilityRole="button"
               accessibilityLabel="Go back"
             >
-              <Ionicons name="chevron-back" size={24} color={COLORS.white} />
+              <Ionicons name="chevron-back" size={24} color={colors.white} />
             </TouchableOpacity>
 
             <Text style={styles.brandMark}>BAKASURAN</Text>
@@ -488,7 +473,7 @@ export default function DineInScreen() {
               <Ionicons
                 name={favorite ? "heart" : "heart-outline"}
                 size={22}
-                color={favorite ? COLORS.red : COLORS.white}
+                color={favorite ? colors.primary : colors.white}
               />
             </TouchableOpacity>
           </View>
@@ -496,7 +481,7 @@ export default function DineInScreen() {
           <View style={styles.heroInfo}>
             <View style={styles.heroBadgeRow}>
               <View style={styles.dineBadge}>
-                <Ionicons name="restaurant" size={12} color={COLORS.white} />
+                <Ionicons name="restaurant" size={12} color={colors.white} />
                 <Text style={styles.dineBadgeText}>DINE IN</Text>
               </View>
               {restaurant?.cuisine ? (
@@ -515,7 +500,7 @@ export default function DineInScreen() {
             </Text>
 
             <View style={styles.heroMetaRow}>
-              <Ionicons name="star" size={16} color={COLORS.gold} />
+              <Ionicons name="star" size={16} color={colors.gold} />
               <Text style={styles.heroRating}>{restaurant?.rating ?? "—"}</Text>
               <Text style={styles.heroReviews}>
                 ({restaurant?.reviews ?? "0"} reviews)
@@ -540,7 +525,12 @@ export default function DineInScreen() {
           </Text>
 
           {/* Date */}
-          <SectionHeader icon="calendar-outline" title="Date" />
+          <SectionHeader
+            icon="calendar-outline"
+            title="Date"
+            styles={styles}
+            colors={colors}
+          />
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -590,7 +580,7 @@ export default function DineInScreen() {
               <Ionicons
                 name="calendar"
                 size={22}
-                color={COLORS.white}
+                color={colors.white}
                 style={{ marginBottom: 4 }}
               />
               <Text style={[styles.dayMonth, styles.dayTextActive]}>
@@ -605,7 +595,9 @@ export default function DineInScreen() {
           <SectionHeader
             icon="time-outline"
             title="Time"
-            hint={`${BOOKING_DURATION_HOURS} hr stay`}
+            hint={isLastBookingSlot ? "Until midnight" : `${BOOKING_DURATION_HOURS} hr stay`}
+            styles={styles}
+            colors={colors}
           />
           {TIME_SLOTS.map((group) => (
             <View key={group.label} style={styles.slotGroup}>
@@ -618,6 +610,8 @@ export default function DineInScreen() {
                     active={toInputTime(time) === slot}
                     disabled={slotHasPassed(slot, date)}
                     onPress={() => selectSlot(slot)}
+                    styles={styles}
+                    colors={colors}
                   />
                 ))}
               </View>
@@ -630,13 +624,20 @@ export default function DineInScreen() {
               icon="time"
               active={!timeIsSlot || picker === "time"}
               onPress={() => togglePicker("time")}
+              styles={styles}
+              colors={colors}
             />
           </View>
 
           {picker === "time" ? renderPicker() : null}
 
           {/* Guests */}
-          <SectionHeader icon="people-outline" title="Guests" />
+          <SectionHeader
+            icon="people-outline"
+            title="Guests"
+            styles={styles}
+            colors={colors}
+          />
           <View style={styles.stepper}>
             <TouchableOpacity
               style={[styles.stepButton, guests <= 1 && styles.chipDisabled]}
@@ -645,7 +646,7 @@ export default function DineInScreen() {
               accessibilityRole="button"
               accessibilityLabel="Decrease guests"
             >
-              <Ionicons name="remove" size={22} color={COLORS.white} />
+              <Ionicons name="remove" size={22} color={colors.white} />
             </TouchableOpacity>
 
             <View style={styles.stepValue}>
@@ -665,7 +666,7 @@ export default function DineInScreen() {
               accessibilityRole="button"
               accessibilityLabel="Increase guests"
             >
-              <Ionicons name="add" size={22} color={COLORS.white} />
+              <Ionicons name="add" size={22} color={colors.white} />
             </TouchableOpacity>
           </View>
           <Text style={styles.stepHint}>
@@ -678,19 +679,19 @@ export default function DineInScreen() {
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
         <View style={styles.summaryRow}>
           <View style={styles.summaryBlock}>
-            <Ionicons name="calendar-outline" size={16} color={COLORS.gray} />
+            <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />
             <Text style={styles.summaryText} numberOfLines={1}>
               {summaryDay}
             </Text>
           </View>
           <View style={styles.summaryDot} />
           <View style={styles.summaryBlock}>
-            <Ionicons name="time-outline" size={16} color={COLORS.gray} />
+            <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
             <Text style={styles.summaryText}>{formatTime(time)}</Text>
           </View>
           <View style={styles.summaryDot} />
           <View style={styles.summaryBlock}>
-            <Ionicons name="people-outline" size={16} color={COLORS.gray} />
+            <Ionicons name="people-outline" size={16} color={colors.textSecondary} />
             <Text style={styles.summaryText}>{guests}</Text>
           </View>
         </View>
@@ -706,7 +707,7 @@ export default function DineInScreen() {
           <Text style={styles.findTableText}>
             {loading ? "Searching..." : "Find a Table"}
           </Text>
-          <Ionicons name="arrow-forward" size={22} color={COLORS.white} />
+          <Ionicons name="arrow-forward" size={22} color={colors.white} />
         </TouchableOpacity>
       </View>
     </View>
@@ -728,10 +729,10 @@ export default function DineInScreen() {
               width: "100%",
               minHeight: 44,
               padding: "8px 12px",
-              border: `1px solid ${COLORS.border}`,
+              border: `1px solid ${colors.border}`,
               borderRadius: 10,
-              backgroundColor: COLORS.input,
-              color: COLORS.white,
+              backgroundColor: colors.surface,
+              color: colors.text,
               colorScheme: "dark",
               fontSize: 16,
             },
@@ -758,7 +759,7 @@ export default function DineInScreen() {
             minimumDate={picker === "date" ? new Date() : undefined}
             onChange={handleDateTimeChange}
             themeVariant="dark"
-            textColor={COLORS.white}
+            textColor={colors.text}
           />
           <TouchableOpacity
             style={styles.pickerDoneButton}
@@ -784,16 +785,17 @@ export default function DineInScreen() {
   }
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) =>
+  StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: colors.background,
   },
 
   /* Hero */
   hero: {
     height: HERO_HEIGHT,
-    backgroundColor: COLORS.card,
+    backgroundColor: colors.card,
   },
 
   heroImage: {
@@ -823,7 +825,7 @@ const styles = StyleSheet.create({
   },
 
   brandMark: {
-    color: COLORS.white,
+    color: colors.white,
     fontSize: 15,
     fontWeight: "900",
     letterSpacing: 4,
@@ -847,14 +849,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    backgroundColor: COLORS.red,
+    backgroundColor: colors.primary,
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
 
   dineBadgeText: {
-    color: COLORS.white,
+    color: colors.white,
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 1,
@@ -870,13 +872,13 @@ const styles = StyleSheet.create({
   },
 
   cuisineBadgeText: {
-    color: COLORS.white,
+    color: colors.white,
     fontSize: 12,
     fontWeight: "700",
   },
 
   heroTitle: {
-    color: COLORS.white,
+    color: colors.white,
     fontSize: 27,
     fontWeight: "900",
     lineHeight: 33,
@@ -890,13 +892,13 @@ const styles = StyleSheet.create({
   },
 
   heroRating: {
-    color: COLORS.gold,
+    color: colors.gold,
     fontSize: 15,
     fontWeight: "800",
   },
 
   heroReviews: {
-    color: COLORS.gray,
+    color: colors.textSecondary,
     fontSize: 13,
   },
 
@@ -909,7 +911,7 @@ const styles = StyleSheet.create({
   /* Booking panel */
   panel: {
     marginTop: -16,
-    backgroundColor: COLORS.background,
+    backgroundColor: colors.background,
     borderTopLeftRadius: 26,
     borderTopRightRadius: 26,
     paddingHorizontal: 18,
@@ -917,13 +919,13 @@ const styles = StyleSheet.create({
   },
 
   panelTitle: {
-    color: COLORS.white,
+    color: colors.text,
     fontSize: 22,
     fontWeight: "800",
   },
 
   panelSubtitle: {
-    color: COLORS.gray,
+    color: colors.textSecondary,
     fontSize: 13,
     lineHeight: 19,
     marginTop: 4,
@@ -940,7 +942,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 9,
-    backgroundColor: COLORS.redSoft,
+    backgroundColor: "rgba(249,8,12,0.12)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
@@ -948,13 +950,13 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     flex: 1,
-    color: COLORS.white,
+    color: colors.text,
     fontSize: 16,
     fontWeight: "800",
   },
 
   sectionHint: {
-    color: COLORS.muted,
+    color: colors.textMuted,
     fontSize: 12,
     fontWeight: "600",
   },
@@ -970,39 +972,39 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderRadius: 18,
-    backgroundColor: COLORS.card,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
 
   dayName: {
-    color: COLORS.gray,
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: "700",
   },
 
   dayNumber: {
-    color: COLORS.white,
+    color: colors.text,
     fontSize: 22,
     fontWeight: "900",
     marginVertical: 2,
   },
 
   dayMonth: {
-    color: COLORS.gray,
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: "600",
   },
 
   dayTextActive: {
-    color: COLORS.white,
+    color: colors.white,
   },
 
   chipActive: {
-    backgroundColor: COLORS.red,
-    borderColor: COLORS.red,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
 
   chipDisabled: {
@@ -1010,11 +1012,11 @@ const styles = StyleSheet.create({
   },
 
   chipTextActive: {
-    color: COLORS.white,
+    color: colors.white,
   },
 
   chipTextDisabled: {
-    color: COLORS.muted,
+    color: colors.textMuted,
   },
 
   /* Time chips */
@@ -1023,7 +1025,7 @@ const styles = StyleSheet.create({
   },
 
   slotGroupLabel: {
-    color: COLORS.muted,
+    color: colors.textMuted,
     fontSize: 12,
     fontWeight: "700",
     letterSpacing: 0.8,
@@ -1043,13 +1045,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 14,
-    backgroundColor: COLORS.card,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: colors.border,
   },
 
   timeChipText: {
-    color: COLORS.white,
+    color: colors.text,
     fontSize: 14,
     fontWeight: "700",
   },
@@ -1059,9 +1061,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: COLORS.card,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: colors.border,
     borderRadius: 20,
     padding: 10,
   },
@@ -1070,7 +1072,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.red,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1080,19 +1082,19 @@ const styles = StyleSheet.create({
   },
 
   stepNumber: {
-    color: COLORS.white,
+    color: colors.text,
     fontSize: 26,
     fontWeight: "900",
   },
 
   stepLabel: {
-    color: COLORS.gray,
+    color: colors.textSecondary,
     fontSize: 12,
     marginTop: 1,
   },
 
   stepHint: {
-    color: COLORS.muted,
+    color: colors.textMuted,
     fontSize: 12,
     textAlign: "center",
     marginTop: 10,
@@ -1100,10 +1102,10 @@ const styles = StyleSheet.create({
 
   /* Picker */
   pickerContainer: {
-    backgroundColor: COLORS.card,
+    backgroundColor: colors.surface,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: colors.border,
     padding: 12,
     marginTop: 12,
   },
@@ -1115,7 +1117,7 @@ const styles = StyleSheet.create({
   },
 
   pickerDoneText: {
-    color: COLORS.red,
+    color: colors.primary,
     fontSize: 15,
     fontWeight: "800",
   },
@@ -1126,9 +1128,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "#0B0B0B",
+    backgroundColor: colors.card,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: colors.border,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 18,
@@ -1151,7 +1153,7 @@ const styles = StyleSheet.create({
 
   summaryText: {
     flexShrink: 1,
-    color: COLORS.white,
+    color: colors.text,
     fontSize: 13,
     fontWeight: "600",
   },
@@ -1160,7 +1162,7 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: COLORS.muted,
+    backgroundColor: colors.textMuted,
     marginHorizontal: 10,
   },
 
@@ -1170,9 +1172,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    backgroundColor: COLORS.red,
+    backgroundColor: colors.primary,
     borderRadius: 18,
-    shadowColor: COLORS.red,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -1180,8 +1182,8 @@ const styles = StyleSheet.create({
   },
 
   findTableText: {
-    color: COLORS.white,
+    color: colors.white,
     fontSize: 18,
     fontWeight: "800",
   },
-});
+  });

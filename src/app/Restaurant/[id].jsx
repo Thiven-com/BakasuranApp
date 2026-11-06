@@ -1418,26 +1418,30 @@ export default function RestaurantDetails() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[
-              styles.actionButton,
-              { borderColor: colors.border || "#333333" },
-            ]}
             onPress={() =>
               router.push({
-                pathname: "/DineInScreen",
-                params: { restaurantId },
+                pathname: "/TableFoodMenu",
+                params: {
+                  restaurantId,
+                  restaurantName: restaurant?.name || "",
+                  restaurantImage:
+                    restaurant?.image ||
+                    restaurant?.image_url ||
+                    restaurant?.restaurant_image ||
+                    "",
+                },
               })
             }
           >
-            <Ionicons
+            {/*<Ionicons
               name="fast-food-outline"
               size={18}
               color={colors.primary || "#F9080C"}
-            />
+            />*/}
 
-            <Text style={[styles.actionText, { color: colors.text }]}>
+            {/*<Text style={[styles.actionText, { color: colors.text }]}>
               Reserve & Order Food
-            </Text>
+            </Text>*/}
           </TouchableOpacity>
         </View>
 

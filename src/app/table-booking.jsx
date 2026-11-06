@@ -17,20 +17,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "../hooks/use-theme";
 import { createRestaurantTableBooking, getProfile } from "../utils/Function"; // adjust path if needed
-
-const COLORS = {
-  background: "#050505",
-  card: "#101010",
-  tile: "#141414",
-  input: "#151515",
-  border: "#292929",
-  red: "#FF101C",
-  white: "#FFFFFF",
-  gray: "#A0A0A0",
-  booked: "#6B6B6B",
-  green: "#00C86B",
-};
 
 const COLUMNS = 4;
 const MAX_WIDTH = 480;
@@ -119,27 +107,28 @@ const isFailure = (result) =>
 /* Every size scales with screen width, so the layout works on a phone,
    a narrow web preview, and a desktop browser alike. */
 function useScaledStyles() {
+  const { colors, isDark } = useTheme();
   const { width } = useWindowDimensions();
   const scale = Math.min(
     Math.max(Math.min(width, MAX_WIDTH) / BASE_WIDTH, 0.6),
     1,
   );
   const compact = scale < 0.85;
-  const styles = useMemo(() => createStyles(scale), [scale]);
-  return { styles, scale, compact };
+  const styles = useMemo(() => createStyles(scale, colors), [scale, colors]);
+  return { styles, scale, compact, colors, isDark };
 }
 
 /* Defined outside the screen so it isn't re-created on every render. */
 function TableTile({ table, selected, tooSmall, onPress }) {
-  const { styles, scale } = useScaledStyles();
+  const { styles, scale, colors } = useScaledStyles();
   const booked = table.status === "booked";
   const disabled = booked || tooSmall;
 
   const seatColor = selected
-    ? COLORS.white
+    ? colors.white
     : disabled
-      ? COLORS.booked
-      : COLORS.gray;
+      ? colors.textMuted
+      : colors.textSecondary;
 
   return (
     <TouchableOpacity
@@ -165,7 +154,13 @@ function TableTile({ table, selected, tooSmall, onPress }) {
               : "available"
       }`}
     >
-      <Text style={[styles.tileId, disabled && styles.tileIdDisabled]}>
+      <Text
+        style={[
+          styles.tileId,
+          selected && { color: colors.white },
+          disabled && styles.tileIdDisabled,
+        ]}
+      >
         {table.label}
       </Text>
       <View style={styles.tileSeats}>
@@ -206,7 +201,7 @@ function TableRow({ row, selectedId, guests, onSelect }) {
 }
 
 function ScrollRail({ scrollRef, scrollY, contentH, layoutH }) {
-  const { styles, scale } = useScaledStyles();
+  const { styles, scale, colors } = useScaledStyles();
   const [railH, setRailH] = useState(0);
 
   const scrollable = contentH > layoutH && layoutH > 0;
@@ -236,7 +231,7 @@ function ScrollRail({ scrollRef, scrollY, contentH, layoutH }) {
         <Ionicons
           name="chevron-up"
           size={Math.round(20 * scale)}
-          color={COLORS.gray}
+          color={colors.textSecondary}
         />
       </TouchableOpacity>
 
@@ -256,7 +251,7 @@ function ScrollRail({ scrollRef, scrollY, contentH, layoutH }) {
         <Ionicons
           name="chevron-down"
           size={Math.round(20 * scale)}
-          color={COLORS.gray}
+          color={colors.textSecondary}
         />
       </TouchableOpacity>
     </View>
@@ -264,7 +259,7 @@ function ScrollRail({ scrollRef, scrollY, contentH, layoutH }) {
 }
 
 export default function SelectTableScreen() {
-  const { styles, scale, compact } = useScaledStyles();
+  const { styles, scale, compact, colors, isDark } = useScaledStyles();
 
   const params = useLocalSearchParams();
   const restaurant = params.restaurant ?? "Bakasuran Restaurant";
@@ -429,30 +424,7 @@ export default function SelectTableScreen() {
     }
 
     setDetailsOpen(false);
-    Alert.alert(
-      "Booking confirmed",
-      result?.message ||
-        `Table ${selectedTable.label} is booked for ${dateLabel} at ${timeLabel}.`,
-      [
-        {
-          text: "My Bookings",
-          onPress: () => router.replace("/my-bookings"),
-        },
-        {
-          text: "Order Food",
-          onPress: () =>
-            router.replace({
-              pathname: "/TableFoodMenu",
-              params: {
-                restaurantId: String(restaurantId),
-                restaurantName: restaurant || "",
-                tableId: String(selectedTable.id),
-                tableNumber: String(selectedTable.label),
-              },
-            }),
-        },
-      ],
-    );
+    router.replace("/my-bookings");
   };
 
   const Divider = () =>
@@ -460,7 +432,10 @@ export default function SelectTableScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
+      />
 
       {/* Header */}
       <View style={styles.header}>
@@ -473,7 +448,7 @@ export default function SelectTableScreen() {
           <Ionicons
             name="chevron-back"
             size={Math.round(29 * scale)}
-            color={COLORS.white}
+            color={colors.text}
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Select Table</Text>
@@ -487,16 +462,16 @@ export default function SelectTableScreen() {
       {/* Legend */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View style={[styles.legendBox, { backgroundColor: COLORS.green }]} />
+          <View style={[styles.legendBox, { backgroundColor: colors.success }]} />
           <Text style={styles.legendText}>Available</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendBox, { backgroundColor: COLORS.red }]} />
+          <View style={[styles.legendBox, { backgroundColor: colors.primary }]} />
           <Text style={styles.legendText}>Selected</Text>
         </View>
         <View style={styles.legendItem}>
           <View
-            style={[styles.legendBox, { backgroundColor: COLORS.booked }]}
+            style={[styles.legendBox, { backgroundColor: colors.textMuted }]}
           />
           <Text style={styles.legendText}>Booked</Text>
         </View>
@@ -556,7 +531,7 @@ export default function SelectTableScreen() {
               <Ionicons
                 name="grid-outline"
                 size={Math.round(20 * scale)}
-                color={COLORS.white}
+                color={colors.text}
               />
               <Text style={styles.windowLabelText}>Window View</Text>
             </View>
@@ -587,7 +562,7 @@ export default function SelectTableScreen() {
             <MaterialCommunityIcons
               name="calendar-check-outline"
               size={Math.round(24 * scale)}
-              color={COLORS.white}
+              color={colors.text}
             />
             <Text style={styles.summaryText}>{dateLabel}</Text>
           </View>
@@ -598,7 +573,7 @@ export default function SelectTableScreen() {
             <Ionicons
               name="time-outline"
               size={Math.round(24 * scale)}
-              color={COLORS.white}
+              color={colors.text}
             />
             <Text style={styles.summaryText}>{timeLabel}</Text>
           </View>
@@ -609,7 +584,7 @@ export default function SelectTableScreen() {
             <Ionicons
               name="people-outline"
               size={Math.round(24 * scale)}
-              color={COLORS.white}
+              color={colors.text}
             />
             <Text style={styles.summaryText}>{guestLabel}</Text>
           </View>
@@ -628,13 +603,13 @@ export default function SelectTableScreen() {
         <MaterialCommunityIcons
           name="calendar-check-outline"
           size={Math.round(28 * scale)}
-          color={COLORS.white}
+          color={colors.white}
         />
         <Text style={styles.confirmText}>Confirm Booking</Text>
         <Ionicons
           name="chevron-forward"
           size={Math.round(28 * scale)}
-          color={COLORS.white}
+          color={colors.white}
         />
       </TouchableOpacity>
 
@@ -743,13 +718,13 @@ export default function SelectTableScreen() {
   );
 }
 
-function createStyles(k) {
+function createStyles(k, colors) {
   const z = (n) => Math.round(n * k);
 
   return StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: COLORS.background,
+      backgroundColor: colors.background,
       paddingHorizontal: z(16),
       width: "100%",
       maxWidth: MAX_WIDTH,
@@ -767,15 +742,15 @@ function createStyles(k) {
       width: z(43),
       height: z(43),
       borderRadius: z(22),
-      backgroundColor: COLORS.card,
+      backgroundColor: colors.card,
       borderWidth: 1,
-      borderColor: COLORS.border,
+      borderColor: colors.border,
       alignItems: "center",
       justifyContent: "center",
     },
 
     headerTitle: {
-      color: COLORS.white,
+      color: colors.text,
       fontSize: z(21),
       fontWeight: "800",
     },
@@ -783,7 +758,7 @@ function createStyles(k) {
     headerSpacer: { width: z(43) },
 
     subtitle: {
-      color: COLORS.gray,
+      color: colors.textSecondary,
       fontSize: Math.max(z(14), 11),
       lineHeight: Math.max(z(20), 16),
       textAlign: "center",
@@ -811,7 +786,7 @@ function createStyles(k) {
     },
 
     legendText: {
-      color: COLORS.white,
+      color: colors.text,
       fontSize: Math.max(z(14), 10),
       fontWeight: "600",
     },
@@ -819,9 +794,9 @@ function createStyles(k) {
     mapCard: {
       flex: 1,
       minHeight: 230,
-      backgroundColor: "#0A0A0A",
+      backgroundColor: colors.backgroundElement,
       borderWidth: 1,
-      borderColor: COLORS.border,
+      borderColor: colors.border,
       borderRadius: z(24),
       paddingHorizontal: z(10),
       paddingTop: z(14),
@@ -838,7 +813,7 @@ function createStyles(k) {
     },
 
     emptyTablesText: {
-      color: COLORS.gray,
+      color: colors.textSecondary,
       fontSize: Math.max(z(15), 11),
       textAlign: "center",
     },
@@ -872,7 +847,7 @@ function createStyles(k) {
       width: Math.max(z(8), 5),
       marginVertical: z(8),
       borderRadius: 4,
-      backgroundColor: "#1C1C1C",
+      backgroundColor: colors.backgroundElement,
       overflow: "hidden",
     },
 
@@ -881,7 +856,7 @@ function createStyles(k) {
       left: 0,
       right: 0,
       borderRadius: 4,
-      backgroundColor: "#5A5A5A",
+      backgroundColor: colors.textMuted,
     },
 
     /* Tiles */
@@ -898,9 +873,9 @@ function createStyles(k) {
       minWidth: 0,
       aspectRatio: 1.05,
       borderRadius: z(14),
-      backgroundColor: COLORS.tile,
+      backgroundColor: colors.backgroundElement,
       borderWidth: 1.5,
-      borderColor: COLORS.border,
+      borderColor: colors.border,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -910,8 +885,8 @@ function createStyles(k) {
     },
 
     tileBooked: {
-      backgroundColor: "#232323",
-      borderColor: "#333333",
+      backgroundColor: colors.backgroundElement,
+      borderColor: colors.border,
     },
 
     tileTooSmall: {
@@ -919,9 +894,9 @@ function createStyles(k) {
     },
 
     tileSelected: {
-      backgroundColor: COLORS.red,
+      backgroundColor: colors.primary,
       borderColor: "#FF5A62",
-      shadowColor: COLORS.red,
+      shadowColor: colors.primary,
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.9,
       shadowRadius: 12,
@@ -929,14 +904,14 @@ function createStyles(k) {
     },
 
     tileId: {
-      color: COLORS.white,
+      color: colors.text,
       fontSize: Math.max(z(20), 13),
       fontWeight: "800",
       marginBottom: z(5),
     },
 
     tileIdDisabled: {
-      color: COLORS.booked,
+      color: colors.textMuted,
     },
 
     tileSeats: {
@@ -958,8 +933,8 @@ function createStyles(k) {
       paddingBottom: 0,
       borderRadius: z(20),
       borderWidth: 1,
-      borderColor: COLORS.border,
-      backgroundColor: "#111111",
+      borderColor: colors.border,
+      backgroundColor: colors.backgroundElement,
     },
 
     windowLabel: {
@@ -972,22 +947,22 @@ function createStyles(k) {
       paddingHorizontal: z(14),
       paddingVertical: z(6),
       borderRadius: z(16),
-      backgroundColor: "#141414",
+      backgroundColor: colors.backgroundElement,
       borderWidth: 1,
-      borderColor: COLORS.border,
+      borderColor: colors.border,
     },
 
     windowLabelText: {
-      color: COLORS.white,
+      color: colors.text,
       fontSize: Math.max(z(15), 11),
       fontWeight: "600",
     },
 
     /* Summary */
     summaryCard: {
-      backgroundColor: COLORS.card,
+      backgroundColor: colors.card,
       borderWidth: 1,
-      borderColor: COLORS.border,
+      borderColor: colors.border,
       borderRadius: z(22),
       paddingHorizontal: z(16),
       paddingVertical: z(14),
@@ -995,7 +970,7 @@ function createStyles(k) {
     },
 
     summaryTitle: {
-      color: COLORS.white,
+      color: colors.text,
       fontSize: Math.max(z(20), 13),
       fontWeight: "800",
       marginBottom: z(14),
@@ -1017,7 +992,7 @@ function createStyles(k) {
     },
 
     summaryText: {
-      color: COLORS.gray,
+      color: colors.textSecondary,
       fontSize: Math.max(z(15), 10),
       fontWeight: "500",
     },
@@ -1025,7 +1000,7 @@ function createStyles(k) {
     summaryDivider: {
       width: 1,
       height: z(26),
-      backgroundColor: "#3A3A3A",
+      backgroundColor: colors.border,
     },
 
     /* Confirm */
@@ -1035,10 +1010,10 @@ function createStyles(k) {
       alignItems: "center",
       justifyContent: "space-between",
       paddingHorizontal: z(22),
-      backgroundColor: COLORS.red,
+      backgroundColor: colors.primary,
       borderRadius: 999,
       marginBottom: z(8),
-      shadowColor: COLORS.red,
+      shadowColor: colors.primary,
       shadowOffset: { width: 0, height: 6 },
       shadowOpacity: 0.35,
       shadowRadius: 14,
@@ -1050,7 +1025,7 @@ function createStyles(k) {
     },
 
     confirmText: {
-      color: COLORS.white,
+      color: colors.white,
       fontSize: Math.max(z(22), 15),
       fontWeight: "800",
     },
@@ -1071,11 +1046,11 @@ function createStyles(k) {
       width: "100%",
       maxWidth: MAX_WIDTH,
       alignSelf: "center",
-      backgroundColor: COLORS.card,
+      backgroundColor: colors.card,
       borderTopLeftRadius: 28,
       borderTopRightRadius: 28,
       borderWidth: 1,
-      borderColor: COLORS.border,
+      borderColor: colors.border,
       paddingHorizontal: 22,
       paddingTop: 12,
       paddingBottom: 28,
@@ -1086,25 +1061,25 @@ function createStyles(k) {
       width: 44,
       height: 5,
       borderRadius: 3,
-      backgroundColor: "#3A3A3A",
+      backgroundColor: colors.border,
       marginBottom: 18,
     },
 
     modalTitle: {
-      color: COLORS.white,
+      color: colors.text,
       fontSize: 21,
       fontWeight: "800",
     },
 
     modalSubtitle: {
-      color: COLORS.gray,
+      color: colors.textSecondary,
       fontSize: 13,
       marginTop: 5,
       marginBottom: 16,
     },
 
     fieldLabel: {
-      color: COLORS.gray,
+      color: colors.textSecondary,
       fontSize: 13,
       marginBottom: 6,
       marginTop: 12,
@@ -1112,13 +1087,13 @@ function createStyles(k) {
 
     fieldInput: {
       minHeight: 46,
-      backgroundColor: COLORS.input,
+      backgroundColor: colors.surface,
       borderWidth: 1,
-      borderColor: COLORS.border,
+      borderColor: colors.border,
       borderRadius: 12,
       paddingHorizontal: 14,
       paddingVertical: 10,
-      color: COLORS.white,
+      color: colors.text,
       fontSize: 16,
     },
 
@@ -1131,13 +1106,13 @@ function createStyles(k) {
       minHeight: 56,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: COLORS.red,
+      backgroundColor: colors.primary,
       borderRadius: 999,
       marginTop: 20,
     },
 
     sheetButtonText: {
-      color: COLORS.white,
+      color: colors.white,
       fontSize: 18,
       fontWeight: "800",
     },

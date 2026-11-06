@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Location from "expo-location";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
     Alert,
     SafeAreaView,
@@ -14,11 +14,13 @@ import {
     View,
 } from "react-native";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 const RED = "#FF2028";
-const BG = "#050505";
 
 export default function EnableLocationScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [loading, setLoading] = useState(false);
 
   const goBack = () => {
@@ -72,7 +74,10 @@ export default function EnableLocationScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={BG} />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
+      />
 
       <View style={styles.screen}>
         {/* Header */}
@@ -80,9 +85,9 @@ export default function EnableLocationScreen() {
           <Text style={styles.time}>9:41</Text>
 
           <View style={styles.statusIcons}>
-            <Ionicons name="cellular" size={19} color="#FFFFFF" />
-            <Ionicons name="wifi" size={21} color="#FFFFFF" />
-            <Ionicons name="battery-full-outline" size={25} color="#FFFFFF" />
+            <Ionicons name="cellular" size={19} color={colors.text} />
+            <Ionicons name="wifi" size={21} color={colors.text} />
+            <Ionicons name="battery-full-outline" size={25} color={colors.text} />
           </View>
         </View>
 
@@ -142,11 +147,15 @@ export default function EnableLocationScreen() {
               activeOpacity={0.75}
               accessibilityLabel="Go back"
             >
-              <Ionicons name="chevron-back" size={30} color="#FFFFFF" />
+              <Ionicons name="chevron-back" size={30} color={colors.text} />
             </TouchableOpacity>
 
             <LinearGradient
-              colors={["rgba(5,5,5,0)", "rgba(5,5,5,0.2)", BG]}
+              colors={[
+                "rgba(5,5,5,0)",
+                "rgba(5,5,5,0.2)",
+                colors.background,
+              ]}
               style={styles.mapFade}
               pointerEvents="none"
             />
@@ -202,15 +211,16 @@ export default function EnableLocationScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) =>
+  StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: BG,
+    backgroundColor: colors.background,
   },
 
   screen: {
     flex: 1,
-    backgroundColor: BG,
+    backgroundColor: colors.background,
   },
 
   header: {
@@ -223,7 +233,7 @@ const styles = StyleSheet.create({
   },
 
   time: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 17,
     fontWeight: "600",
   },
@@ -516,7 +526,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontFamily: Fonts.bold,
     fontSize: 36,
     textAlign: "center",
@@ -525,7 +535,7 @@ const styles = StyleSheet.create({
   },
 
   description: {
-    color: "#B8B8B8",
+    color: colors.textSecondary,
     fontFamily: Fonts.regular,
     fontSize: 18,
     lineHeight: 30,
@@ -564,14 +574,14 @@ const styles = StyleSheet.create({
     minHeight: 76,
     borderRadius: 50,
     borderWidth: 2,
-    borderColor: "#858585",
+    borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "transparent",
   },
 
   laterText: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontFamily: Fonts.semiBold,
     fontSize: 21,
   },
@@ -579,9 +589,9 @@ const styles = StyleSheet.create({
   privacyText: {
     marginTop: 20,
     textAlign: "center",
-    color: "#777777",
+    color: colors.textMuted,
     fontFamily: Fonts.regular,
     fontSize: 12,
     lineHeight: 18,
   },
-});
+  });

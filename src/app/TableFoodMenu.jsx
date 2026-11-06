@@ -86,6 +86,13 @@ const normalizeFood = (item, index) => {
     index + 1,
   );
 
+  // Handles true/false, 1/0, "1"/"0", "true"/"false" and food_type === "veg".
+  const rawVeg = getFirstValue(
+    product?.is_veg,
+    item?.is_veg,
+    product?.food_type === "veg" ? true : "",
+  );
+
   return {
     // Unique id: the variant id. product_id repeats across variants in your API.
     id: String(getFirstValue(productVariantId, productId)),
@@ -128,13 +135,7 @@ const normalizeFood = (item, index) => {
         ),
       ) || 0,
     image: imageUri(image),
-    isVeg: Boolean(
-      getFirstValue(
-        product?.is_veg,
-        item?.is_veg,
-        product?.food_type === "veg",
-      ),
-    ),
+    isVeg: [true, 1, "1", "true", "veg"].includes(rawVeg),
   };
 };
 
@@ -199,6 +200,7 @@ export default function TableFoodMenuScreen() {
 
   const restaurantId = String(params?.restaurantId || params?.id || "");
   const tableId = String(params?.tableId || params?.selectedTableId || "");
+  const menuId = tableId || restaurantId;
   const tableNumber = String(
     params?.tableNumber || params?.tableNo || params?.table || "",
   );
@@ -214,8 +216,8 @@ export default function TableFoodMenuScreen() {
 
   const loadMenu = useCallback(
     async (refresh = false) => {
-      if (!restaurantId) {
-        setError("Restaurant ID is missing.");
+      if (!menuId) {
+        setError("Restaurant or table ID is missing.");
         setLoading(false);
         return;
       }
@@ -223,8 +225,7 @@ export default function TableFoodMenuScreen() {
       try {
         refresh ? setRefreshing(true) : setLoading(true);
         setError("");
-
-        const response = await getRestaurantMenu(restaurantId);
+        const response = await getRestaurantMenu(menuId);
         if (!isSuccessResponse(response)) {
           throw new Error(
             response?.message ||
@@ -269,6 +270,7 @@ export default function TableFoodMenuScreen() {
               restaurantData?.thumbnail,
               restaurantData?.logo,
               restaurantData?.restaurant_image,
+              params?.restaurantImage,
             ),
             FALLBACK_RESTAURANT_IMAGE,
           ),
@@ -284,7 +286,7 @@ export default function TableFoodMenuScreen() {
         setRefreshing(false);
       }
     },
-    [restaurantId, params?.restaurantName],
+    [menuId, restaurantId, params?.restaurantName],
   );
 
   useEffect(() => {
@@ -366,7 +368,7 @@ export default function TableFoodMenuScreen() {
             text: "Reserve Table",
             onPress: () =>
               router.push({
-                pathname: "/DineInScreen",
+                pathname: "/DineInOrderReview",
                 params: { restaurantId },
               }),
           },
@@ -492,7 +494,9 @@ export default function TableFoodMenuScreen() {
                 {restaurant.name}
               </Text>
               <Text numberOfLines={1} style={styles.restaurantCaption}>
-                  {tableNumber ? `Table ${tableNumber}` : "Table booking required"}
+                {tableNumber
+                  ? `Table ${tableNumber}`
+                  : "Table booking required"}
               </Text>
             </View>
           </View>

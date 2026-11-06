@@ -13,8 +13,9 @@ import {
   View,
 } from "react-native";
 
-import Colors from "../constants/Colors";
+import AppColors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 /* =========================================================
    DATA
@@ -47,6 +48,12 @@ const categories = [
     icon: "gift-outline",
   },
 ];
+
+const useThemedStyles = () => {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  return { colors, styles };
+};
 
 const bestOffers = [
   {
@@ -158,6 +165,7 @@ const savingOptions = [
 ========================================================= */
 
 const OffersDealsScreen = () => {
+  const { colors, styles } = useThemedStyles();
   const [searchText, setSearchText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
@@ -218,7 +226,7 @@ const OffersDealsScreen = () => {
           activeOpacity={0.8}
           onPress={() => router.back()}
         >
-          <Ionicons name="chevron-back" size={24} color={Colors.white} />
+          <Ionicons name="chevron-back" size={24} color={colors.text} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Offers & Deals</Text>
@@ -228,7 +236,7 @@ const OffersDealsScreen = () => {
           activeOpacity={0.8}
           onPress={() => router.push("/wishlist")}
         >
-          <Ionicons name="heart-outline" size={22} color={Colors.white} />
+          <Ionicons name="heart-outline" size={22} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -244,14 +252,14 @@ const OffersDealsScreen = () => {
           <Ionicons
             name="search-outline"
             size={22}
-            color={Colors.textSecondary}
+            color={colors.textSecondary}
           />
 
           <TextInput
             value={searchText}
             onChangeText={setSearchText}
             placeholder="Search offers, restaurants, cuisines..."
-            placeholderTextColor={Colors.textMuted}
+            placeholderTextColor={colors.textMuted}
             style={styles.searchInput}
             returnKeyType="search"
           />
@@ -264,7 +272,7 @@ const OffersDealsScreen = () => {
               <Ionicons
                 name="close-circle"
                 size={20}
-                color={Colors.textSecondary}
+                color={colors.textSecondary}
               />
             </TouchableOpacity>
           )}
@@ -295,7 +303,7 @@ const OffersDealsScreen = () => {
                 <Ionicons
                   name={category.icon}
                   size={16}
-                  color={active ? Colors.white : Colors.textSecondary}
+                  color={active ? colors.white : colors.textSecondary}
                 />
 
                 <Text
@@ -340,7 +348,7 @@ const OffersDealsScreen = () => {
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleRow}>
             <View style={styles.sectionIcon}>
-              <Ionicons name="flame" size={18} color={Colors.white} />
+              <Ionicons name="flame" size={18} color={colors.white} />
             </View>
 
             <Text style={styles.sectionTitle}>Best Offers for You</Text>
@@ -379,7 +387,7 @@ const OffersDealsScreen = () => {
                     <Ionicons
                       name="restaurant"
                       size={17}
-                      color={Colors.white}
+                      color={colors.white}
                     />
                   </View>
 
@@ -418,7 +426,7 @@ const OffersDealsScreen = () => {
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleRow}>
                 <View style={styles.sectionIcon}>
-                  <Ionicons name="pricetag" size={17} color={Colors.white} />
+                  <Ionicons name="pricetag" size={17} color={colors.white} />
                 </View>
 
                 <Text style={styles.sectionTitle}>More Ways to Save</Text>
@@ -450,7 +458,7 @@ const OffersDealsScreen = () => {
             <Ionicons
               name="shield-checkmark"
               size={25}
-              color={Colors.primary}
+              color={colors.primary}
             />
           </View>
 
@@ -475,6 +483,7 @@ const OffersDealsScreen = () => {
 ========================================================= */
 
 const OfferCard = ({ item, onCopy }) => {
+  const { colors, styles } = useThemedStyles();
   return (
     <View style={styles.offerCard}>
       <View style={styles.offerImageContainer}>
@@ -507,7 +516,7 @@ const OfferCard = ({ item, onCopy }) => {
 
           <Text style={styles.couponCode}>{item.code}</Text>
 
-          <Ionicons name="copy-outline" size={15} color={Colors.white} />
+          <Ionicons name="copy-outline" size={15} color={colors.white} />
         </TouchableOpacity>
       </View>
     </View>
@@ -519,6 +528,7 @@ const OfferCard = ({ item, onCopy }) => {
 ========================================================= */
 
 const RestaurantDealCard = ({ item, onPress }) => {
+  const { colors, styles } = useThemedStyles();
   return (
     <TouchableOpacity
       style={styles.restaurantCard}
@@ -537,7 +547,7 @@ const RestaurantDealCard = ({ item, onPress }) => {
         </View>
 
         <TouchableOpacity style={styles.restaurantHeart} activeOpacity={0.8}>
-          <Ionicons name="heart-outline" size={16} color={Colors.white} />
+          <Ionicons name="heart-outline" size={16} color={colors.white} />
         </TouchableOpacity>
       </View>
 
@@ -551,7 +561,7 @@ const RestaurantDealCard = ({ item, onPress }) => {
         </Text>
 
         <View style={styles.restaurantRating}>
-          <Ionicons name="star" size={12} color={Colors.rating} />
+          <Ionicons name="star" size={12} color={colors.rating} />
 
           <Text style={styles.restaurantRatingText}>{item.rating}</Text>
 
@@ -569,10 +579,11 @@ const RestaurantDealCard = ({ item, onPress }) => {
 ========================================================= */
 
 const SavingCard = ({ item }) => {
+  const { colors, styles } = useThemedStyles();
   return (
     <TouchableOpacity style={styles.savingCard} activeOpacity={0.85}>
       <View style={styles.savingIcon}>
-        <Ionicons name={item.icon} size={23} color={Colors.white} />
+        <Ionicons name={item.icon} size={23} color={colors.white} />
       </View>
 
       <View style={styles.savingContent}>
@@ -583,7 +594,7 @@ const SavingCard = ({ item }) => {
         <Text style={styles.savingDescription}>{item.description}</Text>
       </View>
 
-      <Ionicons name="chevron-forward" size={19} color={Colors.textSecondary} />
+      <Ionicons name="chevron-forward" size={19} color={colors.textSecondary} />
     </TouchableOpacity>
   );
 };
@@ -593,9 +604,10 @@ const SavingCard = ({ item }) => {
 ========================================================= */
 
 const EmptySearch = () => {
+  const { colors, styles } = useThemedStyles();
   return (
     <View style={styles.emptyContainer}>
-      <Ionicons name="search-outline" size={30} color={Colors.textMuted} />
+      <Ionicons name="search-outline" size={30} color={colors.textMuted} />
 
       <Text style={styles.emptyTitle}>No offers found</Text>
 
@@ -608,7 +620,9 @@ const EmptySearch = () => {
    STYLES
 ========================================================= */
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => {
+  const Colors = { ...AppColors, ...colors, white: colors.text };
+  const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -1383,6 +1397,21 @@ const styles = StyleSheet.create({
   bottomSpace: {
     height: 25,
   },
-});
+  });
+
+  return {
+    ...styles,
+    categoryTextActive: { ...styles.categoryTextActive, color: colors.white },
+    heroBadgeText: { ...styles.heroBadgeText, color: colors.white },
+    heroTitle: { ...styles.heroTitle, color: colors.white },
+    heroSubtitle: { ...styles.heroSubtitle, color: colors.white },
+    heroCode: { ...styles.heroCode, color: colors.white },
+    orderButtonText: { ...styles.orderButtonText, color: colors.white },
+    discountBadgeText: { ...styles.discountBadgeText, color: colors.white },
+    discountBadgeSmall: { ...styles.discountBadgeSmall, color: colors.white },
+    offerDiscountText: { ...styles.offerDiscountText, color: colors.white },
+    restaurantOfferText: { ...styles.restaurantOfferText, color: colors.white },
+  };
+};
 
 export default OffersDealsScreen;

@@ -1233,14 +1233,11 @@ export const getOrderDetails = async (orderId) => {
 
     return response.data;
   } catch (error) {
-    console.error(
-      "GET ORDER DETAILS API ERROR:",
-      {
-        orderId: String(orderId).trim(),
-        url: `${APP_URL}order/${encodeURIComponent(String(orderId).trim())}`,
-        response: error?.response?.data ?? error?.message,
-      },
-    );
+    console.error("GET ORDER DETAILS API ERROR:", {
+      orderId: String(orderId).trim(),
+      url: `${APP_URL}order/${encodeURIComponent(String(orderId).trim())}`,
+      response: error?.response?.data ?? error?.message,
+    });
     return orderApiError(error, "Unable to load order details.");
   }
 };
@@ -1264,16 +1261,10 @@ export const updateOrderItems = async (orderId, products) => {
   }
 
   const normalizedProducts = products.map((product) => {
-    const productVariantId = normalizeVariantId(
-      product?.product_variant_id,
-    );
+    const productVariantId = normalizeVariantId(product?.product_variant_id);
     const quantity = Number(product?.quantity);
 
-    if (
-      !productVariantId ||
-      !Number.isSafeInteger(quantity) ||
-      quantity <= 0
-    ) {
+    if (!productVariantId || !Number.isSafeInteger(quantity) || quantity <= 0) {
       return null;
     }
 
@@ -1286,7 +1277,8 @@ export const updateOrderItems = async (orderId, products) => {
   if (normalizedProducts.some((product) => product === null)) {
     return {
       success: 0,
-      message: "Each order item must have a valid product variant and quantity.",
+      message:
+        "Each order item must have a valid product variant and quantity.",
     };
   }
 
@@ -1334,16 +1326,10 @@ export const createDineInOrder = async ({
   }
 
   const normalizedProducts = products.map((product) => {
-    const productVariantId = normalizeVariantId(
-      product?.product_variant_id,
-    );
+    const productVariantId = normalizeVariantId(product?.product_variant_id);
     const quantity = Number(product?.quantity);
 
-    if (
-      !productVariantId ||
-      !Number.isSafeInteger(quantity) ||
-      quantity <= 0
-    ) {
+    if (!productVariantId || !Number.isSafeInteger(quantity) || quantity <= 0) {
       return null;
     }
 
@@ -1356,7 +1342,8 @@ export const createDineInOrder = async ({
   if (normalizedProducts.some((product) => product === null)) {
     return {
       success: 0,
-      message: "Each order item must have a valid product variant and quantity.",
+      message:
+        "Each order item must have a valid product variant and quantity.",
     };
   }
 
