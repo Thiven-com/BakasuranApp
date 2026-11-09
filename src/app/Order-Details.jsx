@@ -5,12 +5,14 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Modal,
   Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   useWindowDimensions,
   View,
@@ -18,7 +20,12 @@ import {
 
 import Fonts from "../constants/Fonts";
 import { useTheme } from "../hooks/use-theme";
-import { cancelOrder, getOrderDetails } from "../utils/Function";
+import {
+  cancelOrder,
+  getOrderDetails,
+  getProduct,
+  submitProductRating,
+} from "../utils/Function";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -83,6 +90,113 @@ const capitalize = (value) => {
   const text = String(value ?? "").trim();
 
   return text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
+};
+
+const getReviewKey = (item) =>
+  item.productId == null
+    ? `item:${item.id}`
+    : `product:${String(item.productId)}`;
+
+/* ---------- product / variant id resolution ---------- */
+
+const toValidId = (value) => {
+  if (value === undefined || value === null || value === "") return null;
+
+  const id = Number(value);
+
+  return Number.isSafeInteger(id) && id > 0 ? id : null;
+};
+
+const PRODUCT_ID_KEYS = ["product_id", "productId", "food_id", "foodId"];
+
+const PRODUCT_OBJECT_KEYS = [
+  "product",
+  "product_details",
+  "productData",
+  "product_data",
+  "productDetail",
+  "product_detail",
+  "food",
+  "food_item",
+  "foodItem",
+  "menu_item",
+  "menuItem",
+  "item",
+];
+
+const VARIANT_OBJECT_KEYS = [
+  "variant",
+  "product_variant",
+  "productVariant",
+  "variant_details",
+  "variantData",
+  "variant_data",
+];
+
+// Deep scan of one order item for its product id.
+const findProductId = (node, depth = 0) => {
+  if (!node || typeof node !== "object" || depth > 4) return null;
+
+  for (const key of PRODUCT_ID_KEYS) {
+    const id = toValidId(node[key]);
+    if (id) return id;
+  }
+
+  for (const key of PRODUCT_OBJECT_KEYS) {
+    const child = node[key];
+
+    if (child && typeof child === "object") {
+      const id = toValidId(child.id) ?? findProductId(child, depth + 1);
+      if (id) return id;
+    }
+  }
+
+  for (const key of VARIANT_OBJECT_KEYS) {
+    const child = node[key];
+
+    if (child && typeof child === "object") {
+      const id = findProductId(child, depth + 1);
+      if (id) return id;
+    }
+  }
+
+  return null;
+};
+
+const getOrderItemProductId = (entry) => findProductId(entry);
+
+const getOrderItemVariantId = (entry) =>
+  toValidId(
+    entry?.product_variant_id ??
+      entry?.variant_id ??
+      entry?.variant?.id ??
+      entry?.product_variant?.id ??
+      entry?.productVariant?.id,
+  );
+
+// Walks any product-list response and maps variantId -> productId.
+const buildVariantProductMap = (node, map = {}, depth = 0) => {
+  if (!node || typeof node !== "object" || depth > 6) return map;
+
+  if (Array.isArray(node)) {
+    node.forEach((child) => buildVariantProductMap(child, map, depth + 1));
+    return map;
+  }
+
+  const productId = toValidId(node.id);
+
+  if (productId && Array.isArray(node.variants)) {
+    node.variants.forEach((variant) => {
+      const variantId = toValidId(variant?.id);
+      if (variantId) map[variantId] = productId;
+    });
+  }
+
+  Object.values(node).forEach((child) =>
+    buildVariantProductMap(child, map, depth + 1),
+  );
+
+  return map;
 };
 
 const getShipping = (order, params) => {
@@ -164,6 +278,16 @@ export default function OrderDetailsScreen() {
   const [loading, setLoading] = useState(Boolean(orderId));
   const [cancelling, setCancelling] = useState(false);
 
+  // variantId -> productId, filled only when the order API omits product_id
+  const [variantProductMap, setVariantProductMap] = useState({});
+
+  // Review popup state
+  const [reviewVisible, setReviewVisible] = useState(false);
+  const [reviewPromptDismissed, setReviewPromptDismissed] = useState(false);
+  const [reviewDrafts, setReviewDrafts] = useState({});
+  const [submittedReviewIds, setSubmittedReviewIds] = useState({});
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+
   useEffect(() => {
     if (!orderId) return undefined;
 
@@ -205,6 +329,16 @@ export default function OrderDetailsScreen() {
           null;
       }
 
+      // TEMP DEBUG: remove once product ids are confirmed
+      console.log(
+        "ORDER ITEM SAMPLE:",
+        JSON.stringify(
+          (detail?.items ?? detail?.order_items ?? detail?.details)?.[0],
+          null,
+          2,
+        ),
+      );
+
       setOrderData(detail);
       setLoading(false);
     };
@@ -220,6 +354,33 @@ export default function OrderDetailsScreen() {
       active = false;
     };
   }, [orderId]);
+
+  // Fallback: if items carry only a variant id, resolve the product id
+  // from the product list.
+  useEffect(() => {
+    const rawList =
+      orderData?.items ?? orderData?.order_items ?? orderData?.details;
+
+    if (!Array.isArray(rawList) || rawList.length === 0) return undefined;
+
+    const needsLookup = rawList.some(
+      (entry) => !getOrderItemProductId(entry) && getOrderItemVariantId(entry),
+    );
+
+    if (!needsLookup) return undefined;
+
+    let active = true;
+
+    getProduct()
+      .then((response) => {
+        if (active) setVariantProductMap(buildVariantProductMap(response));
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [orderData]);
 
   /* ---------- derived data ---------- */
 
@@ -271,7 +432,17 @@ export default function OrderDetailsScreen() {
   const items = Array.isArray(rawItems)
     ? rawItems.map((entry, index) => {
         const product =
-          entry?.product ?? entry?.variant?.product ?? entry?.food ?? entry;
+          entry?.product ??
+          entry?.product_details ??
+          entry?.productData ??
+          entry?.product_data ??
+          entry?.productDetail ??
+          entry?.product_detail ??
+          entry?.variant?.product ??
+          entry?.product_variant?.product ??
+          entry?.food ??
+          entry?.item ??
+          entry;
 
         const quantity = Number(entry?.quantity ?? entry?.qty ?? 1) || 1;
 
@@ -283,8 +454,14 @@ export default function OrderDetailsScreen() {
           product?.photo ??
           null;
 
+        const variantId = getOrderItemVariantId(entry);
+
         return {
           id: String(entry?.id ?? index),
+          productId:
+            getOrderItemProductId(entry) ??
+            (variantId ? variantProductMap[variantId] : null) ??
+            null,
           name: product?.name ?? product?.title ?? entry?.name ?? "Order item",
           price: Number(
             entry?.unit_price ??
@@ -301,6 +478,21 @@ export default function OrderDetailsScreen() {
         };
       })
     : [];
+
+  const reviewItems = items.filter(
+    (item, index) =>
+      item.productId == null ||
+      items.findIndex(
+        (candidate) => String(candidate.productId) === String(item.productId),
+      ) === index,
+  );
+  const reviewOrderId = order?.id ?? order?.order_id ?? orderId;
+  const allReviewsSubmitted =
+    reviewItems.length > 0 &&
+    reviewItems.every(
+      (item) =>
+        item.productId != null && submittedReviewIds[getReviewKey(item)],
+    );
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -466,6 +658,122 @@ export default function OrderDetailsScreen() {
       : null;
 
   const canChangeAddress = !isDelivered && !isCancelled;
+
+  // Show the review popup once when the order reaches Delivered.
+  useEffect(() => {
+    if (isDelivered && !reviewPromptDismissed) {
+      setReviewVisible(true);
+    }
+  }, [isDelivered, reviewPromptDismissed]);
+
+  const handleReviewSubmit = async () => {
+    if (reviewSubmitting) return;
+
+    if (!reviewItems.length) {
+      notify("Rate your order", "There are no products available to review.");
+      return;
+    }
+
+    // Product ids may still be resolving through the fallback lookup
+    if (reviewItems.some((item) => item.productId == null)) {
+      notify(
+        "Unable to rate products",
+        "A valid product ID is missing from this order. Please contact support.",
+      );
+      return;
+    }
+
+    const unratedItem = reviewItems.find(
+      (item) =>
+        !submittedReviewIds[getReviewKey(item)] &&
+        !reviewDrafts[getReviewKey(item)]?.rating,
+    );
+    if (unratedItem) {
+      notify("Rate your order", `Please rate ${unratedItem.name} to continue.`);
+      return;
+    }
+
+    if (reviewOrderId == null || String(reviewOrderId).trim() === "") {
+      notify("Unable to submit review", "The order ID is missing.");
+      return;
+    }
+
+    setReviewSubmitting(true);
+
+    try {
+      for (const item of reviewItems) {
+        const reviewKey = getReviewKey(item);
+        if (submittedReviewIds[reviewKey]) continue;
+
+        const draft = reviewDrafts[reviewKey];
+        const response = await submitProductRating({
+          product_id: item.productId,
+          order_id: reviewOrderId,
+          rating: draft.rating,
+          review: draft.review ?? "",
+        });
+
+        if (response?.success === 9) {
+          router.replace("/login");
+          return;
+        }
+
+        const responseFlag =
+          response?.success !== undefined ? response.success : response?.status;
+        if (
+          responseFlag !== undefined &&
+          ![1, true, "1", "true"].includes(responseFlag)
+        ) {
+          notify(
+            "Review not fully submitted",
+            response?.message ||
+              `Unable to submit the review for ${item.name}. Your completed reviews are saved; please try again.`,
+          );
+          return;
+        }
+
+        setSubmittedReviewIds((current) => ({
+          ...current,
+          [reviewKey]: true,
+        }));
+      }
+
+      setReviewVisible(false);
+      setReviewPromptDismissed(true);
+      notify("Thank you", "Your product ratings have been submitted.");
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  const closeReviewPopup = () => {
+    setReviewVisible(false);
+    setReviewPromptDismissed(true);
+  };
+
+  const renderRating = (label, value, onChange) => (
+    <View style={styles.reviewRatingBlock}>
+      <Text style={styles.reviewRatingLabel}>{label}</Text>
+      <View style={styles.reviewStars}>
+        {[1, 2, 3, 4, 5].map((star) => (
+          <TouchableOpacity
+            key={`${label}-${star}`}
+            onPress={() => onChange(star)}
+            activeOpacity={0.75}
+            accessibilityRole="button"
+            accessibilityLabel={`${star} out of 5 stars for ${label}`}
+            style={styles.reviewStarButton}
+          >
+            <Ionicons
+              name={star <= value ? "star" : "star-outline"}
+              size={30}
+              color={star <= value ? GOLD : GREY}
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -645,6 +953,20 @@ export default function OrderDetailsScreen() {
               )}
             </Text>
           </View>
+
+          {isDelivered && !allReviewsSubmitted && (
+            <TouchableOpacity
+              style={styles.openReviewButton}
+              activeOpacity={0.85}
+              onPress={() => setReviewVisible(true)}
+            >
+              <Ionicons name="star" size={19} color="#FFFFFF" />
+              <Text style={styles.openReviewButtonText}>
+                Rate Your Experience
+              </Text>
+              <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
+            </TouchableOpacity>
+          )}
 
           {/* INVOICE BUTTONS */}
           <View style={styles.invoiceRow}>
@@ -852,6 +1174,128 @@ export default function OrderDetailsScreen() {
           </TouchableOpacity>
         )}
       </ScrollView>
+
+      <Modal
+        visible={reviewVisible && isDelivered}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={closeReviewPopup}
+      >
+        <View style={styles.reviewBackdrop}>
+          <ScrollView
+            style={styles.reviewModal}
+            contentContainerStyle={styles.reviewModalContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.reviewTopRow}>
+              <View style={styles.reviewIconWrap}>
+                <Ionicons name="chatbubble-ellipses" size={25} color={RED} />
+              </View>
+              <TouchableOpacity
+                style={styles.reviewCloseButton}
+                onPress={closeReviewPopup}
+                disabled={reviewSubmitting}
+                accessibilityRole="button"
+                accessibilityLabel="Close review popup"
+              >
+                <Ionicons name="close" size={23} color={GREY} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.reviewTitle}>Rate your products</Text>
+            <Text style={styles.reviewSubtitle}>
+              Share your feedback for each product in this order.
+            </Text>
+
+            {reviewItems.map((item) => {
+              const reviewKey = getReviewKey(item);
+              const draft = reviewDrafts[reviewKey] ?? {};
+              const isSubmitted = Boolean(submittedReviewIds[reviewKey]);
+
+              return (
+                <View key={reviewKey} style={styles.reviewProductBlock}>
+                  <Text style={styles.reviewRatingLabel}>{item.name}</Text>
+                  {isSubmitted ? (
+                    <Text style={styles.reviewSubmittedText}>
+                      Review submitted
+                    </Text>
+                  ) : (
+                    <>
+                      {renderRating(
+                        "Your rating",
+                        draft.rating ?? 0,
+                        (rating) =>
+                          setReviewDrafts((current) => ({
+                            ...current,
+                            [reviewKey]: {
+                              ...current[reviewKey],
+                              rating,
+                            },
+                          })),
+                      )}
+                      <Text style={styles.reviewInputLabel}>
+                        Write a review (optional)
+                      </Text>
+                      <TextInput
+                        value={draft.review ?? ""}
+                        onChangeText={(review) =>
+                          setReviewDrafts((current) => ({
+                            ...current,
+                            [reviewKey]: {
+                              ...current[reviewKey],
+                              review,
+                            },
+                          }))
+                        }
+                        placeholder="Tell us what you liked or what we can improve..."
+                        placeholderTextColor={GREY}
+                        multiline
+                        maxLength={500}
+                        editable={!reviewSubmitting}
+                        textAlignVertical="top"
+                        style={styles.reviewInput}
+                      />
+                      <Text style={styles.reviewCharCount}>
+                        {(draft.review ?? "").length}/500
+                      </Text>
+                    </>
+                  )}
+                </View>
+              );
+            })}
+
+            <TouchableOpacity
+              style={[
+                styles.reviewSubmitButton,
+                reviewSubmitting && styles.reviewSubmitButtonDisabled,
+              ]}
+              activeOpacity={0.85}
+              onPress={handleReviewSubmit}
+              disabled={reviewSubmitting}
+            >
+              {reviewSubmitting ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <>
+                  <Text style={styles.reviewSubmitText}>Submit Ratings</Text>
+                  <Ionicons name="arrow-forward" size={19} color="#FFFFFF" />
+                </>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.reviewLaterButton}
+              onPress={closeReviewPopup}
+              disabled={reviewSubmitting}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.reviewLaterText}>Maybe Later</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1377,6 +1821,167 @@ const createStyles = (Colors) => {
       color: RED,
       ...W.semiBold,
       fontSize: 14,
+    },
+
+    // REVIEW & RATINGS POPUP
+    reviewBackdrop: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.72)",
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 18,
+      paddingVertical: 24,
+    },
+    reviewModal: {
+      width: "100%",
+      maxWidth: 460,
+      maxHeight: "92%",
+      backgroundColor: CARD,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: BORDER,
+      overflow: "hidden",
+    },
+    reviewModalContent: {
+      padding: 20,
+    },
+    reviewTopRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 12,
+    },
+    reviewIconWrap: {
+      width: 48,
+      height: 48,
+      borderRadius: 16,
+      backgroundColor: RED_BG,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    reviewCloseButton: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: BG,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    reviewTitle: {
+      color: WHITE,
+      ...W.bold,
+      fontSize: 23,
+      marginBottom: 7,
+    },
+    reviewSubtitle: {
+      color: GREY,
+      ...W.regular,
+      fontSize: 14,
+      lineHeight: 21,
+      marginBottom: 15,
+    },
+    reviewRatingBlock: {
+      paddingVertical: 9,
+      borderBottomWidth: 1,
+      borderBottomColor: BORDER,
+    },
+    reviewRatingLabel: {
+      color: WHITE,
+      ...W.semiBold,
+      fontSize: 15,
+      marginBottom: 7,
+    },
+    reviewProductBlock: {
+      paddingBottom: 12,
+      marginBottom: 3,
+      borderBottomWidth: 1,
+      borderBottomColor: BORDER,
+    },
+    reviewSubmittedText: {
+      color: Colors.success,
+      ...W.medium,
+      fontSize: 13,
+    },
+    reviewStars: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    reviewStarButton: {
+      paddingVertical: 2,
+      paddingHorizontal: 2,
+    },
+    reviewInputLabel: {
+      color: WHITE,
+      ...W.semiBold,
+      fontSize: 15,
+      marginTop: 15,
+      marginBottom: 8,
+    },
+    reviewInput: {
+      minHeight: 86,
+      maxHeight: 120,
+      borderWidth: 1,
+      borderColor: BORDER,
+      borderRadius: 13,
+      backgroundColor: BG,
+      color: WHITE,
+      paddingHorizontal: 13,
+      paddingVertical: 11,
+      fontFamily: SANS,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+    reviewCharCount: {
+      color: GREY,
+      ...W.regular,
+      fontSize: 11,
+      textAlign: "right",
+      marginTop: 5,
+    },
+    reviewSubmitButton: {
+      height: 52,
+      backgroundColor: RED,
+      borderRadius: 15,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      marginTop: 14,
+    },
+    reviewSubmitButtonDisabled: {
+      opacity: 0.65,
+    },
+    reviewSubmitText: {
+      color: "#FFFFFF",
+      ...W.bold,
+      fontSize: 16,
+    },
+    reviewLaterButton: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 12,
+      marginTop: 3,
+    },
+    reviewLaterText: {
+      color: GREY,
+      ...W.medium,
+      fontSize: 14,
+    },
+    openReviewButton: {
+      minHeight: 48,
+      borderRadius: 12,
+      backgroundColor: RED,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 9,
+      marginBottom: 14,
+    },
+    openReviewButtonText: {
+      color: "#FFFFFF",
+      ...W.semiBold,
+      fontSize: 15,
     },
 
     // CANCEL

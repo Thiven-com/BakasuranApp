@@ -14,8 +14,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import Colors from "../constants/Colors";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 import { getFAQs } from "../utils/Function";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -23,6 +23,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const scale = (size) => Math.round(size * Math.min(SCREEN_WIDTH / 375, 1.12));
 
 export default function FAQScreen() {
+  const { colors, isDark } = useTheme();
   const [expandedId, setExpandedId] = useState(null);
   const [faqs, setFaqs] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
@@ -137,7 +138,7 @@ export default function FAQScreen() {
   // STYLES
   // =========================================================
 
-  const styles = useMemo(() => createStyles(), []);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   // =========================================================
   // SCREEN UI
@@ -146,8 +147,8 @@ export default function FAQScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor={Colors.backgroundDark}
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
         translucent={false}
       />
 
@@ -166,7 +167,7 @@ export default function FAQScreen() {
           <Ionicons
             name="chevron-back"
             size={scale(20)}
-            color={Colors.iconPrimary}
+            color={colors.text}
           />
         </Pressable>
 
@@ -185,7 +186,7 @@ export default function FAQScreen() {
         {/* LOADING STATE */}
         {loading ? (
           <View style={styles.statusContainer}>
-            <ActivityIndicator size="large" color={Colors.primary} />
+            <ActivityIndicator size="large" color={colors.primary} />
 
             <Text style={styles.statusText}>Loading FAQs...</Text>
           </View>
@@ -195,7 +196,7 @@ export default function FAQScreen() {
             <Ionicons
               name="alert-circle-outline"
               size={scale(28)}
-              color={Colors.primary}
+              color={colors.primary}
             />
 
             <Text style={styles.statusText}>{errorMessage}</Text>
@@ -216,7 +217,7 @@ export default function FAQScreen() {
             <Ionicons
               name="help-circle-outline"
               size={scale(28)}
-              color={Colors.iconSecondary}
+              color={colors.textSecondary}
             />
 
             <Text style={styles.statusText}>
@@ -280,7 +281,7 @@ export default function FAQScreen() {
                       <Ionicons
                         name={isExpanded ? "remove" : "add"}
                         size={scale(16)}
-                        color={isExpanded ? Colors.white : Colors.iconSecondary}
+                        color={isExpanded ? colors.white : colors.textSecondary}
                       />
                     </View>
                   </Pressable>
@@ -317,7 +318,7 @@ export default function FAQScreen() {
                 <Ionicons
                   name="headset-outline"
                   size={scale(17)}
-                  color={Colors.white}
+                  color={colors.white}
                 />
               </View>
 
@@ -339,7 +340,7 @@ export default function FAQScreen() {
               <Ionicons
                 name="arrow-forward"
                 size={scale(13)}
-                color={Colors.white}
+                color={colors.white}
               />
             </View>
           </Pressable>
@@ -355,16 +356,16 @@ export default function FAQScreen() {
 // STYLES
 // ===========================================================
 
-const createStyles = () =>
+const createStyles = (colors) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: Colors.background,
+      backgroundColor: colors.background,
     },
 
     container: {
       flex: 1,
-      backgroundColor: Colors.background,
+      backgroundColor: colors.background,
     },
 
     contentContainer: {
@@ -379,9 +380,9 @@ const createStyles = () =>
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: scale(15),
-      backgroundColor: Colors.backgroundDark,
+      backgroundColor: colors.background,
       borderBottomWidth: 1,
-      borderBottomColor: Colors.divider,
+      borderBottomColor: colors.divider,
     },
 
     backButton: {
@@ -390,14 +391,14 @@ const createStyles = () =>
       borderRadius: scale(17),
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: Colors.surface,
+      backgroundColor: colors.surface,
       borderWidth: 1,
-      borderColor: Colors.border,
+      borderColor: colors.border,
     },
 
     backButtonPressed: {
-      backgroundColor: Colors.primary,
-      borderColor: Colors.primary,
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
     },
 
     headerTitle: {
@@ -405,7 +406,7 @@ const createStyles = () =>
       fontFamily: Fonts.regular,
       fontSize: scale(17),
       lineHeight: scale(22),
-      color: Colors.textPrimary,
+      color: colors.text,
       textAlign: "center",
       marginHorizontal: scale(8),
     },
@@ -422,10 +423,10 @@ const createStyles = () =>
       justifyContent: "center",
       paddingHorizontal: scale(20),
       paddingVertical: scale(24),
-      backgroundColor: Colors.card,
+      backgroundColor: colors.card,
       borderRadius: scale(11),
       borderWidth: 1,
-      borderColor: Colors.border,
+      borderColor: colors.border,
       gap: scale(10),
     },
 
@@ -433,7 +434,7 @@ const createStyles = () =>
       fontFamily: Fonts.regular,
       fontSize: scale(13),
       lineHeight: scale(19),
-      color: Colors.textSecondary,
+      color: colors.textSecondary,
       textAlign: "center",
     },
 
@@ -442,7 +443,7 @@ const createStyles = () =>
       paddingHorizontal: scale(18),
       paddingVertical: scale(9),
       borderRadius: scale(20),
-      backgroundColor: Colors.primary,
+      backgroundColor: colors.primary,
     },
 
     retryButtonPressed: {
@@ -452,22 +453,22 @@ const createStyles = () =>
     retryButtonText: {
       fontFamily: Fonts.semiBold,
       fontSize: scale(12),
-      color: Colors.white,
+      color: colors.white,
     },
 
     // FAQ CONTAINER
     faqContainer: {
       width: "100%",
-      backgroundColor: Colors.card,
+      backgroundColor: colors.card,
       borderRadius: scale(11),
       borderWidth: 1,
-      borderColor: Colors.border,
+      borderColor: colors.border,
       overflow: "hidden",
     },
 
     faqItem: {
       width: "100%",
-      backgroundColor: Colors.card,
+      backgroundColor: colors.card,
     },
 
     // QUESTION ROW
@@ -478,11 +479,11 @@ const createStyles = () =>
       alignItems: "center",
       paddingHorizontal: scale(12),
       paddingVertical: scale(9),
-      backgroundColor: Colors.card,
+      backgroundColor: colors.card,
     },
 
     questionRowActive: {
-      backgroundColor: Colors.backgroundLight,
+      backgroundColor: colors.backgroundElement,
     },
 
     questionRowPressed: {
@@ -500,7 +501,7 @@ const createStyles = () =>
       fontFamily: Fonts.semiBold,
       fontSize: scale(16),
       letterSpacing: 0.5,
-      color: Colors.gold,
+      color: colors.gold,
     },
 
     // QUESTION TEXT
@@ -514,11 +515,11 @@ const createStyles = () =>
       fontFamily: Fonts.regular,
       fontSize: scale(16),
       lineHeight: scale(20),
-      color: Colors.textPrimary,
+      color: colors.text,
     },
 
     questionTextActive: {
-      color: Colors.primaryLight,
+      color: colors.primaryLight,
     },
 
     // EXPAND BUTTON
@@ -528,14 +529,14 @@ const createStyles = () =>
       borderRadius: scale(14),
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: Colors.backgroundLight,
+      backgroundColor: colors.backgroundElement,
       borderWidth: 1,
-      borderColor: Colors.borderLight,
+      borderColor: colors.border,
     },
 
     expandButtonActive: {
-      backgroundColor: Colors.primary,
-      borderColor: Colors.primary,
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
     },
 
     // ANSWER
@@ -544,21 +545,21 @@ const createStyles = () =>
       paddingRight: scale(38),
       paddingTop: scale(1),
       paddingBottom: scale(14),
-      backgroundColor: Colors.backgroundLight,
+      backgroundColor: colors.backgroundElement,
     },
 
     answerText: {
       fontFamily: Fonts.regular,
       fontSize: scale(15),
       lineHeight: scale(20),
-      color: Colors.textSecondary,
+      color: colors.textSecondary,
     },
 
     // DIVIDER
     divider: {
       width: "100%",
       height: 1,
-      backgroundColor: Colors.divider,
+      backgroundColor: colors.divider,
     },
 
     // HELP SECTION
@@ -571,7 +572,7 @@ const createStyles = () =>
       borderRadius: scale(13),
       paddingHorizontal: scale(17),
       paddingVertical: scale(15),
-      backgroundColor: Colors.gradientEnd,
+      backgroundColor: colors.gradientEnd,
       borderWidth: 1,
       borderColor: "rgba(245,181,27,0.22)",
       alignItems: "center",
@@ -583,7 +584,7 @@ const createStyles = () =>
           boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.35)",
         },
         default: {
-          shadowColor: Colors.logoBlack,
+          shadowColor: colors.logoBlack,
           shadowOffset: {
             width: 0,
             height: 4,
@@ -610,7 +611,7 @@ const createStyles = () =>
     helpLine: {
       width: scale(25),
       height: 1,
-      backgroundColor: Colors.goldDark,
+      backgroundColor: colors.goldDark,
       opacity: 0.7,
     },
 
@@ -621,16 +622,16 @@ const createStyles = () =>
       alignItems: "center",
       justifyContent: "center",
       marginHorizontal: scale(7),
-      backgroundColor: Colors.primary,
+      backgroundColor: colors.primary,
       borderWidth: 1,
-      borderColor: Colors.goldDark,
+      borderColor: colors.goldDark,
     },
 
     helpTitle: {
       fontFamily: Fonts.bold,
       fontSize: scale(17),
       lineHeight: scale(22),
-      color: Colors.gold,
+      color: colors.gold,
       textAlign: "center",
       marginBottom: scale(4),
     },
@@ -639,7 +640,7 @@ const createStyles = () =>
       fontFamily: Fonts.regular,
       fontSize: scale(14),
       lineHeight: scale(20),
-      color: Colors.white,
+      color: colors.white,
       opacity: 0.92,
       textAlign: "center",
       maxWidth: scale(310),
@@ -653,13 +654,13 @@ const createStyles = () =>
       paddingHorizontal: scale(12),
       paddingVertical: scale(6),
       borderRadius: scale(20),
-      backgroundColor: Colors.primary,
+      backgroundColor: colors.primary,
     },
 
     helpButtonText: {
       fontFamily: Fonts.regular,
       fontSize: scale(14),
-      color: Colors.white,
+      color: colors.white,
       marginRight: scale(5),
     },
 

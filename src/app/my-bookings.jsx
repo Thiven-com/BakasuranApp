@@ -94,7 +94,11 @@ const normalizeBooking = (booking, index) => {
         : (rawRestaurant?.name ?? "Restaurant"),
     restaurantLogo:
       booking?.restaurant?.logo ??
+      booking?.restaurant?.image_url ??
+      booking?.restaurant?.restaurant_image_url ??
+      booking?.restaurant?.image ??
       booking?.restaurant_logo ??
+      booking?.restaurant_image_url ??
       booking?.logo ??
       null,
     cuisine:
@@ -339,7 +343,7 @@ export default function MyBookingsScreen() {
   };
 
   const handleNewBooking = () => {
-    router.push("/table-booking");
+    router.push("/DineInScreen");
   };
 
   const getStatusLabel = (status) => {
@@ -522,7 +526,7 @@ export default function MyBookingsScreen() {
 
           {/* Actions */}
           <View style={styles.actionRow}>
-            <TouchableOpacity
+            {/*<TouchableOpacity
               style={[
                 styles.actionButton,
                 styles.detailsButton,
@@ -530,14 +534,13 @@ export default function MyBookingsScreen() {
               ]}
               activeOpacity={0.8}
               onPress={() => openBookingDetails(booking)}
-            >
-              <Ionicons
-                name="document-text-outline"
-                size={18}
-                color={colors.primary}
-              />
-              <Text style={styles.detailsButtonText}>View Details</Text>
-            </TouchableOpacity>
+            >*/}
+            {/*<Ionicons
+              name="document-text-outline"
+              size={18}
+              color={colors.primary}
+            />*/}
+            {/*<Text style={styles.detailsButtonText}>View Details</Text>*/}
 
             {isUpcoming ? (
               <>
@@ -558,6 +561,7 @@ export default function MyBookingsScreen() {
                       params: {
                         restaurantId: booking.restaurantId,
                         restaurantName: booking.restaurant,
+                        restaurantImage: booking.restaurantLogo || "",
                         tableId: booking.restaurantTableId,
                         tableNumber: booking.table,
                       },
@@ -645,7 +649,7 @@ export default function MyBookingsScreen() {
             if (router.canGoBack()) {
               router.back();
             } else {
-              router.replace("/(tabs)/ProfileScreen");
+              router.replace("/");
             }
           }}
         >
@@ -777,7 +781,7 @@ export default function MyBookingsScreen() {
       </ScrollView>
 
       {/* Fixed bottom CTA */}
-      <View style={styles.bottomContainer}>
+      {/*<View style={styles.bottomContainer}>
         <TouchableOpacity
           style={styles.newBookingButton}
           activeOpacity={0.85}
@@ -789,7 +793,7 @@ export default function MyBookingsScreen() {
 
           <Ionicons name="arrow-forward" size={22} color={colors.white} />
         </TouchableOpacity>
-      </View>
+      </View>*/}
     </SafeAreaView>
   );
 }

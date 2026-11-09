@@ -212,11 +212,44 @@ const extractArray = (response) => {
     response?.items,
     response?.result,
     response?.data?.result,
+    response?.menu,
+    response?.menus,
+    response?.menu_items,
+    response?.menuItems,
+    response?.data?.menu,
+    response?.data?.menus,
+    response?.data?.menu_items,
+    response?.data?.menuItems,
+    response?.data?.data?.menu,
+    response?.data?.data?.menus,
+    response?.data?.data?.menu_items,
+    response?.data?.data?.menuItems,
   ];
 
   for (const value of possibleArrays) {
     if (Array.isArray(value)) {
       return value;
+    }
+  }
+
+  const groupedMenu =
+    response?.data?.data?.menu ??
+    response?.data?.data?.menus ??
+    response?.data?.data?.menu_items ??
+    response?.data?.data?.menuItems ??
+    response?.data?.menu ??
+    response?.data?.menus ??
+    response?.data?.menu_items ??
+    response?.data?.menuItems ??
+    response?.menu ??
+    response?.menus ??
+    response?.menu_items ??
+    response?.menuItems;
+
+  if (groupedMenu && typeof groupedMenu === "object") {
+    const groupedItems = Object.values(groupedMenu).filter(Array.isArray);
+    if (groupedItems.length > 0) {
+      return groupedItems.flat();
     }
   }
 

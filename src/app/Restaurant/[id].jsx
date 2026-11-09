@@ -1,6 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -8,7 +6,6 @@ import {
   Alert,
   Image,
   Linking,
-  Modal,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -22,7 +19,11 @@ import BASE_URL from "../../constants/AppUrls";
 import Fonts from "../../constants/Fonts";
 import { useTheme } from "../../hooks/use-theme";
 
-import { getProductById, getRestaurantById } from "../../utils/Function";
+import {
+  getProductRatings,
+  getRestaurantById,
+  summarizeProductRatings,
+} from "../../utils/Function";
 
 // =========================================================
 // FALLBACK IMAGES
@@ -474,7 +475,7 @@ export default function RestaurantDetails() {
   const fallbackRestaurant = restaurants[restaurantId] || null;
 
   // =======================================================
-  // RESTAURANT STATE
+  // STATE
   // =======================================================
 
   const [restaurant, setRestaurant] = useState(fallbackRestaurant);
@@ -489,18 +490,8 @@ export default function RestaurantDetails() {
 
   const [quantities, setQuantities] = useState({});
 
-  // =======================================================
-  // PRODUCT STATE
-  // =======================================================
-
-  const [productLoading, setProductLoading] = useState(false);
-  const [cartLoading, setCartLoading] = useState(false);
-
-  const [selectedProduct, setSelectedProduct] = useState(null);
-
-  const [selectedMenuItem, setSelectedMenuItem] = useState(null);
-
-  const [productModalVisible, setProductModalVisible] = useState(false);
+  // productId -> { average, count } from GET /product-ratings
+  const [ratingsMap, setRatingsMap] = useState({});
 
   // =======================================================
   // LOAD RESTAURANT
@@ -695,71 +686,34 @@ export default function RestaurantDetails() {
   }, [loadRestaurant]);
 
   // =======================================================
-  // GET PRODUCT BY ID
+  // LOAD PRODUCT RATINGS
+  // GET: /api/customer/product-ratings
   // =======================================================
 
-  const loadProductById = useCallback(async (productId, menuItem = null) => {
-    if (
-      productId === undefined ||
-      productId === null ||
-      String(productId).trim() === ""
-    ) {
-      Alert.alert("Product", "Product ID is not available.");
-
-      return;
-    }
-
+  const loadRatings = useCallback(async () => {
     try {
-      setProductLoading(true);
+      const response = await getProductRatings();
 
-      setSelectedMenuItem(menuItem);
-      setSelectedProduct(null);
-
-      console.log("====================================");
-      console.log("CALLING PRODUCT API");
-      console.log("METHOD: GET");
-      console.log("PRODUCT ID:", productId);
-      console.log("====================================");
-
-      const response = await getProductById(productId);
-
-      console.log("PRODUCT RESPONSE:", JSON.stringify(response, null, 2));
-
-      if (!isSuccessResponse(response)) {
-        throw new Error(
-          response?.message ||
-          response?.error ||
-          "Unable to load product details.",
-        );
+      if (isSuccessResponse(response)) {
+        setRatingsMap(summarizeProductRatings(response));
       }
-
-      const productData =
-        response?.data?.product ||
-        response?.data?.data ||
-        response?.data ||
-        response?.product ||
-        response;
-
-      if (!productData || typeof productData !== "object") {
-        throw new Error("Invalid product data received.");
-      }
-
-      console.log("FINAL PRODUCT:", JSON.stringify(productData, null, 2));
-
-      setSelectedProduct(productData);
-
-      setProductModalVisible(true);
     } catch (error) {
-      console.log("PRODUCT ERROR:", error?.message);
-
-      Alert.alert(
-        "Product",
-        error?.message || "Unable to load product details.",
-      );
-    } finally {
-      setProductLoading(false);
+      console.log("RATINGS ERROR:", error?.message);
     }
   }, []);
+
+  useEffect(() => {
+    loadRatings();
+  }, [loadRatings, restaurantId]);
+
+  // =======================================================
+  // PULL TO REFRESH
+  // =======================================================
+
+  const handleRefresh = useCallback(() => {
+    loadRestaurant(true);
+    loadRatings();
+  }, [loadRestaurant, loadRatings]);
 
   // =======================================================
   // OPEN PRODUCT
@@ -951,222 +905,16 @@ export default function RestaurantDetails() {
   };
 
   // =======================================================
-  // CLOSE PRODUCT MODAL
+  // TABLE BOOKING
   // =======================================================
 
-  const closeProductModal = () => {
-    setProductModalVisible(false);
-    setSelectedProduct(null);
-    setSelectedMenuItem(null);
+  const goToTableBooking = () => {
+    router.push({
+      pathname: "/DineInScreen",
+      params: { restaurantId },
+    });
   };
 
-  // =======================================================
-  // PRODUCT DATA
-  // =======================================================
-
-  const selectedProductImage = getFoodImage(
-    selectedProduct || selectedMenuItem,
-  );
-
-  const selectedProductName =
-    getFirstValue(
-      selectedProduct?.name,
-      selectedProduct?.product_name,
-      selectedProduct?.title,
-      selectedProduct?.product?.name,
-      selectedMenuItem?.name,
-    ) || "Product";
-
-  const selectedProductDescription =
-    getFirstValue(
-      selectedProduct?.description,
-      selectedProduct?.short_description,
-      selectedProduct?.product?.description,
-      selectedMenuItem?.description,
-    ) || "Delicious food prepared fresh.";
-
-  const selectedProductPrice = Number(
-    getFirstValue(
-      selectedProduct?.price,
-      selectedProduct?.selling_price,
-      selectedProduct?.final_price,
-      selectedProduct?.product?.price,
-      selectedMenuItem?.price,
-      0,
-    ),
-  );
-  const selectedProductId = getFirstValue(
-    selectedProduct?.product_id,
-    selectedProduct?.productId,
-    selectedProduct?.product?.id,
-    selectedProduct?.id,
-    selectedMenuItem?.product_id,
-    selectedMenuItem?.productId,
-    selectedMenuItem?.product?.id,
-    selectedMenuItem?.id,
-  );
-
-  const selectedVariantId = getFirstValue(
-    selectedProduct?.variant_id,
-    selectedProduct?.variantId,
-    selectedProduct?.variant?.id,
-    selectedProduct?.product_variant_id,
-    selectedProduct?.productVariantId,
-
-    selectedProduct?.product?.variant_id,
-    selectedProduct?.product?.variantId,
-    selectedProduct?.product?.variant?.id,
-
-    selectedMenuItem?.variant_id,
-    selectedMenuItem?.variantId,
-    selectedMenuItem?.variant?.id,
-    selectedMenuItem?.product_variant_id,
-    selectedMenuItem?.productVariantId,
-
-    selectedMenuItem?.product?.variant_id,
-    selectedMenuItem?.product?.variantId,
-    selectedMenuItem?.product?.variant?.id,
-  );
-
-
-  // =======================================================
-  // ADD TO CART API
-  // POST /api/customer/cart/add
-  // =======================================================
-  const addToCart = useCallback(async () => {
-    if (cartLoading) return;
-
-    console.log("========== ADD CART START ==========");
-
-    try {
-      const productId = Number(selectedProductId);
-      const variantId = Number(selectedVariantId);
-
-      if (!Number.isInteger(productId) || productId <= 0) {
-        Alert.alert("Cart", "Product ID is missing or invalid.");
-        return;
-      }
-
-      if (!Number.isInteger(variantId) || variantId <= 0) {
-        console.log("PRODUCT:", JSON.stringify(selectedProduct, null, 2));
-        console.log("MENU ITEM:", JSON.stringify(selectedMenuItem, null, 2));
-
-        Alert.alert("Cart", "Variant ID is missing.");
-        return;
-      }
-
-      setCartLoading(true);
-
-      const tokenKeys = [
-        "bakasuran_token",
-        "access_token",
-        "accessToken",
-        "authToken",
-        "token",
-      ];
-
-      let token = null;
-
-      for (const key of tokenKeys) {
-        const value = await AsyncStorage.getItem(key);
-
-        if (value) {
-          token = value;
-          console.log("TOKEN FOUND:", key);
-          break;
-        }
-      }
-
-      if (!token) {
-        Alert.alert("Login Required", "Please login again.");
-        return;
-      }
-
-      const payload = {
-        product_id: productId,
-        variant_id: variantId,
-        quantity: 1,
-      };
-
-      const url =
-        `${String(BASE_URL).replace(/\/+$/, "")}/api/customer/cart/add`;
-
-      console.log("API URL:", url);
-      console.log("METHOD: POST");
-      console.log("REQUEST DATA:", JSON.stringify(payload, null, 2));
-
-      const response = await axios.post(url, payload, {
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${String(token).replace(/^Bearer\s+/i, "")}`,
-        },
-        timeout: 30000,
-        validateStatus: () => true,
-      });
-
-      console.log("HTTP STATUS:", response.status);
-
-      console.log(
-        "ADD CART API RESPONSE:",
-        JSON.stringify(response.data, null, 2)
-      );
-
-      const data = response.data;
-
-      const success =
-        [1, "1", true].includes(data?.success) ||
-        [1, "1", true].includes(data?.status);
-
-      if (response.status < 200 || response.status >= 300 || !success) {
-        Alert.alert(
-          "Add to Cart Failed",
-          data?.message || data?.error || `HTTP ${response.status}`
-        );
-        return;
-      }
-
-      const menuItemId = String(
-        selectedMenuItem?.id ||
-        selectedMenuItem?.product_id ||
-        productId
-      );
-
-      increaseQuantity(menuItemId);
-      Alert.alert(
-        "Added to Cart",
-        data?.message || "Product added successfully.",
-        [{ text: "OK", onPress: closeProductModal }]
-      );
-
-    } catch (error) {
-      console.log("ADD CART ERROR:", error?.message);
-      console.log("ERROR STATUS:", error?.response?.status);
-      console.log(
-        "ERROR RESPONSE:",
-        JSON.stringify(error?.response?.data, null, 2)
-      );
-
-      Alert.alert(
-        "Cart Error",
-        error?.response?.data?.message ||
-        error?.message ||
-        "Unable to add item to cart."
-      );
-
-    } finally {
-      setCartLoading(false);
-      console.log("========== ADD CART END ==========");
-    }
-  }, [
-    cartLoading,
-    selectedProductId,
-    selectedVariantId,
-    selectedProduct,
-    selectedMenuItem,
-    selectedProductName,
-    increaseQuantity,
-  ]);
   // =======================================================
   // LOADING
   // =======================================================
@@ -1323,7 +1071,7 @@ export default function RestaurantDetails() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => loadRestaurant(true)}
+            onRefresh={handleRefresh}
             tintColor={colors.primary || "#F9080C"}
           />
         }
@@ -1580,50 +1328,35 @@ export default function RestaurantDetails() {
               </TouchableOpacity>
             ) : null}
           </View>
-          <TouchableOpacity
-            style={[
-              styles.actionButton,
-              { borderColor: colors.border || "#333333" },
-            ]}
-            onPress={() =>
-              router.push({
-                pathname: "/DineInScreen",
-                params: { restaurantId },
-              })
-            }
-          >
-            <Ionicons
-              name="restaurant-outline"
-              size={18}
-              color={colors.primary || "#F9080C"}
-            />
 
-            <Text style={[styles.actionText, { color: colors.text }]}>
-              Table Booking
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.actionButton,
-              { borderColor: colors.border || "#333333" },
-            ]}
-            onPress={() =>
-              router.push({
-                pathname: "/TableFoodMenu",
-                params: { restaurantId },
-              })
-            }
-          >
-            <Ionicons
-              name="fast-food-outline"
-              size={18}
-              color={colors.primary || "#F9080C"}
-            />
+          <View style={styles.actionRow}>
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                {
+                  borderColor: colors.border || "#333333",
+                },
+              ]}
+              onPress={goToTableBooking}
+            >
+              <Ionicons
+                name="restaurant-outline"
+                size={18}
+                color={colors.primary || "#F9080C"}
+              />
 
-            <Text style={[styles.actionText, { color: colors.text }]}>
-              Reserve & Order Food
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={[
+                  styles.actionText,
+                  {
+                    color: colors.text,
+                  },
+                ]}
+              >
+                Table Booking
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* OFFER */}
@@ -1738,9 +1471,11 @@ export default function RestaurantDetails() {
 
                 const quantity = quantities[itemId] || 0;
 
+                const ratingInfo = ratingsMap[itemId];
+
                 return (
                   <TouchableOpacity
-                    key={itemId}
+                    key={`${categoryName}-${itemId}`}
                     activeOpacity={0.9}
                     onPress={() => openProduct(item)}
                   >
@@ -1789,7 +1524,9 @@ export default function RestaurantDetails() {
                               },
                             ]}
                           >
-                            {item.rating}
+                            {ratingInfo
+                              ? `${ratingInfo.average} (${ratingInfo.count})`
+                              : item.rating}
                           </Text>
                         </View>
 
@@ -1979,280 +1716,6 @@ export default function RestaurantDetails() {
           </TouchableOpacity>
         </View>
       ) : null}
-
-      {/* ===================================================
-          PRODUCT DETAILS MODAL
-          
-          IMPORTANT:
-          productLoading is NOT rendered here.
-          The modal opens only after the GET API succeeds.
-      =================================================== */}
-
-      <Modal
-        visible={productModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={closeProductModal}
-      >
-        <View style={styles.modalOverlay}>
-          <View
-            style={[
-              styles.productModal,
-              {
-                backgroundColor: colors.card || colors.surface || "#202020",
-              },
-            ]}
-          >
-            {/* MODAL HEADER */}
-
-            <View style={styles.modalHeader}>
-              <Text
-                style={[
-                  styles.modalTitle,
-                  {
-                    color: colors.text,
-                  },
-                ]}
-              >
-                Product Details
-              </Text>
-
-              <TouchableOpacity onPress={closeProductModal} hitSlop={10}>
-                <Ionicons
-                  name="close-circle"
-                  size={28}
-                  color={colors.textSecondary || "#8F8F8F"}
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* PRODUCT CONTENT */}
-
-            {selectedProduct ? (
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{
-                  paddingBottom: 20,
-                }}
-              >
-                <Image
-                  source={selectedProductImage}
-                  style={styles.productModalImage}
-                  resizeMode="cover"
-                />
-
-                <Text
-                  style={[
-                    styles.productModalName,
-                    {
-                      color: colors.text,
-                    },
-                  ]}
-                >
-                  {selectedProductName}
-                </Text>
-
-                <View style={styles.productModalRating}>
-                  <Ionicons name="star" size={16} color="#F5B51B" />
-
-                  <Text
-                    style={[
-                      styles.productModalRatingText,
-                      {
-                        color: colors.textSecondary || "#8F8F8F",
-                      },
-                    ]}
-                  >
-                    {getFirstValue(
-                      selectedProduct?.rating,
-                      selectedProduct?.avg_rating,
-                      selectedProduct?.average_rating,
-                      selectedMenuItem?.rating,
-                      "4.5",
-                    )}
-                  </Text>
-                </View>
-
-                <Text
-                  style={[
-                    styles.productModalPrice,
-                    {
-                      color: colors.primary || "#F9080C",
-                    },
-                  ]}
-                >
-                  ₹{selectedProductPrice.toFixed(0)}
-                </Text>
-
-                <Text
-                  style={[
-                    styles.productModalDescription,
-                    {
-                      color: colors.textSecondary || "#8F8F8F",
-                    },
-                  ]}
-                >
-                  {selectedProductDescription}
-                </Text>
-
-                {/* CATEGORY */}
-
-                {getFirstValue(
-                  selectedProduct?.category?.name,
-                  selectedProduct?.category_name,
-                  typeof selectedProduct?.category === "string"
-                    ? selectedProduct.category
-                    : "",
-                ) ? (
-                  <View style={styles.productInfoRow}>
-                    <Ionicons
-                      name="restaurant-outline"
-                      size={18}
-                      color={colors.primary || "#F9080C"}
-                    />
-
-                    <Text
-                      style={[
-                        styles.productInfoText,
-                        {
-                          color: colors.text,
-                        },
-                      ]}
-                    >
-                      {getFirstValue(
-                        selectedProduct?.category?.name,
-                        selectedProduct?.category_name,
-                        typeof selectedProduct?.category === "string"
-                          ? selectedProduct.category
-                          : "",
-                      )}
-                    </Text>
-                  </View>
-                ) : null}
-
-                {/* PRODUCT ID */}
-
-                {selectedVariantId ? (
-                  <View style={styles.productInfoRow}>
-                    <Ionicons
-                      name="layers-outline"
-                      size={18}
-                      color={colors.primary || "#F9080C"}
-                    />
-
-                    <Text
-                      style={[
-                        styles.productInfoText,
-                        {
-                          color:
-                            colors.textSecondary || "#8F8F8F",
-                        },
-                      ]}
-                    >
-                      Variant ID: {selectedVariantId}
-                    </Text>
-                  </View>
-                ) : null}
-
-                {/* ADD TO CART */}
-
-                <TouchableOpacity
-                  style={[
-                    styles.modalAddButton,
-                    {
-                      backgroundColor:
-                        cartLoading
-                          ? "#777777"
-                          : colors.primary || "#F9080C",
-                    },
-                  ]}
-                  onPress={addToCart}
-                  disabled={cartLoading}
-                >
-                  {cartLoading ? (
-                    <>
-                      <ActivityIndicator
-                        size="small"
-                        color="#FFFFFF"
-                      />
-
-                      <Text style={styles.modalAddButtonText}>
-                        Adding...
-                      </Text>
-                    </>
-                  ) : (
-                    <>
-                      <Ionicons
-                        name="cart-outline"
-                        size={20}
-                        color="#FFFFFF"
-                      />
-
-                      <Text style={styles.modalAddButtonText}>
-                        Add to Cart
-                      </Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              </ScrollView>
-            ) : (
-              <View style={styles.productEmpty}>
-                <Ionicons
-                  name="fast-food-outline"
-                  size={50}
-                  color={colors.textSecondary || "#8F8F8F"}
-                />
-
-                <Text
-                  style={[
-                    styles.productEmptyText,
-                    {
-                      color: colors.textSecondary || "#8F8F8F",
-                    },
-                  ]}
-                >
-                  Product details unavailable.
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-      </Modal>
-
-      {/* ===================================================
-          PRODUCT API LOADING OVERLAY
-
-          ONLY ONE LOADING OVERLAY
-      =================================================== */}
-
-      {productLoading && (
-        <View style={styles.productLoadingOverlay}>
-          <View
-            style={[
-              styles.productLoadingBox,
-              {
-                backgroundColor: colors.card || colors.surface || "#202020",
-              },
-            ]}
-          >
-            <ActivityIndicator
-              size="large"
-              color={colors.primary || "#F9080C"}
-            />
-
-            <Text
-              style={[
-                styles.productLoadingOverlayText,
-                {
-                  color: colors.text,
-                },
-              ]}
-            >
-              Loading product...
-            </Text>
-          </View>
-        </View>
-      )}
     </SafeAreaView>
   );
 }
@@ -2466,7 +1929,7 @@ const styles = StyleSheet.create({
   actionRow: {
     flexDirection: "row",
     gap: 10,
-    marginTop: 16,
+    marginTop: 12,
   },
 
   actionButton: {
@@ -2704,143 +2167,5 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "800",
-  },
-
-  // =======================================================
-  // PRODUCT MODAL
-  // =======================================================
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.65)",
-    justifyContent: "flex-end",
-  },
-
-  productModal: {
-    width: "100%",
-    maxHeight: "85%",
-    minHeight: 300,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 16,
-  },
-
-  modalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 12,
-  },
-
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-  },
-
-  productModalImage: {
-    width: "100%",
-    height: 220,
-    borderRadius: 16,
-  },
-
-  productModalName: {
-    fontSize: 23,
-    fontWeight: "800",
-    marginTop: 16,
-  },
-
-  productModalRating: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-    gap: 5,
-  },
-
-  productModalRatingText: {
-    fontSize: 13,
-  },
-
-  productModalPrice: {
-    fontSize: 21,
-    fontWeight: "800",
-    marginTop: 12,
-  },
-
-  productModalDescription: {
-    fontSize: 14,
-    lineHeight: 21,
-    marginTop: 12,
-  },
-
-  productInfoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 14,
-  },
-
-  productInfoText: {
-    flex: 1,
-    fontSize: 13,
-  },
-
-  modalAddButton: {
-    height: 50,
-    borderRadius: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    marginTop: 22,
-    marginBottom: 20,
-  },
-
-  modalAddButtonText: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "800",
-  },
-
-  productEmpty: {
-    minHeight: 220,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  productEmptyText: {
-    fontSize: 14,
-    marginTop: 12,
-    textAlign: "center",
-  },
-
-  // =======================================================
-  // PRODUCT API LOADING
-  // =======================================================
-
-  productLoadingOverlay: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 9999,
-  },
-
-  productLoadingBox: {
-    minWidth: 180,
-    paddingHorizontal: 25,
-    paddingVertical: 22,
-    borderRadius: 15,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  productLoadingOverlayText: {
-    marginTop: 12,
-    fontSize: 14,
-    fontWeight: "600",
   },
 });

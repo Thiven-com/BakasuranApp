@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
   Alert,
@@ -19,8 +19,11 @@ import {
 } from "react-native";
 
 import Fonts from "../../constants/Fonts";
+import { useTheme } from "../../hooks/use-theme";
 
 export default function SetProfileScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [profileImage, setProfileImage] = useState(null);
   const [fullName, setFullName] = useState("");
   const [owner, setOwner] = useState("");
@@ -96,7 +99,10 @@ export default function SetProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#050505" />
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
+      />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -116,7 +122,7 @@ export default function SetProfileScreen() {
             ]}
             accessibilityLabel="Go back"
           >
-            <Ionicons name="chevron-back" size={30} color="#FFFFFF" />
+            <Ionicons name="chevron-back" size={30} color={colors.text} />
           </Pressable>
 
           {/* PROFILE IMAGE */}
@@ -129,7 +135,7 @@ export default function SetProfileScreen() {
                   resizeMode="cover"
                 />
               ) : (
-                <Ionicons name="person" size={170} color="#F5F5F5" />
+                <Ionicons name="person" size={170} color={colors.textSecondary} />
               )}
             </View>
 
@@ -141,7 +147,7 @@ export default function SetProfileScreen() {
               onPress={handlePickImage}
               accessibilityLabel="Choose profile picture"
             >
-              <Ionicons name="camera" size={30} color="#FFFFFF" />
+              <Ionicons name="camera" size={30} color={colors.white} />
             </Pressable>
           </View>
 
@@ -160,7 +166,7 @@ export default function SetProfileScreen() {
               <Ionicons
                 name="person-outline"
                 size={31}
-                color="#D0D0D0"
+                color={colors.textSecondary}
                 style={styles.inputIcon}
               />
 
@@ -168,7 +174,7 @@ export default function SetProfileScreen() {
                 value={fullName}
                 onChangeText={setFullName}
                 placeholder="Full Name"
-                placeholderTextColor="#B8B8B8"
+                placeholderTextColor={colors.textMuted}
                 style={styles.input}
                 autoCapitalize="words"
                 returnKeyType="next"
@@ -180,7 +186,7 @@ export default function SetProfileScreen() {
               <Ionicons
                 name="mail-outline"
                 size={31}
-                color="#D0D0D0"
+                color={colors.textSecondary}
                 style={styles.inputIcon}
               />
 
@@ -188,7 +194,7 @@ export default function SetProfileScreen() {
                 value={owner}
                 onChangeText={setOwner}
                 placeholder="Take Owner"
-                placeholderTextColor="#B8B8B8"
+                placeholderTextColor={colors.textMuted}
                 style={styles.input}
                 autoCapitalize="words"
                 returnKeyType="next"
@@ -200,7 +206,7 @@ export default function SetProfileScreen() {
               <Ionicons
                 name="location-outline"
                 size={31}
-                color="#D0D0D0"
+                color={colors.textSecondary}
                 style={styles.inputIcon}
               />
 
@@ -208,7 +214,7 @@ export default function SetProfileScreen() {
                 value={email}
                 onChangeText={setEmail}
                 placeholder="Email Address"
-                placeholderTextColor="#B8B8B8"
+                placeholderTextColor={colors.textMuted}
                 style={styles.input}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -222,7 +228,7 @@ export default function SetProfileScreen() {
               <Ionicons
                 name="call-outline"
                 size={31}
-                color="#D0D0D0"
+                color={colors.textSecondary}
                 style={styles.inputIcon}
               />
 
@@ -230,7 +236,7 @@ export default function SetProfileScreen() {
                 value={location}
                 onChangeText={setLocation}
                 placeholder="City, State or Pincode"
-                placeholderTextColor="#B8B8B8"
+                placeholderTextColor={colors.textMuted}
                 style={styles.input}
                 autoCapitalize="words"
                 returnKeyType="done"
@@ -267,14 +273,15 @@ export default function SetProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) =>
+  StyleSheet.create({
   flex: {
     flex: 1,
   },
 
   safeArea: {
     flex: 1,
-    backgroundColor: "#050505",
+    backgroundColor: colors.background,
   },
 
   scrollContent: {
@@ -282,16 +289,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 16,
     paddingBottom: 30,
-    backgroundColor: "#050505",
+    backgroundColor: colors.background,
   },
 
   backButton: {
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: "#141414",
+    backgroundColor: colors.surface,
     borderWidth: 1.5,
-    borderColor: "#303030",
+    borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -309,9 +316,9 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 95,
-    backgroundColor: "#292929",
+    backgroundColor: colors.backgroundElement,
     borderWidth: 2,
-    borderColor: "#BDBDBD",
+    borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -330,11 +337,11 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#FF0718",
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
-    borderColor: "#050505",
+    borderColor: colors.background,
   },
 
   titleContainer: {
@@ -343,7 +350,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 35,
     fontFamily: Fonts.bold,
     fontWeight: "800",
@@ -352,7 +359,7 @@ const styles = StyleSheet.create({
   },
 
   subtitle: {
-    color: "#B7B7B7",
+    color: colors.textSecondary,
     fontSize: 19,
     fontFamily: Fonts.regular,
     textAlign: "center",
@@ -367,10 +374,10 @@ const styles = StyleSheet.create({
     minHeight: 72,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#111111",
+    backgroundColor: colors.surface,
     borderRadius: 25,
     borderWidth: 1.5,
-    borderColor: "#303030",
+    borderColor: colors.border,
     paddingHorizontal: 19,
     marginBottom: 16,
   },
@@ -383,7 +390,7 @@ const styles = StyleSheet.create({
 
   input: {
     flex: 1,
-    color: "#FFFFFF",
+    color: colors.text,
     fontSize: 19,
     fontFamily: Fonts.regular,
     paddingVertical: 15,
@@ -393,14 +400,14 @@ const styles = StyleSheet.create({
   continueButton: {
     minHeight: 50,
     borderRadius: 44,
-    backgroundColor: "#FF0718",
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 8,
   },
 
   continueText: {
-    color: "#FFFFFF",
+    color: colors.white,
     fontSize: 25,
     fontFamily: Fonts.regular,
     fontWeight: "700",
@@ -419,7 +426,7 @@ const styles = StyleSheet.create({
   },
 
   skipText: {
-    color: "#fc0909",
+    color: colors.primary,
     fontSize: 17,
     fontFamily: Fonts.regular,
     textDecorationLine: "underline",
@@ -428,4 +435,4 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.7,
   },
-});
+  });

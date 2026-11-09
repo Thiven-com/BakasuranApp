@@ -2,8 +2,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,422 +18,343 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import Fonts from "../constants/Fonts";
 import { useTheme } from "../hooks/use-theme";
+import { createDineInOrder } from "../utils/Function";
 
 const RED = "#F9080C";
+const SUCCESS_ROUTE = "/DineInOrderSuccess"; // file: app/DineInOrderSuccess.jsx
 
-const parseItems = (value) => {
+const isSuccessResponse = (response) => {
+  if (!response || typeof response !== "object") return false;
+  const flag =
+    response.success !== undefined ? response.success : response.status;
+  return [1, true, "1", "true"].includes(flag);
+};
+
+const parseItems = (raw) => {
   try {
-    const parsed = typeof value === "string" ? JSON.parse(value) : value;
-    if (!Array.isArray(parsed)) return [];
-    return parsed.map((item, index) => ({
-      // Unique key: variant id first (product_id repeats across variants)
-      id: String(
-        item?.product_variant_id ??
-          item?.variant_id ??
-          item?.id ??
-          item?.product_id ??
-          index + 1,
-      ),
-      product_id: item?.product_id ?? item?.id ?? null,
-      product_variant_id: item?.product_variant_id ?? item?.variant_id ?? null,
-      name: item?.name || item?.product_name || "Food Item",
-      price: Number(item?.price ?? item?.selling_price ?? 0),
-      quantity: Math.max(1, Number(item?.quantity ?? 1)),
-      image: item?.image || item?.image_url || "",
-    }));
-  } catch (error) {
-    console.log("DINE-IN REVIEW ITEMS PARSE ERROR:", error?.message);
+    const parsed = JSON.parse(String(raw || "[]"));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
     return [];
   }
 };
 
-const formatCurrency = (value) => `₹${Number(value || 0).toFixed(2)}`;
-
-export default function DineInOrderReviewScreen() {
+export default function DineInOrderReview() {
   const { colors, isDark } = useTheme();
   const params = useLocalSearchParams();
 
-  const [items, setItems] = useState(() => parseItems(params?.items));
-  const [specialInstructions, setSpecialInstructions] = useState("");
-
-  const restaurantId = String(params?.restaurantId || "");
   const restaurantName = String(params?.restaurantName || "Restaurant");
-  const tableId = String(params?.tableId || "");
+  const tableId = Number(params?.tableId);
   const tableNumber = String(params?.tableNumber || "");
 
-  const subtotal = useMemo(
-    () => items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-    [items],
-  );
-  const totalItems = useMemo(
-    () => items.reduce((sum, item) => sum + item.quantity, 0),
-    [items],
-  );
+  const [items, setItems] = useState(() => parseItems(params?.items));
+  const [instructions, setInstructions] = useState("");
+  const [placing, setPlacing] = useState(false);
 
   const textColor = colors?.text || (isDark ? "#FFFFFF" : "#171717");
   const mutedColor = colors?.textSecondary || (isDark ? "#A5A5A5" : "#777777");
   const cardColor =
     colors?.card || colors?.surface || (isDark ? "#151515" : "#FFFFFF");
   const borderColor = colors?.border || (isDark ? "#303030" : "#E5E5E5");
-  const backgroundColor =
-    colors?.background || (isDark ? "#090909" : "#F7F7F7");
 
-  const updateQuantity = (id, delta) => {
+  const totalItems = useMemo(
+    () => items.reduce((sum, item) => sum + Number(item.quantity || 0), 0),
+    [items],
+  );
+
+  const totalPrice = useMemo(
+    () =>
+      items.reduce(
+        (sum, item) =>
+          sum + Number(item.price || 0) * Number(item.quantity || 0),
+        0,
+      ),
+    [items],
+  );
+
+  const changeQuantity = (id, delta) => {
     setItems((previous) =>
       previous
         .map((item) =>
           item.id === id
-            ? { ...item, quantity: Math.max(0, item.quantity + delta) }
+            ? { ...item, quantity: Number(item.quantity || 0) + delta }
             : item,
         )
         .filter((item) => item.quantity > 0),
     );
   };
 
-  const goBackToMenu = () => {
-    router.back();
-  };
+  const placeOrder = async () => {
+    if (placing) return;
 
-  const placeDineInOrder = () => {
     if (!items.length) {
-      Alert.alert("Order is empty", "Add at least one food item to continue.");
+      Alert.alert("Your order is empty", "Please add food items first.");
       return;
     }
 
-    const restaurantTableId = Number(tableId);
-    if (!Number.isSafeInteger(restaurantTableId) || restaurantTableId <= 0) {
-      console.log("PLACE ORDER: invalid tableId param:", params?.tableId);
+    setPlacing(true);
+
+    try {
+      // Matches POST /api/customer/order
+      const response = await createDineInOrder({
+        restaurant_table_id: tableId,
+        special_instructions: instructions.trim(),
+        products: items.map((item) => ({
+          product_variant_id: item.product_variant_id,
+          quantity: item.quantity,
+        })),
+      });
+
+      if (response?.success === 9) {
+        Alert.alert(
+          "Login required",
+          response?.message || "Please login to place this order.",
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Login", onPress: () => router.push("/LoginScreen") },
+          ],
+        );
+        return;
+      }
+
+      if (!isSuccessResponse(response)) {
+        Alert.alert(
+          "Unable to place order",
+          response?.message || "Something went wrong. Please try again.",
+        );
+        return;
+      }
+
+      const order =
+        response?.data?.order ??
+        response?.data?.data ??
+        response?.data ??
+        response?.order ??
+        response;
+
+      // Success -> go to the success screen
+      router.replace({
+        pathname: SUCCESS_ROUTE,
+        params: {
+          restaurantName,
+          tableNumber,
+          totalItems: String(totalItems),
+          totalPrice: String(totalPrice),
+          orderId: String(
+            order?.restaurant_food_order_id ??
+              order?.id ??
+              order?.order_id ??
+              order?.order_number ??
+              response?.restaurant_food_order_id ??
+              response?.order_id ??
+              response?.order_number ??
+              "",
+          ),
+          message: response?.message || "Your dine-in order has been placed.",
+        },
+      });
+    } catch (err) {
       Alert.alert(
-        "Table booking required",
-        "Reserve a table before placing a dine-in food order.",
+        "Unable to place order",
+        err?.message || "Something went wrong. Please try again.",
       );
-      return;
+    } finally {
+      setPlacing(false);
     }
-
-    if (
-      items.some((item) => {
-        const variantId = Number(item.product_variant_id);
-        return !Number.isSafeInteger(variantId) || variantId <= 0;
-      })
-    ) {
-      console.log(
-        "PLACE ORDER: invalid variant in items:",
-        JSON.stringify(items),
-      );
-      Alert.alert(
-        "Menu item unavailable",
-        "One or more items are missing a valid product variant. Please return to the menu and choose your items again.",
-      );
-      return;
-    }
-
-    router.replace({
-      pathname: "/DineInOrderSuccess",
-      params: {
-        pendingOrder: JSON.stringify({
-          restaurant_table_id: restaurantTableId,
-          special_instructions: specialInstructions.trim(),
-          products: items.map((item) => ({
-            product_variant_id: Number(item.product_variant_id),
-            quantity: item.quantity,
-          })),
-        }),
-        restaurantId,
-        restaurantName,
-        tableId,
-        tableNumber,
-        totalItems: String(totalItems),
-        totalAmount: String(subtotal),
-        items: JSON.stringify(
-          items.map((item) => ({
-            id: item.product_variant_id,
-            product_variant_id: item.product_variant_id,
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-          })),
-        ),
-      },
-    });
   };
-
-  const itemImage = (uri) =>
-    uri
-      ? { uri }
-      : {
-          uri: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80",
-        };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor }]}>
-      <View style={[styles.header, { borderBottomColor: borderColor }]}>
-        <TouchableOpacity style={styles.backButton} onPress={goBackToMenu}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.background }]}
+    >
+      <View style={[styles.header, { borderColor }]}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
           <Ionicons name="arrow-back" size={24} color={textColor} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: textColor }]}>
-          Review Order
-        </Text>
-        <View style={styles.headerRight} />
+        <View style={{ flex: 1 }}>
+          <Text numberOfLines={1} style={[styles.title, { color: textColor }]}>
+            Review Order
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={[styles.subtitle, { color: mutedColor }]}
+          >
+            {restaurantName}
+            {tableNumber ? ` • Table ${tableNumber}` : ""}
+          </Text>
+        </View>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <View style={styles.progressRow}>
-          <View style={styles.progressStep}>
-            <View style={styles.progressDone}>
-              <Ionicons name="checkmark" size={15} color="#FFFFFF" />
-            </View>
-            <Text style={[styles.progressLabel, { color: mutedColor }]}>
-              Menu
-            </Text>
-          </View>
-          <View style={[styles.progressLine, { backgroundColor: RED }]} />
-          <View style={styles.progressStep}>
-            <View style={styles.progressCurrent}>
-              <Text style={styles.progressNumber}>2</Text>
-            </View>
-            <Text style={[styles.progressLabel, { color: textColor }]}>
-              Review
-            </Text>
-          </View>
-          <View
-            style={[styles.progressLine, { backgroundColor: borderColor }]}
-          />
-          <View style={styles.progressStep}>
-            <View style={[styles.progressPending, { borderColor }]}>
-              <Text
-                style={[styles.progressNumberPending, { color: mutedColor }]}
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ padding: 14, paddingBottom: 130 }}
+        >
+          {items.length ? (
+            items.map((item) => (
+              <View
+                key={item.id}
+                style={[
+                  styles.itemCard,
+                  { backgroundColor: cardColor, borderColor },
+                ]}
               >
-                3
+                {item.image ? (
+                  <Image
+                    source={{ uri: item.image }}
+                    style={styles.itemImage}
+                  />
+                ) : (
+                  <View style={[styles.itemImage, styles.imagePlaceholder]}>
+                    <Ionicons
+                      name="restaurant-outline"
+                      size={26}
+                      color={mutedColor}
+                    />
+                  </View>
+                )}
+
+                <View style={styles.itemInfo}>
+                  <Text
+                    numberOfLines={2}
+                    style={[styles.itemName, { color: textColor }]}
+                  >
+                    {item.name}
+                  </Text>
+                  <Text style={[styles.itemPrice, { color: mutedColor }]}>
+                    ₹{Number(item.price || 0).toFixed(0)} each
+                  </Text>
+                  <Text style={[styles.lineTotal, { color: textColor }]}>
+                    ₹{(Number(item.price || 0) * item.quantity).toFixed(0)}
+                  </Text>
+                </View>
+
+                <View style={styles.quantityControl}>
+                  <TouchableOpacity
+                    style={styles.quantityButton}
+                    onPress={() => changeQuantity(item.id, -1)}
+                  >
+                    <Ionicons
+                      name={item.quantity === 1 ? "trash-outline" : "remove"}
+                      size={17}
+                      color="#FFFFFF"
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.quantityText}>{item.quantity}</Text>
+                  <TouchableOpacity
+                    style={styles.quantityButton}
+                    onPress={() => changeQuantity(item.id, 1)}
+                  >
+                    <Ionicons name="add" size={17} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          ) : (
+            <View style={styles.emptyBox}>
+              <Ionicons name="cart-outline" size={44} color={mutedColor} />
+              <Text style={[styles.emptyText, { color: mutedColor }]}>
+                Your order is empty.
               </Text>
+              <TouchableOpacity
+                style={styles.menuButton}
+                onPress={() => router.back()}
+              >
+                <Text style={styles.menuButtonText}>Back to menu</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={[styles.progressLabel, { color: mutedColor }]}>
-              Confirm
-            </Text>
-          </View>
-        </View>
+          )}
 
-        <View style={styles.pageHeading}>
-          <Text style={[styles.pageTitle, { color: textColor }]}>
-            Your Order
-          </Text>
-          <Text style={[styles.pageSubtitle, { color: mutedColor }]}>
-            Check your items before placing the order.
-          </Text>
-        </View>
+          {items.length > 0 && (
+            <>
+              <Text style={[styles.sectionLabel, { color: textColor }]}>
+                Special instructions
+              </Text>
+              <TextInput
+                value={instructions}
+                onChangeText={setInstructions}
+                placeholder="e.g. Less spicy, please"
+                placeholderTextColor={mutedColor}
+                multiline
+                maxLength={250}
+                style={[
+                  styles.instructionsInput,
+                  { color: textColor, backgroundColor: cardColor, borderColor },
+                ]}
+              />
 
+              <View
+                style={[
+                  styles.summary,
+                  { backgroundColor: cardColor, borderColor },
+                ]}
+              >
+                <View style={styles.summaryRow}>
+                  <Text style={[styles.summaryLabel, { color: mutedColor }]}>
+                    Items
+                  </Text>
+                  <Text style={[styles.summaryValue, { color: textColor }]}>
+                    {totalItems}
+                  </Text>
+                </View>
+                <View style={styles.summaryRow}>
+                  <Text style={[styles.summaryLabel, { color: mutedColor }]}>
+                    Subtotal
+                  </Text>
+                  <Text style={[styles.summaryValue, { color: textColor }]}>
+                    ₹{totalPrice.toFixed(0)}
+                  </Text>
+                </View>
+                <Text style={[styles.note, { color: mutedColor }]}>
+                  Taxes and final bill are calculated by the restaurant.
+                </Text>
+              </View>
+            </>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      {items.length > 0 && (
         <View
           style={[
-            styles.tableCard,
+            styles.bottomBar,
             { backgroundColor: cardColor, borderColor },
           ]}
         >
-          <View style={styles.tableIcon}>
-            <Ionicons name="restaurant-outline" size={23} color="#FFFFFF" />
-          </View>
-          <View style={styles.tableInfo}>
-            <Text style={[styles.restaurantName, { color: textColor }]}>
-              {restaurantName}
-            </Text>
-            <Text style={[styles.tableCaption, { color: mutedColor }]}>
-              {tableNumber
-                ? `Dine-In · Table ${tableNumber}`
-                : "A confirmed table booking is required"}
-            </Text>
-          </View>
-          <View style={styles.dineBadge}>
-            <View style={styles.dineDot} />
-            <Text style={styles.dineBadgeText}>DINE-IN</Text>
-          </View>
-        </View>
-
-        <View style={styles.sectionHeading}>
-          <Text style={[styles.sectionTitle, { color: textColor }]}>
-            Order Items
-          </Text>
-          <Text style={[styles.itemCount, { color: mutedColor }]}>
-            {totalItems} {totalItems === 1 ? "item" : "items"}
-          </Text>
-        </View>
-
-        {items.length ? (
-          <View
-            style={[
-              styles.itemsCard,
-              { backgroundColor: cardColor, borderColor },
-            ]}
-          >
-            {items.map((item, index) => (
-              <View key={item.id}>
-                <View style={styles.orderItem}>
-                  <Image
-                    source={itemImage(item.image)}
-                    style={styles.foodImage}
-                  />
-                  <View style={styles.itemDetails}>
-                    <Text
-                      numberOfLines={2}
-                      style={[styles.foodName, { color: textColor }]}
-                    >
-                      {item.name}
-                    </Text>
-                    <Text style={[styles.foodPrice, { color: mutedColor }]}>
-                      {formatCurrency(item.price)}
-                    </Text>
-                    <Text style={[styles.lineTotal, { color: textColor }]}>
-                      {formatCurrency(item.price * item.quantity)}
-                    </Text>
-                  </View>
-                  <View style={styles.quantityControl}>
-                    <TouchableOpacity
-                      onPress={() => updateQuantity(item.id, -1)}
-                      style={styles.quantityButton}
-                    >
-                      <Ionicons name="remove" size={17} color={RED} />
-                    </TouchableOpacity>
-                    <Text style={styles.quantityText}>{item.quantity}</Text>
-                    <TouchableOpacity
-                      onPress={() => updateQuantity(item.id, 1)}
-                      style={styles.quantityButton}
-                    >
-                      <Ionicons name="add" size={17} color={RED} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-                {index !== items.length - 1 && (
-                  <View
-                    style={[
-                      styles.itemDivider,
-                      { backgroundColor: borderColor },
-                    ]}
-                  />
-                )}
-              </View>
-            ))}
-          </View>
-        ) : (
-          <View
-            style={[
-              styles.emptyCard,
-              { backgroundColor: cardColor, borderColor },
-            ]}
-          >
-            <Ionicons name="cart-outline" size={42} color={mutedColor} />
-            <Text style={[styles.emptyTitle, { color: textColor }]}>
-              No items in your order
-            </Text>
-            <Text style={[styles.emptyDescription, { color: mutedColor }]}>
-              Go back to the menu and add your favourite food.
-            </Text>
-            <TouchableOpacity
-              style={styles.addMoreButton}
-              onPress={goBackToMenu}
-            >
-              <Text style={styles.addMoreText}>Add Food Items</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <TouchableOpacity style={styles.addMoreRow} onPress={goBackToMenu}>
-          <Ionicons name="add-circle-outline" size={20} color={RED} />
-          <Text style={styles.addMoreRowText}>Add more items</Text>
-        </TouchableOpacity>
-
-        <View
-          style={[styles.billCard, { backgroundColor: cardColor, borderColor }]}
-        >
-          <Text style={[styles.sectionTitle, { color: textColor }]}>
-            Bill Summary
-          </Text>
-          <View style={styles.billRow}>
-            <Text style={[styles.billLabel, { color: mutedColor }]}>
-              Item total
-            </Text>
-            <Text style={[styles.billValue, { color: textColor }]}>
-              {formatCurrency(subtotal)}
-            </Text>
-          </View>
-          <View
-            style={[styles.billDivider, { backgroundColor: borderColor }]}
-          />
-          <View style={styles.billRow}>
-            <Text style={[styles.grandTotalLabel, { color: textColor }]}>
+          <View>
+            <Text style={[styles.summaryLabel, { color: mutedColor }]}>
               Total
             </Text>
-            <Text style={styles.grandTotalValue}>
-              {formatCurrency(subtotal)}
+            <Text style={[styles.totalPrice, { color: textColor }]}>
+              ₹{totalPrice.toFixed(0)}
             </Text>
           </View>
-          <Text style={[styles.taxNote, { color: mutedColor }]}>
-            Taxes and restaurant charges, if applicable, will be calculated by
-            the restaurant at checkout.
-          </Text>
+          <TouchableOpacity
+            style={[styles.placeButton, placing && { opacity: 0.7 }]}
+            onPress={placeOrder}
+            disabled={placing}
+          >
+            {placing ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <>
+                <Text style={styles.placeButtonText}>Place Order</Text>
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={20}
+                  color="#FFFFFF"
+                />
+              </>
+            )}
+          </TouchableOpacity>
         </View>
-
-        <View style={styles.noteCard}>
-          <Ionicons
-            name="information-circle-outline"
-            size={20}
-            color="#D99A13"
-          />
-          <Text style={styles.noteText}>
-            {tableNumber
-              ? `This order is for dine-in at Table ${tableNumber}. Please confirm your table details before placing the order.`
-              : "A confirmed table booking is required before placing this order."}
-          </Text>
-        </View>
-
-        <View
-          style={[
-            styles.instructionsCard,
-            { backgroundColor: cardColor, borderColor },
-          ]}
-        >
-          <Text style={[styles.sectionTitle, { color: textColor }]}>
-            Special instructions
-          </Text>
-          <TextInput
-            value={specialInstructions}
-            onChangeText={setSpecialInstructions}
-            accessibilityLabel="Special instructions"
-            placeholder="e.g. Less spicy, please"
-            placeholderTextColor={mutedColor}
-            multiline
-            maxLength={500}
-            textAlignVertical="top"
-            style={[
-              styles.instructionsInput,
-              { color: textColor, borderColor },
-            ]}
-          />
-        </View>
-      </ScrollView>
-
-      <View
-        style={[styles.bottomBar, { backgroundColor: cardColor, borderColor }]}
-      >
-        <View>
-          <Text style={[styles.bottomCaption, { color: mutedColor }]}>
-            {totalItems} {totalItems === 1 ? "item" : "items"}
-          </Text>
-          <Text style={[styles.bottomTotal, { color: textColor }]}>
-            {formatCurrency(subtotal)}
-          </Text>
-        </View>
-        <TouchableOpacity
-          style={[
-            styles.placeOrderButton,
-            !items.length && styles.disabledButton,
-          ]}
-          onPress={placeDineInOrder}
-          disabled={!items.length}
-        >
-          <Text style={styles.placeOrderText}>Place Order</Text>
-          <Ionicons name="arrow-forward" size={19} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -438,11 +362,12 @@ export default function DineInOrderReviewScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   header: {
-    height: 56,
     flexDirection: "row",
     alignItems: "center",
-    borderBottomWidth: 1,
     paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    gap: 8,
   },
   backButton: {
     width: 42,
@@ -508,11 +433,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontFamily: Fonts?.regular || undefined,
   },
-  tableCard: {
-    minHeight: 78,
-    borderWidth: 1,
-    borderRadius: 15,
-    padding: 13,
+  itemCard: {
     flexDirection: "row",
     alignItems: "center",
     gap: 11,
@@ -583,18 +504,17 @@ const styles = StyleSheet.create({
     fontFamily: Fonts?.bold || undefined,
   },
   quantityControl: {
-    height: 34,
-    minWidth: 84,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: RED,
+    height: 36,
+    minWidth: 82,
+    borderRadius: 20,
+    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   quantityButton: {
-    width: 27,
-    height: 32,
+    width: 28,
+    height: 36,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -697,22 +617,21 @@ const styles = StyleSheet.create({
     backgroundColor: RED,
     paddingHorizontal: 22,
     paddingVertical: 11,
-    borderRadius: 20,
-    marginTop: 15,
+    borderRadius: 12,
   },
-  addMoreText: {
+  menuButtonText: {
     color: "#FFFFFF",
     fontSize: 15,
     fontFamily: Fonts?.bold || undefined,
   },
   bottomBar: {
     position: "absolute",
+    bottom: 0,
     left: 0,
     right: 0,
-    bottom: 0,
-    minHeight: 83,
+    minHeight: 86,
     borderTopWidth: 1,
-    paddingHorizontal: 17,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     flexDirection: "row",
     alignItems: "center",
@@ -725,19 +644,18 @@ const styles = StyleSheet.create({
     marginTop: 3,
     fontFamily: Fonts?.bold || undefined,
   },
-  placeOrderButton: {
+  placeButton: {
     flex: 1,
-    maxWidth: 205,
-    height: 49,
-    borderRadius: 25,
+    maxWidth: 200,
+    height: 50,
+    borderRadius: 26,
     backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 9,
+    gap: 8,
   },
-  disabledButton: { opacity: 0.45 },
-  placeOrderText: {
+  placeButtonText: {
     color: "#FFFFFF",
     fontSize: 18,
     fontFamily: Fonts?.regular || undefined,

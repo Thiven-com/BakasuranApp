@@ -4,8 +4,7 @@ import BASE_URL from "../constants/AppUrls";
 
 import { deleteMethod, getMethod } from "./APIServices";
 
-
-// =========================================================a
+// =========================================================
 // BASE URL CONFIGURATION
 // =========================================================
 
@@ -1173,6 +1172,15 @@ const orderApiError = (error, fallback) => ({
   statusCode: error?.response?.status,
 });
 
+const getValidationMessage = (errors) => {
+  if (!errors || typeof errors !== "object") return "";
+
+  return Object.values(errors)
+    .flatMap((value) => (Array.isArray(value) ? value : [value]))
+    .filter((value) => typeof value === "string")
+    .join(" ");
+};
+
 const getOrderAuthHeaders = (token) => ({
   Accept: "application/json",
   "Content-Type": "application/json",
@@ -1234,16 +1242,254 @@ export const getOrderDetails = async (orderId) => {
 
     return response.data;
   } catch (error) {
-    console.error(
-      "GET ORDER DETAILS API ERROR:",
-      {
-        orderId: String(orderId).trim(),
-        url: `${APP_URL}order/${encodeURIComponent(String(orderId).trim())}`,
-        response: error?.response?.data ?? error?.message,
-      },
-    );
+    console.error("GET ORDER DETAILS API ERROR:", {
+      orderId: String(orderId).trim(),
+      url: `${APP_URL}order/${encodeURIComponent(String(orderId).trim())}`,
+      response: error?.response?.data ?? error?.message,
+    });
     return orderApiError(error, "Unable to load order details.");
   }
+};
+
+// =========================================================
+// SUBMIT PRODUCT RATING
+// GET: /api/customer/product-ratings
+// Query: product_id, order_id, rating, review
+// =========================================================
+export const submitProductRating = async ({
+  product_id,
+  order_id,
+  rating,
+  review = "",
+} = {}) => {
+  const productId = Number(product_id);
+  const orderId = Number(order_id);
+  const ratingValue = Number(rating);
+
+  if (!Number.isSafeInteger(productId) || productId <= 0) {
+    return { success: 0, message: "A valid product ID is required." };
+  }
+
+  if (!Number.isSafeInteger(orderId) || orderId <= 0) {
+    return { success: 0, message: "A valid order ID is required." };
+  }
+
+  if (!Number.isInteger(ratingValue) || ratingValue < 1 || ratingValue > 5) {
+    return { success: 0, message: "Rating must be between 1 and 5." };
+  }
+
+  if (typeof review !== "string") {
+    return { success: 0, message: "Review must be text." };
+  }
+
+  const url = `${APP_URL}product-ratings`;
+
+  const params = {
+    product_id: productId,
+    order_id: orderId,
+    rating: ratingValue,
+    review: review.trim(),
+  };
+
+  try {
+    const token = await AsyncStorage.getItem(TOKEN_KEY);
+
+    if (!token) {
+      return { success: 9, message: "Please login to submit a review." };
+    }
+
+    console.log("====================================");
+    console.log("SUBMIT PRODUCT RATING API");
+    console.log("METHOD: GET");
+    console.log("URL:", url);
+    console.log("PARAMS:", JSON.stringify(params, null, 2));
+    console.log("====================================");
+
+    const response = await axios.get(url, {
+      headers: getOrderAuthHeaders(token),
+      params,
+      timeout: 20000,
+    });
+
+    console.log("SUBMIT PRODUCT RATING STATUS:", response.status);
+    console.log(
+      "SUBMIT PRODUCT RATING RESPONSE:",
+      JSON.stringify(response.data, null, 2),
+    );
+
+    const data = response.data;
+
+    if (!data) {
+      return { success: 0, message: "Empty response from server." };
+    }
+
+    const responseFlag =
+      data?.success !== undefined ? data.success : data?.status;
+
+    if (
+      responseFlag !== undefined &&
+      ![1, true, "1", "true"].includes(responseFlag)
+    ) {
+      return {
+        ...data,
+        success: responseFlag === 9 ? 9 : 0,
+        message:
+          getValidationMessage(data?.errors) ||
+          data?.message ||
+          "Unable to submit your product rating.",
+      };
+    }
+
+    return data;
+  } catch (error) {
+    console.log("====================================");
+    console.log("SUBMIT PRODUCT RATING API ERROR");
+    console.log("MESSAGE:", error?.message);
+    console.log("STATUS:", error?.response?.status);
+    console.log(
+      "SERVER RESPONSE:",
+      JSON.stringify(error?.response?.data ?? {}, null, 2),
+    );
+    console.log("====================================");
+
+    const apiError = orderApiError(
+      error,
+      "Unable to submit your product rating.",
+    );
+
+    return {
+      ...apiError,
+      message: getValidationMessage(apiError.errors) || apiError.message,
+    };
+  }
+};
+
+// =========================================================
+// GET PRODUCT RATINGS
+// GET: /api/customer/product-ratings
+// Optional query: product_id
+// =========================================================
+export const getProductRatings = async (productId) => {
+  const url = `${APP_URL}product-ratings`;
+
+  try {
+    const headers = await getAuthHeaders();
+
+    const params = {};
+
+    if (
+      productId !== undefined &&
+      productId !== null &&
+      String(productId).trim() !== ""
+    ) {
+      params.product_id = String(productId).trim();
+    }
+
+    console.log("====================================");
+    console.log("GET PRODUCT RATINGS API");
+    console.log("METHOD: GET");
+    console.log("URL:", url);
+    console.log("PARAMS:", JSON.stringify(params));
+    console.log("====================================");
+
+    const response = await axios.get(url, {
+      headers,
+      params,
+      timeout: REQUEST_TIMEOUT,
+    });
+
+    console.log(
+      "GET PRODUCT RATINGS RESPONSE:",
+      JSON.stringify(response.data, null, 2),
+    );
+
+    return (
+      response.data || {
+        success: 0,
+        message: "Empty response from server.",
+        data: [],
+      }
+    );
+  } catch (error) {
+    console.log("====================================");
+    console.log("GET PRODUCT RATINGS ERROR");
+    console.log("MESSAGE:", error?.message);
+    console.log("STATUS:", error?.response?.status);
+    console.log(
+      "SERVER RESPONSE:",
+      JSON.stringify(error?.response?.data ?? {}, null, 2),
+    );
+    console.log("====================================");
+
+    if (error?.response?.status === 401) {
+      return {
+        success: 9,
+        message: "Your session has expired. Please login again.",
+        data: [],
+      };
+    }
+
+    if (error?.response?.data) {
+      return error.response.data;
+    }
+
+    return {
+      success: 0,
+      message: getApiErrorMessage(error, "Unable to load product ratings."),
+      data: [],
+    };
+  }
+};
+
+// =========================================================
+// SUMMARIZE RATINGS
+// Turns the API response into:
+//   { "<productId>": { average: "4.5", count: 12 } }
+// =========================================================
+export const summarizeProductRatings = (response) => {
+  const candidates = [
+    response?.data?.ratings,
+    response?.data?.data,
+    response?.data?.product_ratings,
+    response?.data,
+    response?.ratings,
+    response?.product_ratings,
+  ];
+
+  const list = candidates.find((value) => Array.isArray(value)) || [];
+
+  const totals = {};
+
+  list.forEach((entry) => {
+    const productId =
+      entry?.product_id ?? entry?.productId ?? entry?.product?.id ?? null;
+
+    const rating = Number(entry?.rating ?? entry?.stars ?? entry?.value);
+
+    if (productId === null || !Number.isFinite(rating) || rating <= 0) {
+      return;
+    }
+
+    const key = String(productId);
+
+    if (!totals[key]) {
+      totals[key] = { sum: 0, count: 0 };
+    }
+
+    totals[key].sum += rating;
+    totals[key].count += 1;
+  });
+
+  const summary = {};
+
+  Object.keys(totals).forEach((key) => {
+    summary[key] = {
+      average: (totals[key].sum / totals[key].count).toFixed(1),
+      count: totals[key].count,
+    };
+  });
+
+  return summary;
 };
 
 // =========================================================
@@ -1265,16 +1511,10 @@ export const updateOrderItems = async (orderId, products) => {
   }
 
   const normalizedProducts = products.map((product) => {
-    const productVariantId = normalizeVariantId(
-      product?.product_variant_id,
-    );
+    const productVariantId = normalizeVariantId(product?.product_variant_id);
     const quantity = Number(product?.quantity);
 
-    if (
-      !productVariantId ||
-      !Number.isSafeInteger(quantity) ||
-      quantity <= 0
-    ) {
+    if (!productVariantId || !Number.isSafeInteger(quantity) || quantity <= 0) {
       return null;
     }
 
@@ -1287,7 +1527,8 @@ export const updateOrderItems = async (orderId, products) => {
   if (normalizedProducts.some((product) => product === null)) {
     return {
       success: 0,
-      message: "Each order item must have a valid product variant and quantity.",
+      message:
+        "Each order item must have a valid product variant and quantity.",
     };
   }
 
@@ -1335,16 +1576,10 @@ export const createDineInOrder = async ({
   }
 
   const normalizedProducts = products.map((product) => {
-    const productVariantId = normalizeVariantId(
-      product?.product_variant_id,
-    );
+    const productVariantId = normalizeVariantId(product?.product_variant_id);
     const quantity = Number(product?.quantity);
 
-    if (
-      !productVariantId ||
-      !Number.isSafeInteger(quantity) ||
-      quantity <= 0
-    ) {
+    if (!productVariantId || !Number.isSafeInteger(quantity) || quantity <= 0) {
       return null;
     }
 
@@ -1357,7 +1592,8 @@ export const createDineInOrder = async ({
   if (normalizedProducts.some((product) => product === null)) {
     return {
       success: 0,
-      message: "Each order item must have a valid product variant and quantity.",
+      message:
+        "Each order item must have a valid product variant and quantity.",
     };
   }
 
@@ -2705,4 +2941,20 @@ export const getRestaurantCategoryProducts = async (
 
     throw error;
   }
+};
+
+export const getProductsByCategoryAndRestaurant = async (
+  categoryId,
+  restaurantId,
+) => {
+  if (
+    categoryId !== undefined &&
+    categoryId !== null &&
+    String(categoryId).trim() !== "" &&
+    String(categoryId).toLowerCase() === "all"
+  ) {
+    return getRestaurantMenu(restaurantId);
+  }
+
+  return getRestaurantCategoryProducts(categoryId, restaurantId);
 };
