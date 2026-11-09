@@ -343,7 +343,7 @@ export default function MyBookingsScreen() {
   };
 
   const handleNewBooking = () => {
-    router.push("/table-booking");
+    router.push("/DineInScreen");
   };
 
   const getStatusLabel = (status) => {
@@ -781,7 +781,7 @@ export default function MyBookingsScreen() {
       </ScrollView>
 
       {/* Fixed bottom CTA */}
-      <View style={styles.bottomContainer}>
+      {/*<View style={styles.bottomContainer}>
         <TouchableOpacity
           style={styles.newBookingButton}
           activeOpacity={0.85}
@@ -793,7 +793,7 @@ export default function MyBookingsScreen() {
 
           <Ionicons name="arrow-forward" size={22} color={colors.white} />
         </TouchableOpacity>
-      </View>
+      </View>*/}
     </SafeAreaView>
   );
 }

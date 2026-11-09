@@ -21,7 +21,7 @@ import { useTheme } from "../hooks/use-theme";
 import { createDineInOrder } from "../utils/Function";
 
 const RED = "#F9080C";
-const AFTER_ORDER_ROUTE = "/"; // change to your orders screen, e.g. "/OrdersScreen"
+const SUCCESS_ROUTE = "/DineInOrderSuccess"; // file: app/DineInOrderSuccess.jsx
 
 const isSuccessResponse = (response) => {
   if (!response || typeof response !== "object") return false;
@@ -125,11 +125,34 @@ export default function DineInOrderReview() {
         return;
       }
 
-      Alert.alert(
-        "Order placed",
-        response?.message || "Your dine-in order has been placed.",
-        [{ text: "OK", onPress: () => router.replace(AFTER_ORDER_ROUTE) }],
-      );
+      const order =
+        response?.data?.order ??
+        response?.data?.data ??
+        response?.data ??
+        response?.order ??
+        response;
+
+      // Success -> go to the success screen
+      router.replace({
+        pathname: SUCCESS_ROUTE,
+        params: {
+          restaurantName,
+          tableNumber,
+          totalItems: String(totalItems),
+          totalPrice: String(totalPrice),
+          orderId: String(
+            order?.restaurant_food_order_id ??
+              order?.id ??
+              order?.order_id ??
+              order?.order_number ??
+              response?.restaurant_food_order_id ??
+              response?.order_id ??
+              response?.order_number ??
+              "",
+          ),
+          message: response?.message || "Your dine-in order has been placed.",
+        },
+      });
     } catch (err) {
       Alert.alert(
         "Unable to place order",
