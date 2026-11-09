@@ -476,14 +476,14 @@ export default function TableFoodMenuScreen() {
               <Ionicons name="arrow-back" size={25} color="#FFFFFF" />
             </TouchableOpacity>
             <View style={styles.brand} />
-            <TouchableOpacity style={styles.iconButton} onPress={reviewOrder}>
+           {/* <TouchableOpacity style={styles.iconButton} onPress={reviewOrder}>
               <Ionicons name="cart-outline" size={27} color="#FFFFFF" />
               {totalItems > 0 && (
                 <View style={styles.cartBadge}>
                   <Text style={styles.cartBadgeText}>{totalItems}</Text>
                 </View>
               )}
-            </TouchableOpacity>
+            </TouchableOpacity>*/}
           </View>
 
           <View style={styles.heroBottom}>
@@ -786,7 +786,7 @@ const styles = StyleSheet.create({
   },
   cartBadgeText: {
     color: "#FFFFFF",
-    fontSize: 11,
+    fontSize: 15,
     fontFamily: Fonts?.bold || undefined,
   },
   heroBottom: {
@@ -835,7 +835,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 18,
     paddingVertical: 10,
     fontFamily: Fonts?.regular || undefined,
   },
@@ -850,8 +850,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   categoryText: {
-    fontSize: 13,
-    fontFamily: Fonts?.medium || Fonts?.regular || undefined,
+    fontSize: 19,
+    fontFamily: Fonts?.regular|| Fonts?.regular || undefined,
   },
   menuHeading: {
     paddingHorizontal: 18,
@@ -860,8 +860,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  menuTitle: { fontSize: 21, fontFamily: Fonts?.bold || undefined },
-  menuCount: { fontSize: 12, fontFamily: Fonts?.regular || undefined },
+  menuTitle: { fontSize: 24, fontFamily: Fonts?.regular|| Fonts?.regular || undefined },
+  menuCount: { fontSize: 18, fontFamily: Fonts?.regular || undefined },
   foodCard: {
     marginHorizontal: 14,
     marginBottom: 12,
@@ -889,10 +889,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   vegDot: { width: 6, height: 6, borderRadius: 3 },
-  foodName: { flex: 1, fontSize: 15, fontFamily: Fonts?.bold || undefined },
+  foodName: { flex: 1, fontSize: 19, fontFamily: Fonts?.regular || undefined },
   foodDescription: {
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: 17,
+    lineHeight: 18,
     marginTop: 6,
     fontFamily: Fonts?.regular || undefined,
   },
@@ -903,16 +903,16 @@ const styles = StyleSheet.create({
     marginTop: 7,
   },
   foodPrice: {
-    fontSize: 17,
+    fontSize: 19,
     fontFamily: Fonts?.bold || undefined,
   },
   strikePrice: {
-    fontSize: 12,
+    fontSize: 15,
     textDecorationLine: "line-through",
     fontFamily: Fonts?.regular || undefined,
   },
   foodCategory: {
-    fontSize: 10,
+    fontSize: 15,
     marginTop: 3,
     fontFamily: Fonts?.regular || undefined,
   },
@@ -935,7 +935,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 2,
   },
-  addText: { color: RED, fontSize: 13, fontFamily: Fonts?.bold || undefined },
+  addText: { color: RED, fontSize: 17, fontFamily: Fonts?.regular|| Fonts?.regular || undefined },
   quantityControl: {
     height: 36,
     minWidth: 78,
@@ -991,7 +991,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  totalItems: { fontSize: 11, fontFamily: Fonts?.regular || undefined },
+  totalItems: { fontSize: 17, fontFamily: Fonts?.regular || undefined },
   totalPrice: {
     fontSize: 17,
     marginTop: 2,
@@ -1010,7 +1010,7 @@ const styles = StyleSheet.create({
   },
   reviewButtonText: {
     color: "#FFFFFF",
-    fontSize: 14,
-    fontFamily: Fonts?.bold || undefined,
+    fontSize: 19,
+    fontFamily: Fonts?.regular|| undefined,
   },
 });

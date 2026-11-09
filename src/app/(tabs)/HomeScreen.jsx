@@ -109,7 +109,12 @@ const getCategoryName = (item) =>
   item?.name || item?.title || item?.category_name || "Category";
 
 const getCategoryId = (item) =>
-  item?.id ?? item?.category_id ?? item?.categoryId ?? "";
+  item?.id ??
+  item?.category_id ??
+  item?.categoryId ??
+  item?.restaurant_category_id ??
+  item?.restaurantCategoryId ??
+  "";
 
 // =====================================================
 // PRODUCT HELPERS
@@ -839,14 +844,23 @@ const HomeScreen = () => {
   // ===================================================
 
   const openCategory = (item) => {
-    router.push({
-      pathname: "/(tabs)/ExploreScreen",
-      params: {
-        search: getCategoryName(item),
-        categoryId: String(getCategoryId(item)),
-      },
-    });
-  };
+  const categoryId = getCategoryId(item);
+  const categoryName = getCategoryName(item);
+
+  if (!categoryId) {
+    console.log("Category ID is missing:", item);
+    return;
+  }
+
+  router.push({
+    pathname: "/(tabs)/ExploreScreen",
+    params: {
+      category: String(categoryName),
+      categoryId: String(categoryId),
+      search: "",
+    },
+  });
+};
 
   const openNotifications = () => {
     router.push("/notifications");

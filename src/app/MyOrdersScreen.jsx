@@ -340,14 +340,14 @@ const OrdersScreen = () => {
         <View style={styles.eyebrowLine} />
       </View>
 
-      <Text style={styles.heroTitle}>
+      {/*<Text style={styles.heroTitle}>
         My <Text style={styles.heroTitleAccent}>Orders</Text>
-      </Text>
+      </Text>*/}
 
-      <Text style={styles.heroSubtitle}>
+      {/*<Text style={styles.heroSubtitle}>
         View your recent food orders and track your deliveries, all in one
         place.
-      </Text>
+      </Text>*/}
     </View>
   );
 
@@ -646,8 +646,8 @@ const createStyles = (Colors) => {
       flex: 1,
       textAlign: "center",
       color: Colors.textPrimary,
-      ...W.semiBold,
-      fontSize: 18,
+      ...W.regular,
+      fontSize: 25,
     },
 
     headerSpacer: {
@@ -735,8 +735,8 @@ const createStyles = (Colors) => {
 
     eyebrowSmall: {
       color: MUTED,
-      ...W.medium,
-      fontSize: 12,
+      ...W.regular,
+      fontSize: 17,
       letterSpacing: 1.5,
     },
 
@@ -769,8 +769,8 @@ const createStyles = (Colors) => {
     },
 
     statusPillText: {
-      ...W.semiBold,
-      fontSize: 15,
+      ...W.regular,
+      fontSize: 18,
     },
 
     topRight: {
@@ -788,7 +788,7 @@ const createStyles = (Colors) => {
     itemCount: {
       color: Colors.textSecondary,
       ...W.regular,
-      fontSize: 15,
+      fontSize: 17,
       marginTop: 10,
     },
 
@@ -819,7 +819,7 @@ const createStyles = (Colors) => {
       flex: 1,
       color: Colors.textPrimary,
       ...W.regular,
-      fontSize: 16,
+      fontSize: 18,
     },
 
     // ITEMS
@@ -892,13 +892,13 @@ const createStyles = (Colors) => {
     billLabel: {
       color: Colors.textSecondary,
       ...W.regular,
-      fontSize: 15,
+      fontSize: 17,
     },
 
     billValue: {
       color: Colors.textPrimary,
       ...W.regular,
-      fontSize: 15,
+      fontSize: 17,
     },
 
     dashedDivider: {
@@ -974,7 +974,7 @@ const createStyles = (Colors) => {
     paymentMethodEmpty: {
       color: MUTED,
       ...W.medium,
-      fontSize: 15,
+      fontSize: 17,
       marginTop: 9,
     },
 

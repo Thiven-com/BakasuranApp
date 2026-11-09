@@ -453,8 +453,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: "center",
-    fontSize: 18,
-    fontFamily: Fonts?.bold || undefined,
+    fontSize: 24,
+    fontFamily: Fonts?.regular || undefined,
   },
   headerRight: { width: 42 },
   scrollContent: { paddingHorizontal: 16, paddingBottom: 125 },
@@ -484,8 +484,8 @@ const styles = StyleSheet.create({
   },
   progressNumber: {
     color: "#FFFFFF",
-    fontSize: 12,
-    fontFamily: Fonts?.bold || undefined,
+    fontSize: 15,
+    fontFamily: Fonts?.regular|| Fonts?.regular || undefined,
   },
   progressPending: {
     width: 27,
@@ -495,16 +495,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  progressNumberPending: { fontSize: 12, fontFamily: Fonts?.bold || undefined },
+  progressNumberPending: { fontSize: 15, fontFamily: Fonts?.regular|| Fonts?.regular || undefined },
   progressLabel: {
-    fontSize: 11,
-    fontFamily: Fonts?.medium || Fonts?.regular || undefined,
+    fontSize: 15,
+    fontFamily: Fonts?.regular|| Fonts?.regular || undefined,
   },
   progressLine: { width: 58, height: 2, marginHorizontal: 8, marginBottom: 17 },
   pageHeading: { marginBottom: 17 },
   pageTitle: { fontSize: 25, fontFamily: Fonts?.bold || undefined },
   pageSubtitle: {
-    fontSize: 13,
+    fontSize: 17,
     marginTop: 4,
     fontFamily: Fonts?.regular || undefined,
   },
@@ -526,11 +526,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   tableInfo: { flex: 1 },
-  restaurantName: { fontSize: 15, fontFamily: Fonts?.bold || undefined },
+  restaurantName: { fontSize: 22, fontFamily: Fonts?.regular || undefined },
   tableCaption: {
-    fontSize: 12,
+    fontSize: 18,
     marginTop: 4,
-    fontFamily: Fonts?.regular || undefined,
+    fontFamily: Fonts?.regular|| Fonts?.regular || undefined,
   },
   dineBadge: {
     flexDirection: "row",
@@ -544,8 +544,8 @@ const styles = StyleSheet.create({
   dineDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#16A34A" },
   dineBadgeText: {
     color: "#16A34A",
-    fontSize: 9,
-    fontFamily: Fonts?.bold || undefined,
+    fontSize: 14,
+    fontFamily: Fonts?.regular|| Fonts?.regular || undefined,
   },
   sectionHeading: {
     flexDirection: "row",
@@ -554,8 +554,8 @@ const styles = StyleSheet.create({
     marginTop: 25,
     marginBottom: 11,
   },
-  sectionTitle: { fontSize: 17, fontFamily: Fonts?.bold || undefined },
-  itemCount: { fontSize: 12, fontFamily: Fonts?.regular || undefined },
+  sectionTitle: { fontSize: 20, fontFamily: Fonts?.regular|| Fonts?.regular || undefined },
+  itemCount: { fontSize: 18, fontFamily: Fonts?.regular|| Fonts?.regular || undefined },
   itemsCard: { borderWidth: 1, borderRadius: 15, paddingHorizontal: 12 },
   orderItem: {
     minHeight: 112,
@@ -571,14 +571,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#252525",
   },
   itemDetails: { flex: 1, justifyContent: "center" },
-  foodName: { fontSize: 14, fontFamily: Fonts?.bold || undefined },
+  foodName: { fontSize: 20, fontFamily: Fonts?.bold || undefined },
   foodPrice: {
-    fontSize: 12,
+    fontSize: 15,
     marginTop: 5,
     fontFamily: Fonts?.regular || undefined,
   },
   lineTotal: {
-    fontSize: 13,
+    fontSize: 17,
     marginTop: 5,
     fontFamily: Fonts?.bold || undefined,
   },
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
   },
   quantityText: {
     color: RED,
-    fontSize: 13,
+    fontSize: 17,
     fontFamily: Fonts?.bold || undefined,
   },
   itemDivider: { height: 1, marginLeft: 87 },
@@ -613,8 +613,8 @@ const styles = StyleSheet.create({
   },
   addMoreRowText: {
     color: RED,
-    fontSize: 13,
-    fontFamily: Fonts?.bold || undefined,
+    fontSize: 19,
+    fontFamily: Fonts?.regular || undefined,
   },
   billCard: { borderWidth: 1, borderRadius: 15, padding: 15, marginTop: 7 },
   billRow: {
@@ -623,21 +623,21 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 15,
   },
-  billLabel: { fontSize: 13, fontFamily: Fonts?.regular || undefined },
+  billLabel: { fontSize: 18, fontFamily: Fonts?.regular || undefined },
   billValue: {
-    fontSize: 13,
+    fontSize: 15,
     fontFamily: Fonts?.medium || Fonts?.regular || undefined,
   },
   billDivider: { height: 1, marginTop: 15 },
-  grandTotalLabel: { fontSize: 15, fontFamily: Fonts?.bold || undefined },
+  grandTotalLabel: { fontSize: 15, fontFamily: Fonts?.regular || undefined },
   grandTotalValue: {
     color: RED,
-    fontSize: 19,
+    fontSize: 22,
     fontFamily: Fonts?.bold || undefined,
   },
   taxNote: {
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: 15,
+    lineHeight: 18,
     marginTop: 11,
     fontFamily: Fonts?.regular || undefined,
   },
@@ -653,8 +653,8 @@ const styles = StyleSheet.create({
   noteText: {
     flex: 1,
     color: "#B8860B",
-    fontSize: 11,
-    lineHeight: 17,
+    fontSize: 16,
+    lineHeight: 18,
     fontFamily: Fonts?.regular || undefined,
   },
   instructionsCard: {
@@ -682,13 +682,13 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   emptyTitle: {
-    fontSize: 16,
+    fontSize: 19,
     marginTop: 12,
     fontFamily: Fonts?.bold || undefined,
   },
   emptyDescription: {
     textAlign: "center",
-    fontSize: 12,
+    fontSize: 18,
     marginTop: 6,
     lineHeight: 18,
     fontFamily: Fonts?.regular || undefined,
@@ -702,7 +702,7 @@ const styles = StyleSheet.create({
   },
   addMoreText: {
     color: "#FFFFFF",
-    fontSize: 12,
+    fontSize: 15,
     fontFamily: Fonts?.bold || undefined,
   },
   bottomBar: {
@@ -719,7 +719,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: 12,
   },
-  bottomCaption: { fontSize: 11, fontFamily: Fonts?.regular || undefined },
+  bottomCaption: { fontSize: 19, fontFamily: Fonts?.regular || undefined },
   bottomTotal: {
     fontSize: 18,
     marginTop: 3,
@@ -739,7 +739,7 @@ const styles = StyleSheet.create({
   disabledButton: { opacity: 0.45 },
   placeOrderText: {
     color: "#FFFFFF",
-    fontSize: 14,
-    fontFamily: Fonts?.bold || undefined,
+    fontSize: 18,
+    fontFamily: Fonts?.regular || undefined,
   },
 });

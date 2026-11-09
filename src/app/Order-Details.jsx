@@ -897,8 +897,8 @@ const createStyles = (Colors) => {
       flex: 1,
       textAlign: "center",
       color: WHITE,
-      ...W.semiBold,
-      fontSize: 18,
+      ...W.regular,
+      fontSize: 25,
     },
 
     headerSpacer: {
@@ -923,8 +923,8 @@ const createStyles = (Colors) => {
 
     cardTitle: {
       color: WHITE,
-      ...W.bold,
-      fontSize: 20,
+      ...W.regular,
+      fontSize: 25,
       marginBottom: 14,
     },
 
@@ -947,8 +947,8 @@ const createStyles = (Colors) => {
 
     orderNumber: {
       color: WHITE,
-      ...W.bold,
-      fontSize: 16,
+      ...W.regular,
+      fontSize: 25,
       marginTop: 6,
       marginBottom: 10,
     },
@@ -964,8 +964,8 @@ const createStyles = (Colors) => {
     },
 
     statusPillText: {
-      ...W.semiBold,
-      fontSize: 10,
+      ...W.regular,
+      fontSize: 18,
     },
 
     topMiddle: {
@@ -984,7 +984,7 @@ const createStyles = (Colors) => {
       flex: 1,
       color: WHITE,
       ...W.regular,
-      fontSize: 15,
+      fontSize: 19,
     },
 
     topRight: {
@@ -1050,8 +1050,8 @@ const createStyles = (Colors) => {
 
     itemName: {
       color: WHITE,
-      ...W.semiBold,
-      fontSize: 17,
+      ...W.regular,
+      fontSize: 19,
       marginBottom: 4,
     },
 
@@ -1090,13 +1090,13 @@ const createStyles = (Colors) => {
     billLabel: {
       color: WHITE,
       ...W.regular,
-      fontSize: 16,
+      fontSize: 19,
     },
 
     billValue: {
       color: WHITE,
-      ...W.medium,
-      fontSize: 16,
+      ...W.regular,
+      fontSize: 18,
     },
 
     dashedDivider: {
@@ -1117,8 +1117,8 @@ const createStyles = (Colors) => {
 
     billTotalLabel: {
       color: WHITE,
-      ...W.bold,
-      fontSize: 16,
+      ...W.regular,
+      fontSize: 19,
     },
 
     billTotalValue: {
@@ -1145,13 +1145,14 @@ const createStyles = (Colors) => {
       flex: 1,
       color: WHITE,
       ...W.regular,
-      fontSize: 15,
+      fontSize: 18,
       lineHeight: 19,
     },
 
     bannerHighlight: {
       color: GOLD,
-      ...W.semiBold,
+      ...W.regular,
+      fontSize: 18,
     },
 
     // INVOICE BUTTONS
@@ -1174,8 +1175,8 @@ const createStyles = (Colors) => {
 
     printButtonText: {
       color: RED,
-      ...W.semiBold,
-      fontSize: 16,
+      ...W.regular,
+      fontSize: 17,
     },
 
     downloadButton: {
@@ -1191,8 +1192,8 @@ const createStyles = (Colors) => {
 
     downloadButtonText: {
       color: "#FFFFFF",
-      ...W.semiBold,
-      fontSize: 14,
+      ...W.regular,
+      fontSize: 16,
     },
 
     // TRACKING

@@ -332,11 +332,11 @@ const normalizeRestaurant = (item, index) => {
     "Restaurant";
 
   const imageValue =
-    restaurant?.image_url ||
-    restaurant?.imageUrl ||
-    restaurant?.image ||
-    restaurant?.restaurant_image ||
-    restaurant?.restaurantImage ||
+    restaurant?.logo_url ||
+    restaurant?.logoUrl ||
+    restaurant?.logo ||
+    restaurant?.restaurant_logo ||
+    restaurant?.restaurantLogo ||
     restaurant?.photo ||
     restaurant?.thumbnail;
 
