@@ -1558,32 +1558,22 @@ export default function RestaurantDetails() {
                                 borderColor: colors.primary || "#F9080C",
                               },
                             ]}
-                            disabled={productLoading || cartLoading}
                             onPress={(event) => {
                               event?.stopPropagation?.();
 
-                              // Open product details and load product API.
-                              // Add to Cart API will run from the product modal.
                               openProduct(item);
                             }}
                           >
-                            {productLoading ? (
-                              <ActivityIndicator
-                                size="small"
-                                color={colors.primary || "#F9080C"}
-                              />
-                            ) : (
-                              <Text
-                                style={[
-                                  styles.addButtonText,
-                                  {
-                                    color: colors.primary || "#F9080C",
-                                  },
-                                ]}
-                              >
-                                ADD
-                              </Text>
-                            )}
+                            <Text
+                              style={[
+                                styles.addButtonText,
+                                {
+                                  color: colors.primary || "#F9080C",
+                                },
+                              ]}
+                            >
+                              ADD
+                            </Text>
                           </TouchableOpacity>
                         ) : (
                           <View
