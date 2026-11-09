@@ -10,8 +10,8 @@ import {
   View,
 } from "react-native";
 
-import { useTheme } from "../hooks/use-theme";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 const OrderSuccessScreen = () => {
   const { colors: Colors } = useTheme();
@@ -245,783 +245,784 @@ const OrderSuccessScreen = () => {
 
 export default OrderSuccessScreen;
 
-const createStyles = (Colors) => StyleSheet.create({
-  /* =====================================
+const createStyles = (Colors) =>
+  StyleSheet.create({
+    /* =====================================
      CONTAINER
   ===================================== */
 
-  container: {
-    flex: 1,
+    container: {
+      flex: 1,
 
-    backgroundColor: Colors.background,
-  },
+      backgroundColor: Colors.background,
+    },
 
-  scrollContent: {
-    paddingHorizontal: 18,
+    scrollContent: {
+      paddingHorizontal: 18,
 
-    paddingTop: 18,
+      paddingTop: 18,
 
-    paddingBottom: 35,
-  },
+      paddingBottom: 35,
+    },
 
-  /* =====================================
+    /* =====================================
      HERO
   ===================================== */
 
-  heroSection: {
-    height: 320,
+    heroSection: {
+      height: 320,
 
-    position: "relative",
+      position: "relative",
 
-    alignItems: "center",
-    justifyContent: "center",
+      alignItems: "center",
+      justifyContent: "center",
 
-    overflow: "hidden",
+      overflow: "hidden",
 
-    borderRadius: 30,
+      borderRadius: 30,
 
-    backgroundColor: Colors.backgroundElement,
-  },
+      backgroundColor: Colors.backgroundElement,
+    },
 
-  glow: {
-    position: "absolute",
+    glow: {
+      position: "absolute",
 
-    width: 260,
-    height: 260,
+      width: 260,
+      height: 260,
 
-    borderRadius: 130,
+      borderRadius: 130,
 
-    backgroundColor: "rgba(255,32,40,0.10)",
-  },
+      backgroundColor: "rgba(255,32,40,0.10)",
+    },
 
-  /* =====================================
+    /* =====================================
      FOOD BAG
   ===================================== */
 
-  foodBagContainer: {
-    width: 240,
-    height: 215,
+    foodBagContainer: {
+      width: 240,
+      height: 215,
 
-    position: "relative",
+      position: "relative",
 
-    alignItems: "center",
+      alignItems: "center",
 
-    marginTop: 15,
-  },
-
-  foodBag: {
-    position: "absolute",
-
-    bottom: 12,
-
-    width: 175,
-    height: 150,
-
-    borderRadius: 8,
-
-    backgroundColor: Colors.primary,
-
-    alignItems: "center",
-    justifyContent: "center",
-
-    shadowColor: Colors.primary,
-
-    shadowOffset: {
-      width: 0,
-      height: 10,
+      marginTop: 15,
     },
 
-    shadowOpacity: 0.35,
+    foodBag: {
+      position: "absolute",
 
-    shadowRadius: 20,
+      bottom: 12,
 
-    elevation: 10,
-  },
+      width: 175,
+      height: 150,
 
-  foodBagTop: {
-    position: "absolute",
+      borderRadius: 8,
 
-    top: -8,
+      backgroundColor: Colors.primary,
 
-    width: 175,
-    height: 20,
+      alignItems: "center",
+      justifyContent: "center",
 
-    borderRadius: 10,
+      shadowColor: Colors.primary,
 
-    backgroundColor: Colors.primaryDark,
-  },
+      shadowOffset: {
+        width: 0,
+        height: 10,
+      },
 
-  foodBagLogo: {
-    width: 72,
-    height: 72,
+      shadowOpacity: 0.35,
 
-    borderRadius: 36,
+      shadowRadius: 20,
 
-    borderWidth: 3,
+      elevation: 10,
+    },
 
-    borderColor: "rgba(255,255,255,0.8)",
+    foodBagTop: {
+      position: "absolute",
 
-    alignItems: "center",
-    justifyContent: "center",
-  },
+      top: -8,
 
-  /* =====================================
+      width: 175,
+      height: 20,
+
+      borderRadius: 10,
+
+      backgroundColor: Colors.primaryDark,
+    },
+
+    foodBagLogo: {
+      width: 72,
+      height: 72,
+
+      borderRadius: 36,
+
+      borderWidth: 3,
+
+      borderColor: "rgba(255,255,255,0.8)",
+
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    /* =====================================
      BURGER
   ===================================== */
 
-  burgerContainer: {
-    position: "absolute",
+    burgerContainer: {
+      position: "absolute",
 
-    top: -8,
-    left: 32,
+      top: -8,
+      left: 32,
 
-    width: 105,
-    height: 80,
+      width: 105,
+      height: 80,
 
-    alignItems: "center",
+      alignItems: "center",
 
-    zIndex: 5,
-  },
+      zIndex: 5,
+    },
 
-  burgerTop: {
-    width: 95,
-    height: 32,
+    burgerTop: {
+      width: 95,
+      height: 32,
 
-    borderTopLeftRadius: 48,
-    borderTopRightRadius: 48,
+      borderTopLeftRadius: 48,
+      borderTopRightRadius: 48,
 
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
+      borderBottomLeftRadius: 12,
+      borderBottomRightRadius: 12,
 
-    backgroundColor: "#D98A25",
+      backgroundColor: "#D98A25",
 
-    position: "relative",
-  },
+      position: "relative",
+    },
 
-  sesame: {
-    position: "absolute",
+    sesame: {
+      position: "absolute",
 
-    width: 4,
-    height: 2,
+      width: 4,
+      height: 2,
 
-    borderRadius: 2,
+      borderRadius: 2,
 
-    backgroundColor: "#FFE9A8",
-  },
+      backgroundColor: "#FFE9A8",
+    },
 
-  sesameOne: {
-    left: 20,
-    top: 10,
-  },
+    sesameOne: {
+      left: 20,
+      top: 10,
+    },
 
-  sesameTwo: {
-    left: 44,
-    top: 7,
-  },
+    sesameTwo: {
+      left: 44,
+      top: 7,
+    },
 
-  sesameThree: {
-    right: 22,
-    top: 12,
-  },
+    sesameThree: {
+      right: 22,
+      top: 12,
+    },
 
-  sesameFour: {
-    right: 40,
-    top: 19,
-  },
+    sesameFour: {
+      right: 40,
+      top: 19,
+    },
 
-  lettuce: {
-    width: 100,
-    height: 7,
+    lettuce: {
+      width: 100,
+      height: 7,
 
-    backgroundColor: "#53A83A",
+      backgroundColor: "#53A83A",
 
-    borderRadius: 4,
-  },
+      borderRadius: 4,
+    },
 
-  cheese: {
-    width: 94,
-    height: 8,
+    cheese: {
+      width: 94,
+      height: 8,
 
-    backgroundColor: "#FFC928",
+      backgroundColor: "#FFC928",
 
-    borderRadius: 2,
-  },
+      borderRadius: 2,
+    },
 
-  patty: {
-    width: 94,
-    height: 13,
+    patty: {
+      width: 94,
+      height: 13,
 
-    backgroundColor: "#542717",
+      backgroundColor: "#542717",
 
-    borderRadius: 6,
-  },
+      borderRadius: 6,
+    },
 
-  burgerBottom: {
-    width: 94,
-    height: 13,
+    burgerBottom: {
+      width: 94,
+      height: 13,
 
-    backgroundColor: "#C87821",
+      backgroundColor: "#C87821",
 
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-  },
+      borderBottomLeftRadius: 10,
+      borderBottomRightRadius: 10,
+    },
 
-  /* =====================================
+    /* =====================================
      FRIES
   ===================================== */
 
-  friesContainer: {
-    position: "absolute",
+    friesContainer: {
+      position: "absolute",
 
-    top: -18,
-    right: 27,
+      top: -18,
+      right: 27,
 
-    width: 65,
-    height: 85,
+      width: 65,
+      height: 85,
 
-    alignItems: "center",
+      alignItems: "center",
 
-    zIndex: 5,
-  },
+      zIndex: 5,
+    },
 
-  friesBox: {
-    position: "absolute",
+    friesBox: {
+      position: "absolute",
 
-    bottom: 0,
+      bottom: 0,
 
-    width: 58,
-    height: 48,
+      width: 58,
+      height: 48,
 
-    backgroundColor: "#E7271E",
+      backgroundColor: "#E7271E",
 
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
-  },
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
+    },
 
-  fries: {
-    width: 55,
-    height: 45,
+    fries: {
+      width: 55,
+      height: 45,
 
-    position: "absolute",
+      position: "absolute",
 
-    top: 0,
+      top: 0,
 
-    flexDirection: "row",
+      flexDirection: "row",
 
-    justifyContent: "space-around",
+      justifyContent: "space-around",
 
-    alignItems: "flex-end",
-  },
+      alignItems: "flex-end",
+    },
 
-  friesOne: {
-    width: 8,
-    height: 45,
+    friesOne: {
+      width: 8,
+      height: 45,
 
-    backgroundColor: "#FFC62A",
+      backgroundColor: "#FFC62A",
 
-    borderRadius: 4,
+      borderRadius: 4,
 
-    transform: [{ rotate: "-8deg" }],
-  },
+      transform: [{ rotate: "-8deg" }],
+    },
 
-  friesTwo: {
-    width: 8,
-    height: 55,
+    friesTwo: {
+      width: 8,
+      height: 55,
 
-    backgroundColor: "#FFD33D",
+      backgroundColor: "#FFD33D",
 
-    borderRadius: 4,
+      borderRadius: 4,
 
-    transform: [{ rotate: "-2deg" }],
-  },
+      transform: [{ rotate: "-2deg" }],
+    },
 
-  friesThree: {
-    width: 8,
-    height: 50,
+    friesThree: {
+      width: 8,
+      height: 50,
 
-    backgroundColor: "#F5B91F",
+      backgroundColor: "#F5B91F",
 
-    borderRadius: 4,
-  },
+      borderRadius: 4,
+    },
 
-  friesFour: {
-    width: 8,
-    height: 58,
+    friesFour: {
+      width: 8,
+      height: 58,
 
-    backgroundColor: "#FFD33D",
+      backgroundColor: "#FFD33D",
 
-    borderRadius: 4,
+      borderRadius: 4,
 
-    transform: [{ rotate: "5deg" }],
-  },
+      transform: [{ rotate: "5deg" }],
+    },
 
-  friesFive: {
-    width: 8,
-    height: 45,
+    friesFive: {
+      width: 8,
+      height: 45,
 
-    backgroundColor: "#F5B91F",
+      backgroundColor: "#F5B91F",
 
-    borderRadius: 4,
+      borderRadius: 4,
 
-    transform: [{ rotate: "10deg" }],
-  },
+      transform: [{ rotate: "10deg" }],
+    },
 
-  /* =====================================
+    /* =====================================
      SUCCESS CHECK
   ===================================== */
 
-  successCircle: {
-    position: "absolute",
+    successCircle: {
+      position: "absolute",
 
-    right: 54,
-    bottom: 40,
+      right: 54,
+      bottom: 40,
 
-    width: 72,
-    height: 72,
+      width: 72,
+      height: 72,
 
-    borderRadius: 36,
+      borderRadius: 36,
 
-    backgroundColor: Colors.success,
+      backgroundColor: Colors.success,
 
-    alignItems: "center",
-    justifyContent: "center",
+      alignItems: "center",
+      justifyContent: "center",
 
-    borderWidth: 4,
+      borderWidth: 4,
 
-    borderColor: Colors.background,
+      borderColor: Colors.background,
 
-    shadowColor: Colors.success,
+      shadowColor: Colors.success,
 
-    shadowOffset: {
-      width: 0,
-      height: 6,
+      shadowOffset: {
+        width: 0,
+        height: 6,
+      },
+
+      shadowOpacity: 0.35,
+
+      shadowRadius: 12,
+
+      elevation: 10,
     },
 
-    shadowOpacity: 0.35,
-
-    shadowRadius: 12,
-
-    elevation: 10,
-  },
-
-  /* =====================================
+    /* =====================================
      CONFETTI
   ===================================== */
 
-  confetti: {
-    position: "absolute",
+    confetti: {
+      position: "absolute",
 
-    width: 8,
-    height: 18,
+      width: 8,
+      height: 18,
 
-    borderRadius: 4,
+      borderRadius: 4,
 
-    transform: [{ rotate: "30deg" }],
-  },
+      transform: [{ rotate: "30deg" }],
+    },
 
-  confettiOne: {
-    left: 28,
-    top: 80,
+    confettiOne: {
+      left: 28,
+      top: 80,
 
-    backgroundColor: "#FFB800",
-  },
+      backgroundColor: "#FFB800",
+    },
 
-  confettiTwo: {
-    right: 35,
-    top: 65,
+    confettiTwo: {
+      right: 35,
+      top: 65,
 
-    backgroundColor: Colors.primary,
-  },
+      backgroundColor: Colors.primary,
+    },
 
-  confettiThree: {
-    left: 52,
-    bottom: 60,
+    confettiThree: {
+      left: 52,
+      bottom: 60,
 
-    backgroundColor: "#22C55E",
+      backgroundColor: "#22C55E",
 
-    transform: [{ rotate: "-30deg" }],
-  },
+      transform: [{ rotate: "-30deg" }],
+    },
 
-  confettiFour: {
-    right: 28,
-    bottom: 95,
+    confettiFour: {
+      right: 28,
+      bottom: 95,
 
-    backgroundColor: "#FFB800",
+      backgroundColor: "#FFB800",
 
-    transform: [{ rotate: "60deg" }],
-  },
+      transform: [{ rotate: "60deg" }],
+    },
 
-  confettiFive: {
-    left: 78,
-    top: 35,
+    confettiFive: {
+      left: 78,
+      top: 35,
 
-    backgroundColor: "#FF4D53",
+      backgroundColor: "#FF4D53",
 
-    transform: [{ rotate: "80deg" }],
-  },
+      transform: [{ rotate: "80deg" }],
+    },
 
-  heart: {
-    position: "absolute",
+    heart: {
+      position: "absolute",
 
-    color: Colors.primary,
+      color: Colors.primary,
 
-    fontSize: 20,
-  },
+      fontSize: 20,
+    },
 
-  heartOne: {
-    right: 70,
-    top: 60,
-  },
+    heartOne: {
+      right: 70,
+      top: 60,
+    },
 
-  heartTwo: {
-    left: 42,
-    bottom: 105,
+    heartTwo: {
+      left: 42,
+      bottom: 105,
 
-    fontSize: 15,
-  },
+      fontSize: 15,
+    },
 
-  /* =====================================
+    /* =====================================
      SUCCESS TEXT
   ===================================== */
 
-  successTextContainer: {
-    alignItems: "center",
+    successTextContainer: {
+      alignItems: "center",
 
-    paddingTop: 24,
+      paddingTop: 24,
 
-    paddingBottom: 18,
-  },
+      paddingBottom: 18,
+    },
 
-  successTitle: {
-    color: Colors.textPrimary,
+    successTitle: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.extraBold,
+      fontFamily: Fonts.extraBold,
 
-    fontSize: 30,
+      fontSize: 30,
 
-    textAlign: "center",
-  },
+      textAlign: "center",
+    },
 
-  successSubtitle: {
-    marginTop: 8,
+    successSubtitle: {
+      marginTop: 8,
 
-    color: Colors.textSecondary,
+      color: Colors.textSecondary,
 
-    fontFamily: Fonts.medium,
+      fontFamily: Fonts.medium,
 
-    fontSize: Fonts.size.base,
+      fontSize: Fonts.size.base,
 
-    textAlign: "center",
-  },
+      textAlign: "center",
+    },
 
-  /* =====================================
+    /* =====================================
      ORDER ID
   ===================================== */
 
-  orderIdContainer: {
-    padding: 15,
+    orderIdContainer: {
+      padding: 15,
 
-    marginBottom: 12,
+      marginBottom: 12,
 
-    borderRadius: 16,
+      borderRadius: 16,
 
-    backgroundColor: Colors.surface,
+      backgroundColor: Colors.surface,
 
-    borderWidth: 1,
+      borderWidth: 1,
 
-    borderColor: Colors.border,
+      borderColor: Colors.border,
 
-    flexDirection: "row",
+      flexDirection: "row",
 
-    alignItems: "center",
+      alignItems: "center",
 
-    justifyContent: "space-between",
-  },
+      justifyContent: "space-between",
+    },
 
-  orderIdLabel: {
-    color: Colors.textMuted,
+    orderIdLabel: {
+      color: Colors.textMuted,
 
-    fontFamily: Fonts.medium,
+      fontFamily: Fonts.medium,
 
-    fontSize: Fonts.size.xs,
+      fontSize: Fonts.size.xs,
 
-    letterSpacing: 1,
-  },
+      letterSpacing: 1,
+    },
 
-  orderId: {
-    marginTop: 3,
+    orderId: {
+      marginTop: 3,
 
-    color: Colors.textPrimary,
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.bold,
+      fontFamily: Fonts.bold,
 
-    fontSize: Fonts.size.base,
-  },
+      fontSize: Fonts.size.base,
+    },
 
-  confirmedBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 7,
+    confirmedBadge: {
+      paddingHorizontal: 10,
+      paddingVertical: 7,
 
-    borderRadius: 20,
+      borderRadius: 20,
 
-    backgroundColor: "rgba(34,197,94,0.10)",
+      backgroundColor: "rgba(34,197,94,0.10)",
 
-    flexDirection: "row",
+      flexDirection: "row",
 
-    alignItems: "center",
-  },
+      alignItems: "center",
+    },
 
-  confirmedText: {
-    marginLeft: 5,
+    confirmedText: {
+      marginLeft: 5,
 
-    color: Colors.success,
+      color: Colors.success,
 
-    fontFamily: Fonts.semiBold,
+      fontFamily: Fonts.semiBold,
 
-    fontSize: Fonts.size.xs,
-  },
+      fontSize: Fonts.size.xs,
+    },
 
-  /* =====================================
+    /* =====================================
      ORDER CARD
   ===================================== */
 
-  orderCard: {
-    minHeight: 105,
+    orderCard: {
+      minHeight: 105,
 
-    padding: 10,
+      padding: 10,
 
-    borderRadius: 20,
+      borderRadius: 20,
 
-    backgroundColor: Colors.surface,
+      backgroundColor: Colors.surface,
 
-    borderWidth: 1,
+      borderWidth: 1,
 
-    borderColor: Colors.border,
+      borderColor: Colors.border,
 
-    flexDirection: "row",
+      flexDirection: "row",
 
-    alignItems: "center",
-  },
+      alignItems: "center",
+    },
 
-  foodImage: {
-    width: 84,
-    height: 84,
+    foodImage: {
+      width: 84,
+      height: 84,
 
-    borderRadius: 14,
+      borderRadius: 14,
 
-    backgroundColor: Colors.card,
-  },
+      backgroundColor: Colors.card,
+    },
 
-  orderDetails: {
-    flex: 1,
+    orderDetails: {
+      flex: 1,
 
-    marginLeft: 12,
+      marginLeft: 12,
 
-    minWidth: 0,
-  },
+      minWidth: 0,
+    },
 
-  itemName: {
-    color: Colors.textPrimary,
+    itemName: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.bold,
+      fontFamily: Fonts.bold,
 
-    fontSize: Fonts.size.base,
-  },
+      fontSize: Fonts.size.base,
+    },
 
-  restaurantName: {
-    marginTop: 4,
+    restaurantName: {
+      marginTop: 4,
 
-    color: Colors.goldDark,
+      color: Colors.goldDark,
 
-    fontFamily: Fonts.medium,
+      fontFamily: Fonts.medium,
 
-    fontSize: Fonts.size.base,
-  },
+      fontSize: Fonts.size.base,
+    },
 
-  orderMeta: {
-    marginTop: 8,
+    orderMeta: {
+      marginTop: 8,
 
-    color: Colors.textMuted,
+      color: Colors.textMuted,
 
-    fontFamily: Fonts.regular,
+      fontFamily: Fonts.regular,
 
-    fontSize: Fonts.size.xs,
-  },
+      fontSize: Fonts.size.xs,
+    },
 
-  arrowButton: {
-    width: 35,
-    height: 35,
+    arrowButton: {
+      width: 35,
+      height: 35,
 
-    borderRadius: 18,
+      borderRadius: 18,
 
-    alignItems: "center",
-    justifyContent: "center",
+      alignItems: "center",
+      justifyContent: "center",
 
-    backgroundColor: Colors.card,
-  },
+      backgroundColor: Colors.card,
+    },
 
-  /* =====================================
+    /* =====================================
      DELIVERY CARD
   ===================================== */
 
-  deliveryCard: {
-    marginTop: 12,
+    deliveryCard: {
+      marginTop: 12,
 
-    padding: 14,
+      padding: 14,
 
-    borderRadius: 18,
+      borderRadius: 18,
 
-    backgroundColor: "rgba(255,32,40,0.06)",
+      backgroundColor: "rgba(255,32,40,0.06)",
 
-    borderWidth: 1,
+      borderWidth: 1,
 
-    borderColor: "rgba(255,32,40,0.15)",
+      borderColor: "rgba(255,32,40,0.15)",
 
-    flexDirection: "row",
+      flexDirection: "row",
 
-    alignItems: "center",
-  },
+      alignItems: "center",
+    },
 
-  deliveryIcon: {
-    width: 46,
-    height: 46,
+    deliveryIcon: {
+      width: 46,
+      height: 46,
 
-    borderRadius: 23,
+      borderRadius: 23,
 
-    alignItems: "center",
-    justifyContent: "center",
+      alignItems: "center",
+      justifyContent: "center",
 
-    backgroundColor: "rgba(255,32,40,0.12)",
-  },
+      backgroundColor: "rgba(255,32,40,0.12)",
+    },
 
-  deliveryContent: {
-    flex: 1,
+    deliveryContent: {
+      flex: 1,
 
-    marginLeft: 12,
-  },
+      marginLeft: 12,
+    },
 
-  deliveryTitle: {
-    color: Colors.textPrimary,
+    deliveryTitle: {
+      color: Colors.textPrimary,
 
-    fontFamily: Fonts.semiBold,
+      fontFamily: Fonts.semiBold,
 
-    fontSize: Fonts.size.xs,
-  },
+      fontSize: Fonts.size.xs,
+    },
 
-  deliveryText: {
-    marginTop: 4,
+    deliveryText: {
+      marginTop: 4,
 
-    color: Colors.textSecondary,
+      color: Colors.textSecondary,
 
-    fontFamily: Fonts.regular,
+      fontFamily: Fonts.regular,
 
-    fontSize: Fonts.size.md,
+      fontSize: Fonts.size.md,
 
-    lineHeight: 17,
-  },
+      lineHeight: 17,
+    },
 
-  /* =====================================
+    /* =====================================
      TRACK BUTTON
   ===================================== */
 
-  trackButton: {
-    height: 55,
+    trackButton: {
+      height: 55,
 
-    marginTop: 18,
+      marginTop: 18,
 
-    borderRadius: 28,
+      borderRadius: 28,
 
-    paddingHorizontal: 22,
+      paddingHorizontal: 22,
 
-    backgroundColor: Colors.primary,
+      backgroundColor: Colors.primary,
 
-    flexDirection: "row",
+      flexDirection: "row",
 
-    alignItems: "center",
+      alignItems: "center",
 
-    justifyContent: "center",
+      justifyContent: "center",
 
-    shadowColor: Colors.primary,
+      shadowColor: Colors.primary,
 
-    shadowOffset: {
-      width: 0,
-      height: 7,
+      shadowOffset: {
+        width: 0,
+        height: 7,
+      },
+
+      shadowOpacity: 0.28,
+
+      shadowRadius: 12,
+
+      elevation: 6,
     },
 
-    shadowOpacity: 0.28,
+    trackButtonText: {
+      color: Colors.white,
 
-    shadowRadius: 12,
+      fontFamily: Fonts.bold,
 
-    elevation: 6,
-  },
+      fontSize: Fonts.size.base,
 
-  trackButtonText: {
-    color: Colors.white,
+      marginRight: 10,
+    },
 
-    fontFamily: Fonts.bold,
-
-    fontSize: Fonts.size.base,
-
-    marginRight: 10,
-  },
-
-  /* =====================================
+    /* =====================================
      CONTINUE BUTTON
   ===================================== */
 
-  continueButton: {
-    height: 55,
+    continueButton: {
+      height: 55,
 
-    marginTop: 10,
+      marginTop: 10,
 
-    borderRadius: 28,
+      borderRadius: 28,
 
-    paddingHorizontal: 22,
+      paddingHorizontal: 22,
 
-    backgroundColor: Colors.surface,
+      backgroundColor: Colors.surface,
 
-    borderWidth: 1,
+      borderWidth: 1,
 
-    borderColor: Colors.border,
+      borderColor: Colors.border,
 
-    flexDirection: "row",
+      flexDirection: "row",
 
-    alignItems: "center",
+      alignItems: "center",
 
-    justifyContent: "center",
-  },
+      justifyContent: "center",
+    },
 
-  continueButtonText: {
-    marginLeft: 9,
+    continueButtonText: {
+      marginLeft: 9,
 
-    color: Colors.white,
+      color: Colors.white,
 
-    fontFamily: Fonts.semiBold,
+      fontFamily: Fonts.semiBold,
 
-    fontSize: Fonts.size.base,
-  },
+      fontSize: Fonts.size.base,
+    },
 
-  /* =====================================
+    /* =====================================
      FOOTER
   ===================================== */
 
-  footer: {
-    marginTop: 20,
+    footer: {
+      marginTop: 20,
 
-    flexDirection: "row",
+      flexDirection: "row",
 
-    alignItems: "center",
+      alignItems: "center",
 
-    justifyContent: "center",
-  },
+      justifyContent: "center",
+    },
 
-  footerText: {
-    marginLeft: 6,
+    footerText: {
+      marginLeft: 6,
 
-    color: Colors.textMuted,
+      color: Colors.textMuted,
 
-    fontFamily: Fonts.regular,
+      fontFamily: Fonts.regular,
 
-    fontSize: Fonts.size.xs,
-  },
-});
+      fontSize: Fonts.size.xs,
+    },
+  });
