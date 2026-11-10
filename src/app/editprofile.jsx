@@ -1,10 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
+
 
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -39,59 +42,59 @@ export default function EditProfileScreen() {
   const [location, setLocation] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const [profileImage, setProfileImage] = useState(null);
+const [profileImageAsset, setProfileImageAsset] = useState(null);
+
+const handlePickImage = async () => {
+  try {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets?.length > 0) {
+      const asset = result.assets[0];
+
+      console.log("SELECTED IMAGE ASSET:", asset);
+
+      setProfileImage(asset.uri);
+      setProfileImageAsset(asset);
+    }
+  } catch (error) {
+    console.log("IMAGE PICKER ERROR:", error);
+  }
+};
   // =======================================================
   // UPDATE PROFILE API
   // POST /api/customer/profile/update
   // =======================================================
-
-  const handleSave = async () => {
-    if (!fullName.trim()) {
-      Alert.alert("Required", "Please enter your full name.");
-      return;
-    }
-
-    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      Alert.alert("Invalid Email", "Please enter a valid email address.");
-      return;
-    }
-
-    if (saving) return;
-
+const handleSave = async () => {
+  try {
     setSaving(true);
 
-    try {
-      const result = await updateProfile({
-        name: fullName,
-        email: email,
-      });
+    const result = await updateProfile({
+      name: fullName,
+      email: email,
+      profile_pic: profileImageAsset,
+    });
 
-      if (Number(result?.success) === 1) {
-        Alert.alert(
-          "Profile Updated",
-          result.message || "Your profile has been updated successfully.",
-          [
-            {
-              text: "OK",
-              onPress: () => router.back(),
-            },
-          ],
-        );
-      } else if (Number(result?.success) === 9) {
-        Alert.alert("Login Required", result.message || "Please login again.");
-      } else {
-        const errorMessage = result?.errors
-          ? Object.values(result.errors).flat().join("\n")
-          : result?.message || "Unable to update your profile.";
+    console.log("PROFILE UPDATE RESPONSE:", result);
 
-        Alert.alert("Update Failed", errorMessage);
-      }
-    } catch (error) {
-      Alert.alert("Error", error?.message || "Unable to update your profile.");
-    } finally {
-      setSaving(false);
+    if (Number(result?.success) === 1) {
+      Alert.alert("Success", result.message || "Profile updated successfully.");
+      router.back();
+    } else {
+      Alert.alert("Error", result?.message || "Profile update failed.");
     }
-  };
-
+  } catch (error) {
+    console.log("PROFILE SAVE ERROR:", error);
+    Alert.alert("Error", "Unable to update profile.");
+  } finally {
+    setSaving(false);
+  }
+};
   // =======================================================
   // SCREEN
   // =======================================================
@@ -137,25 +140,47 @@ export default function EditProfileScreen() {
         >
           {/* PROFILE PHOTO */}
 
+          {/* PROFILE PHOTO */}
+
           <View style={styles.photoSection}>
             <View style={styles.avatar}>
-              <Ionicons name="person" size={62} color={colors.white} />
+              {profileImage ? (
+                <Image
+                  source={{ uri: profileImage }}
+                  style={styles.profileImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Ionicons
+                  name="person"
+                  size={62}
+                  color={colors.white}
+                />
+              )}
+
+              <TouchableOpacity
+                style={styles.cameraButton}
+                activeOpacity={0.8}
+                onPress={handlePickImage}
+                disabled={saving}
+              >
+                <Ionicons
+                  name="camera"
+                  size={19}
+                  color={colors.white}
+                />
+              </TouchableOpacity>
             </View>
 
             <TouchableOpacity
-              style={styles.cameraButton}
               activeOpacity={0.8}
-              onPress={() =>
-                Alert.alert(
-                  "Profile Photo",
-                  "Connect an image picker to upload your profile photo.",
-                )
-              }
+              onPress={handlePickImage}
+              disabled={saving}
             >
-              <Ionicons name="camera" size={18} color={colors.white} />
+              <Text style={styles.changePhotoText}>
+                {profileImage ? "Change Profile Photo" : "Add Profile Photo"}
+              </Text>
             </TouchableOpacity>
-
-            <Text style={styles.changePhotoText}>Change Profile Photo</Text>
           </View>
 
           {/* PERSONAL INFORMATION */}
@@ -428,43 +453,51 @@ const createStyles = (colors) =>
       textAlign: "center",
     },
 
-    photoSection: {
-      alignItems: "center",
-      marginTop: 24,
-      marginBottom: 28,
-    },
+   photoSection: {
+  alignItems: "center",
+  marginTop: 24,
+  marginBottom: 28,
+},
 
-    avatar: {
-      width: 108,
-      height: 108,
-      borderRadius: 54,
-      backgroundColor: colors.primary,
-      justifyContent: "center",
-      alignItems: "center",
-      borderWidth: 4,
-      borderColor: colors.primaryDark,
-    },
+avatar: {
+  width: 125,
+  height: 125,
+  borderRadius: 65,
+  backgroundColor: colors.primary,
+  justifyContent: "center",
+  alignItems: "center",
+  borderWidth: 4,
+  borderColor: colors.primaryDark,
+  position: "relative",
+},
 
-    cameraButton: {
-      position: "absolute",
-      right: "34%",
-      bottom: 29,
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: colors.primary,
-      justifyContent: "center",
-      alignItems: "center",
-      borderWidth: 3,
-      borderColor: colors.background,
-    },
+profileImage: {
+  width: "100%",
+  height: "100%",
+  borderRadius: 65,
+},
 
-    changePhotoText: {
-      color: colors.primary,
-      fontFamily: Fonts.regular,
-      fontSize: Fonts.size.xl,
-      marginTop: 12,
-    },
+cameraButton: {
+  position: "absolute",
+  right: -3,
+  bottom: 3,
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+  backgroundColor: colors.primary,
+  justifyContent: "center",
+  alignItems: "center",
+  borderWidth: 3,
+  borderColor: colors.background,
+  elevation: 4,
+},
+
+changePhotoText: {
+  color: colors.primary,
+  fontFamily: Fonts.regular,
+  fontSize: Fonts.size.xl,
+  marginTop: 12,
+},
 
     sectionTitle: {
       color: colors.textPrimary,

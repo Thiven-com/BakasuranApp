@@ -1258,7 +1258,7 @@ export default function ExploreScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* HEADER */}
+        {/* HEADER
 
         <View style={styles.header}>
           <View style={styles.locationWrapper}>
@@ -1278,7 +1278,7 @@ export default function ExploreScreen() {
               <Text style={styles.city}>Hyderabad</Text>
             </View>
           </View>
-        </View>
+        </View> */}
 
         {/* TITLE */}
 
@@ -1780,18 +1780,28 @@ const makeStyles = (Colors, isDark) =>
       paddingHorizontal: 18,
     },
 
-    restaurantCard: {
-      backgroundColor: Colors.card,
-      borderRadius: 20,
-      overflow: "hidden",
-      borderWidth: 1,
-      borderColor: Colors.border,
-      marginBottom: 18,
-      elevation: 5,
-    },
-
+    
+   // RESTAURANT CARD
+restaurantCard: {
+  marginHorizontal: 4,
+  marginBottom: 18,
+  padding: 12,
+  borderRadius: 26,
+  overflow: "hidden",
+  backgroundColor: "#2b2a2a",
+  borderWidth: 1,
+  borderColor: "#161616",
+  elevation: 4,
+  shadowColor: "#000000",
+  shadowOffset: {
+    width: 0,
+    height: 3,
+  },
+  shadowOpacity: 0.10,
+  shadowRadius: 5,
+},
     imageContainer: {
-      height: 195,
+      height: 200,
       width: "100%",
       position: "relative",
       backgroundColor: Colors.card,

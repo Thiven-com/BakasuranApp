@@ -1959,27 +1959,41 @@ cuisineTopText: {
       marginTop: 8,
     },
 
-    restaurantCard: {
-      marginHorizontal: 16,
-      marginBottom: 14,
-      borderRadius: 18,
-      overflow: "hidden",
-      backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.border || "#292929",
-    },
+   // RESTAURANT CARD
+restaurantCard: {
+  marginHorizontal: 10,
+  marginBottom: 18,
+  padding: 12,
+  borderRadius: 26,
+  overflow: "hidden",
+  backgroundColor: "#2b2a2a",
+  borderWidth: 1,
+  borderColor: "#161616",
+  elevation: 4,
+  shadowColor: "#000000",
+  shadowOffset: {
+    width: 0,
+    height: 3,
+  },
+  shadowOpacity: 0.10,
+  shadowRadius: 5,
+},
 
-    restaurantImageWrapper: {
-      width: "100%",
-      height: 180,
-      position: "relative",
-      backgroundColor: colors.card || "#202020",
-    },
+// RESTAURANT IMAGE
+restaurantImageWrapper: {
+  width: "100%",
+  height: 210,
+  borderRadius: 22,
+  overflow: "hidden",
+  position: "relative",
+  backgroundColor: "#585454",
+},
 
-    restaurantImage: {
-      width: "100%",
-      height: "100%",
-    },
+restaurantImage: {
+  width: "100%",
+  height: "100%",
+},
+
 
     openBadge: {
       position: "absolute",
