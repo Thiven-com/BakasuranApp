@@ -1,14 +1,53 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useMemo } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import Fonts from "../constants/Fonts";
 import { useTheme } from "../hooks/use-theme";
+import { getSelectedAddress } from "../utils/Function";
 
 const HomeHeader = () => {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      getSelectedAddress()
+        .then((address) => {
+          if (active) {
+            setSelectedAddress(address);
+          }
+        })
+        .catch((error) => {
+          console.error("LOAD SELECTED ADDRESS ERROR:", error);
+        });
+
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
+
+  const selectedAddressName =
+    selectedAddress?.address_type ||
+    selectedAddress?.type ||
+    selectedAddress?.name;
+  const selectedAddressDetails = selectedAddress
+    ? [
+        selectedAddress.address,
+        selectedAddress.address_2,
+        selectedAddress.landmark,
+        selectedAddress.city,
+        selectedAddress.state,
+        selectedAddress.pincode,
+      ]
+        .filter(Boolean)
+        .join(", ")
+    : null;
 
   return (
     <View style={styles.container}>
@@ -17,7 +56,7 @@ const HomeHeader = () => {
         <TouchableOpacity
           style={styles.locationPanel}
           activeOpacity={0.8}
-          onPress={() => router.push("/enable-location")}
+          onPress={() => router.push("/LocationSearch")}
         >
           <Ionicons name="location-sharp" size={17} color={colors.primary} />
 
@@ -25,7 +64,9 @@ const HomeHeader = () => {
             <Text style={styles.locationLabel}>DELIVERING TO</Text>
 
             <View style={styles.locationNameRow}>
-              <Text style={styles.locationName}>Jakkasandra</Text>
+              <Text style={styles.locationName}>
+                {selectedAddressName || "Jakkasandra"}
+              </Text>
             </View>
           </View>
         </TouchableOpacity>
@@ -47,7 +88,9 @@ const HomeHeader = () => {
 
       {/* Full Address */}
       <View style={styles.addressRow}>
-        <Text style={styles.addressText}>Sector V, Koramangala, Bengaluru</Text>
+        <Text style={styles.addressText} numberOfLines={1}>
+          {selectedAddressDetails || "Sector V, Koramangala, Bengaluru"}
+        </Text>
       </View>
     </View>
   );

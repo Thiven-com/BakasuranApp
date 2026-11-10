@@ -11,6 +11,26 @@ import { deleteMethod, getMethod } from "./APIServices";
 export const APP_URL = `${BASE_URL}/api/customer/`;
 
 export const TOKEN_KEY = "bakasuran_token";
+export const SELECTED_ADDRESS_KEY = "bakasuran_selected_address";
+
+export const getSelectedAddress = async () => {
+  const savedAddress = await AsyncStorage.getItem(SELECTED_ADDRESS_KEY);
+
+  if (!savedAddress) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(savedAddress);
+  } catch (error) {
+    console.error("SELECTED ADDRESS STORAGE ERROR:", error);
+    throw new Error("Unable to read the selected delivery address.");
+  }
+};
+
+export const storeSelectedAddress = async (address) => {
+  await AsyncStorage.setItem(SELECTED_ADDRESS_KEY, JSON.stringify(address));
+};
 
 const normalizeVariantId = (value) => {
   const variantId =
@@ -1210,6 +1230,45 @@ export const getOrders = async () => {
       error?.response?.data ?? error?.message,
     );
     return orderApiError(error, "Unable to load your orders.");
+  }
+};
+
+// =========================================================
+// GET ORDER BY ID
+// GET: /api/customer/orders/{order}
+// =========================================================
+export const getOrderById = async (orderId) => {
+  if (
+    orderId === undefined ||
+    orderId === null ||
+    String(orderId).trim() === ""
+  ) {
+    return { success: 0, message: "An order ID is required." };
+  }
+
+  const cleanOrderId = String(orderId).trim();
+
+  try {
+    const token = await AsyncStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      return { success: 9, message: "Please login to view this order." };
+    }
+
+    const response = await axios.get(
+      `${APP_URL}orders/${encodeURIComponent(cleanOrderId)}`,
+      {
+        headers: getOrderAuthHeaders(token),
+        timeout: 20000,
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("GET ORDER BY ID API ERROR:", {
+      orderId: cleanOrderId,
+      response: error?.response?.data ?? error?.message,
+    });
+    return orderApiError(error, "Unable to load this order.");
   }
 };
 
@@ -2528,17 +2587,41 @@ export const deleteCartItem = async (cartItemId) => {
       timeout: REQUEST_TIMEOUT,
     });
 
+    const responseData = response.data;
     console.log(
-      "DELETE CART RESPONSE:",
-      JSON.stringify(response.data, null, 2),
+      "DELETE CART HTTP STATUS:",
+      response.status,
     );
+    console.log("DELETE CART RESPONSE:", JSON.stringify(responseData ?? null));
 
-    return (
-      response.data || {
-        success: 0,
-        message: "Empty response from server.",
-      }
-    );
+    if (responseData == null || responseData === "") {
+      return {
+        success: 1,
+        message: "Cart item deleted successfully.",
+        statusCode: response.status,
+        data: null,
+      };
+    }
+
+    if (typeof responseData === "object" && !Array.isArray(responseData)) {
+      const responseFlag =
+        responseData.success !== undefined
+          ? responseData.success
+          : responseData.status;
+
+      return {
+        ...responseData,
+        ...(responseFlag === undefined ? { success: 1 } : {}),
+        statusCode: response.status,
+      };
+    }
+
+    return {
+      success: 1,
+      message: String(responseData),
+      statusCode: response.status,
+      data: responseData,
+    };
   } catch (error) {
     console.log(
       "DELETE CART ITEM ERROR:",

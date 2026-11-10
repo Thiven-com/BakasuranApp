@@ -1076,8 +1076,8 @@ const styles = StyleSheet.create({
   headerLabel: {
     flex: 1,
     textAlign: "center",
-    fontSize: 18,
-    fontFamily: Fonts?.bold,
+    fontSize: 23,
+    fontFamily: Fonts?.regular,
   },
 
   headerRefreshButton: {
@@ -1124,8 +1124,8 @@ const styles = StyleSheet.create({
 
   heroCategoryText: {
     color: "#FFFFFF",
-    fontSize: 12,
-    fontFamily: Fonts?.semiBold,
+    fontSize: 17,
+    fontFamily: Fonts?.regular,
   },
 
   // =======================================================
@@ -1148,8 +1148,8 @@ const styles = StyleSheet.create({
   },
 
   categoryPillText: {
-    fontSize: 12,
-    fontFamily: Fonts?.semiBold,
+    fontSize: 17,
+    fontFamily: Fonts?.regular,
   },
 
   articleTitle: {
@@ -1189,14 +1189,14 @@ const styles = StyleSheet.create({
   },
 
   metaLabel: {
-    fontSize: 10,
+    fontSize: 15,
     fontFamily: Fonts?.regular,
   },
 
   metaValue: {
-    fontSize: 12,
+    fontSize: 15,
     marginTop: 2,
-    fontFamily: Fonts?.semiBold,
+    fontFamily: Fonts?.regular,
   },
 
   // =======================================================
@@ -1208,14 +1208,14 @@ const styles = StyleSheet.create({
   },
 
   contentHeading: {
-    fontSize: 20,
-    fontFamily: Fonts?.bold,
+    fontSize: 25,
+    fontFamily: Fonts?.regular,
     marginBottom: 10,
   },
 
   fullDescription: {
-    fontSize: 15,
-    lineHeight: 26,
+    fontSize: 17,
+    lineHeight: 29,
     fontFamily: Fonts?.regular,
     textAlign: "left",
   },

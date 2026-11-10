@@ -1493,8 +1493,8 @@ const styles = StyleSheet.create({
   },
 
   categoryText: {
-    fontSize: 15,
-    fontFamily: Fonts?.semiBold,
+    fontSize: 18,
+    fontFamily: Fonts?.regular,
   },
 
   categoryLoading: {
@@ -1539,18 +1539,18 @@ const styles = StyleSheet.create({
   },
 
   featuredCategoryText: {
-    fontSize: 14,
-    fontFamily: Fonts?.semiBold,
+    fontSize: 18,
+    fontFamily: Fonts?.regular,
   },
 
   featuredTitle: {
     fontSize: 24,
     lineHeight: 31,
-    fontFamily: Fonts?.bold,
+    fontFamily: Fonts?.regular,
   },
 
   featuredDescription: {
-    fontSize: 16,
+    fontSize: 18,
     lineHeight: 23,
     marginTop: 8,
     fontFamily: Fonts?.regular,
@@ -1596,20 +1596,20 @@ const styles = StyleSheet.create({
   },
 
   articleCategoryText: {
-    fontSize: 14,
-    fontFamily: Fonts?.semiBold,
+    fontSize: 18,
+    fontFamily: Fonts?.regular,
   },
 
   articleTitle: {
     fontSize: 22,
     lineHeight: 29,
-    fontFamily: Fonts?.bold,
+    fontFamily: Fonts?.regular,
     marginTop: 10,
   },
 
   articleDescription: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 18,
+    lineHeight: 23,
     fontFamily: Fonts?.regular,
     marginTop: 8,
   },
@@ -1633,7 +1633,7 @@ const styles = StyleSheet.create({
 
   metaTextDark: {
     fontSize: 13,
-    fontFamily: Fonts?.medium,
+    fontFamily: Fonts?.regular,
   },
 
   // =======================================================
@@ -1650,8 +1650,8 @@ const styles = StyleSheet.create({
   },
 
   readMoreText: {
-    fontSize: 15,
-    fontFamily: Fonts?.bold,
+    fontSize: 17,
+    fontFamily: Fonts?.regular,
   },
 
   // =======================================================
@@ -1669,7 +1669,7 @@ const styles = StyleSheet.create({
 
   errorTitle: {
     fontSize: 19,
-    fontFamily: Fonts?.bold,
+    fontFamily: Fonts?.regular,
     marginTop: 11,
   },
 
@@ -1698,7 +1698,7 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: "#FFFFFF",
     fontSize: 14,
-    fontFamily: Fonts?.bold,
+    fontFamily: Fonts?.regular,
   },
 
   smallErrorBox: {
@@ -1731,7 +1731,7 @@ const styles = StyleSheet.create({
 
   emptyTitle: {
     fontSize: 21,
-    fontFamily: Fonts?.bold,
+    fontFamily: Fonts?.regular,
     marginTop: 15,
   },
 
@@ -1753,7 +1753,7 @@ const styles = StyleSheet.create({
   clearButtonText: {
     color: "#FFFFFF",
     fontSize: 14,
-    fontFamily: Fonts?.bold,
+    fontFamily: Fonts?.regular,
   },
 
   bottomSpace: {

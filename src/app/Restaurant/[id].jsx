@@ -44,6 +44,7 @@ const restaurants = {
     id: "1",
     name: "Spice House",
     image: FALLBACK_RESTAURANT_IMAGE,
+    coverImage: FALLBACK_RESTAURANT_IMAGE,
     rating: "4.5",
     reviews: "120",
     time: "30-40 mins",
@@ -116,6 +117,7 @@ const restaurants = {
     id: "2",
     name: "Pizza Planet",
     image: FALLBACK_RESTAURANT_IMAGE,
+    coverImage: FALLBACK_RESTAURANT_IMAGE,
     rating: "4.4",
     reviews: "98",
     time: "25-35 mins",
@@ -144,6 +146,7 @@ const restaurants = {
     id: "3",
     name: "Burger Mania",
     image: FALLBACK_RESTAURANT_IMAGE,
+    coverImage: FALLBACK_RESTAURANT_IMAGE,
     rating: "4.3",
     reviews: "87",
     time: "20-30 mins",
@@ -172,6 +175,7 @@ const restaurants = {
     id: "4",
     name: "Crispy Bowl",
     image: FALLBACK_RESTAURANT_IMAGE,
+    coverImage: FALLBACK_RESTAURANT_IMAGE,
     rating: "4.2",
     reviews: "72",
     time: "25-35 mins",
@@ -314,7 +318,6 @@ const getFoodImage = (item) => {
 // =========================================================
 // NORMALIZE FOOD
 // =========================================================
-
 const normalizeFoodItem = (item, index = 0) => {
   const product = item?.product || item;
 
@@ -327,6 +330,26 @@ const normalizeFoodItem = (item, index = 0) => {
         item?.product_id,
         index + 1,
       ),
+    ),
+
+    product_id: getFirstValue(
+      product?.id,
+      product?.product_id,
+      item?.product_id,
+      item?.product?.id,
+    ),
+
+    variant_id: getFirstValue(
+      product?.variant_id,
+      product?.variantId,
+      product?.variant?.id,
+
+      item?.variant_id,
+      item?.variantId,
+      item?.variant?.id,
+
+      item?.product_variant_id,
+      item?.productVariantId,
     ),
 
     name:
@@ -551,6 +574,20 @@ export default function RestaurantDetails() {
               fallbackRestaurant?.image,
             ) || FALLBACK_RESTAURANT_IMAGE,
 
+          // Cover image (banner shown at the top of the screen).
+          // Keep only the key(s) your backend actually returns.
+          coverImage:
+            getFirstValue(
+              apiRestaurant?.cover_image_url,
+              apiRestaurant?.cover_image,
+              apiRestaurant?.cover_photo,
+              apiRestaurant?.cover,
+              apiRestaurant?.banner_image_url,
+              apiRestaurant?.banner_image,
+              apiRestaurant?.banner,
+              fallbackRestaurant?.coverImage,
+            ) || "",
+
           rating:
             getFirstValue(
               apiRestaurant?.rating,
@@ -726,7 +763,7 @@ export default function RestaurantDetails() {
   );
 
   // =======================================================
-  // RESTAURANT IMAGE
+  // RESTAURANT IMAGE (logo)
   // =======================================================
 
   const restaurantImage = useMemo(() => {
@@ -734,6 +771,21 @@ export default function RestaurantDetails() {
       restaurant?.image ||
         restaurant?.image_url ||
         restaurant?.restaurant_image,
+    );
+  }, [restaurant]);
+
+  // =======================================================
+  // COVER IMAGE (hero banner)
+  // Falls back to the restaurant image if there is no cover.
+  // =======================================================
+
+  const coverImage = useMemo(() => {
+    return getImageSource(
+      restaurant?.coverImage ||
+        restaurant?.cover_image_url ||
+        restaurant?.cover_image ||
+        restaurant?.banner_image_url ||
+        restaurant?.image,
     );
   }, [restaurant]);
 
@@ -1036,7 +1088,7 @@ export default function RestaurantDetails() {
           {restaurant.name}
         </Text>
 
-        <TouchableOpacity
+        {/*<TouchableOpacity
           style={styles.headerButton}
           onPress={() => setFavorite((previous) => !previous)}
         >
@@ -1045,7 +1097,7 @@ export default function RestaurantDetails() {
             size={24}
             color={favorite ? "#F9080C" : colors.text}
           />
-        </TouchableOpacity>
+        </TouchableOpacity>*/}
       </View>
 
       <ScrollView
@@ -1117,11 +1169,11 @@ export default function RestaurantDetails() {
           </View>
         ) : null}
 
-        {/* HERO */}
+        {/* HERO (cover image + logo) */}
 
         <View style={styles.heroContainer}>
           <Image
-            source={restaurantImage}
+            source={coverImage}
             style={styles.heroImage}
             resizeMode="cover"
           />
@@ -1135,6 +1187,20 @@ export default function RestaurantDetails() {
               <Text style={styles.offerBadgeText}>{restaurant.offer}</Text>
             </TouchableOpacity>
           ) : null}
+
+          {/* Restaurant image shown as a logo over the cover.
+              Delete this block if you want the cover only. */}
+          <Image
+            source={restaurantImage}
+            style={[
+              styles.logoImage,
+              {
+                borderColor: colors.background,
+                backgroundColor: colors.card || colors.surface || "#202020",
+              },
+            ]}
+            resizeMode="cover"
+          />
         </View>
 
         {/* RESTAURANT INFO */}
@@ -1531,21 +1597,19 @@ export default function RestaurantDetails() {
                           style={styles.foodImage}
                           resizeMode="cover"
                         />
-
                         {quantity === 0 ? (
                           <TouchableOpacity
                             style={[
                               styles.addButton,
                               {
                                 backgroundColor: colors.background || "#050505",
-
                                 borderColor: colors.primary || "#F9080C",
                               },
                             ]}
                             onPress={(event) => {
                               event?.stopPropagation?.();
 
-                              increaseQuantity(itemId);
+                              openProduct(item);
                             }}
                           >
                             <Text
@@ -1721,7 +1785,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: "center",
-    fontSize: 18,
+    fontSize: 25,
     marginHorizontal: 8,
   },
 
@@ -1812,6 +1876,16 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.35)",
   },
 
+  logoImage: {
+    position: "absolute",
+    bottom: 12,
+    right: 15,
+    width: 64,
+    height: 64,
+    borderRadius: 14,
+    borderWidth: 3,
+  },
+
   offerBadge: {
     position: "absolute",
     bottom: 15,
@@ -1827,7 +1901,7 @@ const styles = StyleSheet.create({
 
   offerBadgeText: {
     color: "#FFFFFF",
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: "800",
   },
 
@@ -1843,7 +1917,7 @@ const styles = StyleSheet.create({
 
   cuisine: {
     marginTop: 5,
-    fontSize: 14,
+    fontSize: 18,
   },
 
   infoRow: {
@@ -1877,7 +1951,7 @@ const styles = StyleSheet.create({
   },
 
   infoText: {
-    fontSize: 12,
+    fontSize: 13,
   },
 
   dot: {
@@ -1896,7 +1970,7 @@ const styles = StyleSheet.create({
 
   addressText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 17,
     lineHeight: 19,
   },
 
@@ -1918,7 +1992,7 @@ const styles = StyleSheet.create({
   },
 
   actionText: {
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: "600",
   },
 
@@ -1942,17 +2016,17 @@ const styles = StyleSheet.create({
   },
 
   offerTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: "800",
   },
 
   offerDescription: {
-    fontSize: 12,
+    fontSize: 15,
     marginTop: 3,
   },
 
   offerCode: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: "800",
     marginTop: 5,
   },
@@ -1971,7 +2045,7 @@ const styles = StyleSheet.create({
   },
 
   menuCount: {
-    fontSize: 13,
+    fontSize: 15,
   },
 
   categoryContainer: {
@@ -1979,7 +2053,7 @@ const styles = StyleSheet.create({
   },
 
   categoryTitle: {
-    fontSize: 18,
+    fontSize: 20,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
@@ -2000,13 +2074,13 @@ const styles = StyleSheet.create({
   },
 
   foodName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "700",
   },
 
   foodPrice: {
     marginTop: 7,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "700",
   },
 
@@ -2018,11 +2092,11 @@ const styles = StyleSheet.create({
   },
 
   foodRatingText: {
-    fontSize: 11,
+    fontSize: 14,
   },
 
   foodDescription: {
-    fontSize: 12,
+    fontSize: 15,
     lineHeight: 17,
     marginTop: 7,
   },
@@ -2052,8 +2126,8 @@ const styles = StyleSheet.create({
   },
 
   addButtonText: {
-    fontSize: 13,
-    fontWeight: "900",
+    fontSize: 15,
+    fontWeight: "700",
   },
 
   quantityContainer: {

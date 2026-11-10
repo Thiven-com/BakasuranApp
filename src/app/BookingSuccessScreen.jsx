@@ -10,8 +10,8 @@ import {
   View,
 } from "react-native";
 
-import { useTheme } from "../hooks/use-theme";
 import Fonts from "../constants/Fonts";
+import { useTheme } from "../hooks/use-theme";
 
 const BookingSuccessScreen = () => {
   const { colors: Colors } = useTheme();
@@ -74,7 +74,11 @@ const BookingSuccessScreen = () => {
             onPress={handleShare}
             activeOpacity={0.8}
           >
-            <Ionicons name="share-outline" size={21} color={Colors.textPrimary} />
+            <Ionicons
+              name="share-outline"
+              size={21}
+              color={Colors.textPrimary}
+            />
           </TouchableOpacity>
         </View>
 
@@ -290,420 +294,421 @@ const BookingSuccessScreen = () => {
 
 export default BookingSuccessScreen;
 
-const createStyles = (Colors) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+const createStyles = (Colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
 
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 115,
-  },
+    scrollContent: {
+      paddingHorizontal: 16,
+      paddingBottom: 115,
+    },
 
-  /* HEADER */
+    /* HEADER */
 
-  topHeader: {
-    height: 62,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
+    topHeader: {
+      height: 62,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
 
-  closeButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
+    closeButton: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
 
-  shareButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
+    shareButton: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
 
-  headerTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
-  },
+    headerTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.base,
+    },
 
-  /* SUCCESS */
+    /* SUCCESS */
 
-  successArea: {
-    alignItems: "center",
-    paddingTop: 20,
-    paddingBottom: 25,
-  },
+    successArea: {
+      alignItems: "center",
+      paddingTop: 20,
+      paddingBottom: 25,
+    },
 
-  outerCircle: {
-    width: 118,
-    height: 118,
-    borderRadius: 59,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255, 32, 40, 0.06)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 32, 40, 0.12)",
-  },
+    outerCircle: {
+      width: 118,
+      height: 118,
+      borderRadius: 59,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(255, 32, 40, 0.06)",
+      borderWidth: 1,
+      borderColor: "rgba(255, 32, 40, 0.12)",
+    },
 
-  middleCircle: {
-    width: 94,
-    height: 94,
-    borderRadius: 47,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255, 32, 40, 0.10)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 32, 40, 0.18)",
-  },
+    middleCircle: {
+      width: 94,
+      height: 94,
+      borderRadius: 47,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(255, 32, 40, 0.10)",
+      borderWidth: 1,
+      borderColor: "rgba(255, 32, 40, 0.18)",
+    },
 
-  successCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.primary,
-  },
+    successCircle: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: Colors.primary,
+    },
 
-  successTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.heading,
-    marginTop: 20,
-  },
+    successTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.heading,
+      marginTop: 20,
+    },
 
-  successSubtitle: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.sm,
-    textAlign: "center",
-    marginTop: 5,
-  },
+    successSubtitle: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.sm,
+      textAlign: "center",
+      marginTop: 5,
+    },
 
-  bookingIdContainer: {
-    marginTop: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
+    bookingIdContainer: {
+      marginTop: 18,
+      paddingHorizontal: 14,
+      paddingVertical: 9,
+      borderRadius: 10,
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: Colors.card,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
 
-  bookingIdLabel: {
-    color: Colors.textMuted,
-    fontFamily: Fonts.medium,
-    fontSize: 9,
-    marginRight: 9,
-  },
+    bookingIdLabel: {
+      color: Colors.textMuted,
+      fontFamily: Fonts.medium,
+      fontSize: 9,
+      marginRight: 9,
+    },
 
-  bookingId: {
-    color: Colors.primary,
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.sm,
-    letterSpacing: 0.5,
-    marginRight: 9,
-  },
+    bookingId: {
+      color: Colors.primary,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.sm,
+      letterSpacing: 0.5,
+      marginRight: 9,
+    },
 
-  /* RESTAURANT */
+    /* RESTAURANT */
 
-  restaurantCard: {
-    minHeight: 105,
-    padding: 14,
-    borderRadius: 17,
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    flexDirection: "row",
-    alignItems: "center",
-    position: "relative",
-    marginBottom: 15,
-  },
+    restaurantCard: {
+      minHeight: 105,
+      padding: 14,
+      borderRadius: 17,
+      backgroundColor: Colors.card,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      flexDirection: "row",
+      alignItems: "center",
+      position: "relative",
+      marginBottom: 15,
+    },
 
-  restaurantIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255, 32, 40, 0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 32, 40, 0.2)",
-    marginRight: 13,
-  },
+    restaurantIcon: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(255, 32, 40, 0.1)",
+      borderWidth: 1,
+      borderColor: "rgba(255, 32, 40, 0.2)",
+      marginRight: 13,
+    },
 
-  restaurantInfo: {
-    flex: 1,
-  },
+    restaurantInfo: {
+      flex: 1,
+    },
 
-  restaurantLabel: {
-    color: Colors.textMuted,
-    fontFamily: Fonts.medium,
-    fontSize: 9,
-    letterSpacing: 0.8,
-    marginBottom: 3,
-  },
+    restaurantLabel: {
+      color: Colors.textMuted,
+      fontFamily: Fonts.medium,
+      fontSize: 9,
+      letterSpacing: 0.8,
+      marginBottom: 3,
+    },
 
-  restaurantName: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
-  },
+    restaurantName: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.base,
+    },
 
-  restaurantLocation: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 5,
-  },
+    restaurantLocation: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 5,
+    },
 
-  locationText: {
-    color: Colors.textMuted,
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
-    marginLeft: 4,
-  },
+    locationText: {
+      color: Colors.textMuted,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xs,
+      marginLeft: 4,
+    },
 
-  confirmedBadge: {
-    position: "absolute",
-    top: 12,
-    right: 12,
-    flexDirection: "row",
-    alignItems: "center",
-  },
+    confirmedBadge: {
+      position: "absolute",
+      top: 12,
+      right: 12,
+      flexDirection: "row",
+      alignItems: "center",
+    },
 
-  confirmedText: {
-    color: Colors.success,
-    fontFamily: Fonts.bold,
-    fontSize: 8,
-    marginLeft: 4,
-  },
+    confirmedText: {
+      color: Colors.success,
+      fontFamily: Fonts.bold,
+      fontSize: 8,
+      marginLeft: 4,
+    },
 
-  /* DETAILS */
+    /* DETAILS */
 
-  detailsCard: {
-    padding: 17,
-    borderRadius: 17,
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginBottom: 15,
-  },
+    detailsCard: {
+      padding: 17,
+      borderRadius: 17,
+      backgroundColor: Colors.card,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      marginBottom: 15,
+    },
 
-  detailsTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.base,
-  },
+    detailsTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.base,
+    },
 
-  divider: {
-    height: 1,
-    backgroundColor: Colors.divider,
-    marginVertical: 15,
-  },
+    divider: {
+      height: 1,
+      backgroundColor: Colors.divider,
+      marginVertical: 15,
+    },
 
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 18,
-  },
+    detailRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 18,
+    },
 
-  detailRowLast: {
-    marginBottom: 0,
-  },
+    detailRowLast: {
+      marginBottom: 0,
+    },
 
-  detailIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255, 32, 40, 0.08)",
-    marginRight: 12,
-  },
+    detailIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(255, 32, 40, 0.08)",
+      marginRight: 12,
+    },
 
-  detailContent: {
-    flex: 1,
-  },
+    detailContent: {
+      flex: 1,
+    },
 
-  detailLabel: {
-    color: Colors.textMuted,
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
-    marginBottom: 3,
-  },
+    detailLabel: {
+      color: Colors.textMuted,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xs,
+      marginBottom: 3,
+    },
 
-  detailValue: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.sm,
-  },
+    detailValue: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.semiBold,
+      fontSize: Fonts.size.sm,
+    },
 
-  tableValueRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+    tableValueRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
 
-  capacityBadge: {
-    marginLeft: 9,
-    paddingHorizontal: 7,
-    paddingVertical: 4,
-    borderRadius: 6,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.surface,
-  },
+    capacityBadge: {
+      marginLeft: 9,
+      paddingHorizontal: 7,
+      paddingVertical: 4,
+      borderRadius: 6,
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: Colors.surface,
+    },
 
-  capacityText: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 9,
-    marginLeft: 3,
-  },
+    capacityText: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 9,
+      marginLeft: 3,
+    },
 
-  /* ARRIVAL */
+    /* ARRIVAL */
 
-  arrivalCard: {
-    padding: 14,
-    borderRadius: 15,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: "rgba(59, 130, 246, 0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(59, 130, 246, 0.2)",
-    marginBottom: 12,
-  },
+    arrivalCard: {
+      padding: 14,
+      borderRadius: 15,
+      flexDirection: "row",
+      alignItems: "flex-start",
+      backgroundColor: "rgba(59, 130, 246, 0.08)",
+      borderWidth: 1,
+      borderColor: "rgba(59, 130, 246, 0.2)",
+      marginBottom: 12,
+    },
 
-  arrivalIcon: {
-    marginRight: 10,
-  },
+    arrivalIcon: {
+      marginRight: 10,
+    },
 
-  arrivalContent: {
-    flex: 1,
-  },
+    arrivalContent: {
+      flex: 1,
+    },
 
-  arrivalTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.sm,
-    marginBottom: 4,
-  },
+    arrivalTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.semiBold,
+      fontSize: Fonts.size.sm,
+      marginBottom: 4,
+    },
 
-  arrivalText: {
-    color: Colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
-    lineHeight: 18,
-  },
+    arrivalText: {
+      color: Colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xs,
+      lineHeight: 18,
+    },
 
-  /* NOTE */
+    /* NOTE */
 
-  noteCard: {
-    padding: 14,
-    borderRadius: 15,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
+    noteCard: {
+      padding: 14,
+      borderRadius: 15,
+      flexDirection: "row",
+      alignItems: "flex-start",
+      backgroundColor: Colors.card,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
 
-  noteIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255, 32, 40, 0.08)",
-    marginRight: 10,
-  },
+    noteIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(255, 32, 40, 0.08)",
+      marginRight: 10,
+    },
 
-  noteContent: {
-    flex: 1,
-  },
+    noteContent: {
+      flex: 1,
+    },
 
-  noteTitle: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.sm,
-    marginBottom: 3,
-  },
+    noteTitle: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.semiBold,
+      fontSize: Fonts.size.sm,
+      marginBottom: 3,
+    },
 
-  noteText: {
-    color: Colors.textMuted,
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.xs,
-    lineHeight: 17,
-  },
+    noteText: {
+      color: Colors.textMuted,
+      fontFamily: Fonts.regular,
+      fontSize: Fonts.size.xs,
+      lineHeight: 17,
+    },
 
-  bottomSpace: {
-    height: 10,
-  },
+    bottomSpace: {
+      height: 10,
+    },
 
-  /* BOTTOM */
+    /* BOTTOM */
 
-  bottomContainer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    minHeight: 82,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.background,
-    borderTopWidth: 1,
-    borderTopColor: Colors.divider,
-  },
+    bottomContainer: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      minHeight: 82,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: Colors.background,
+      borderTopWidth: 1,
+      borderTopColor: Colors.divider,
+    },
 
-  secondaryButton: {
-    height: 52,
-    width: 90,
-    borderRadius: 13,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginRight: 10,
-  },
+    secondaryButton: {
+      height: 52,
+      width: 90,
+      borderRadius: 13,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      marginRight: 10,
+    },
 
-  secondaryButtonText: {
-    color: Colors.textPrimary,
-    fontFamily: Fonts.semiBold,
-    fontSize: Fonts.size.xs,
-    marginLeft: 5,
-  },
+    secondaryButtonText: {
+      color: Colors.textPrimary,
+      fontFamily: Fonts.semiBold,
+      fontSize: Fonts.size.xs,
+      marginLeft: 5,
+    },
 
-  primaryButton: {
-    flex: 1,
-    height: 52,
-    borderRadius: 13,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-    backgroundColor: Colors.primary,
-  },
+    primaryButton: {
+      flex: 1,
+      height: 52,
+      borderRadius: 13,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      backgroundColor: Colors.primary,
+    },
 
-  primaryButtonText: {
-    color: Colors.white,
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.sm,
-    marginRight: 9,
-  },
-});
+    primaryButtonText: {
+      color: Colors.white,
+      fontFamily: Fonts.bold,
+      fontSize: Fonts.size.sm,
+      marginRight: 9,
+    },
+  });

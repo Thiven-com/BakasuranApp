@@ -365,11 +365,11 @@ const normalizeRestaurant = (item, index) => {
     "Restaurant";
 
   const imageValue =
-    restaurant?.image_url ||
-    restaurant?.imageUrl ||
-    restaurant?.image ||
-    restaurant?.restaurant_image ||
-    restaurant?.restaurantImage ||
+    restaurant?.logo_url ||
+    restaurant?.logoUrl ||
+    restaurant?.logo ||
+    restaurant?.restaurant_logo ||
+    restaurant?.restaurantLogo ||
     restaurant?.photo ||
     restaurant?.thumbnail;
 
@@ -1037,19 +1037,7 @@ export default function ExploreScreen() {
     }
 
     if (productState.error) {
-      return (
-        <View style={styles.productInfo}>
-          {/*<Ionicons
-            name="alert-circle-outline"
-            size={14}
-            color={Colors.error || "#E53935"}
-          />*/}
-
-          {/*<Text style={styles.productErrorText} numberOfLines={1}>
-            Unable to load menu
-          </Text>*/}
-        </View>
-      );
+      return <View style={styles.productInfo}></View>;
     }
 
     if (productState.products?.length > 0) {
@@ -1109,18 +1097,6 @@ export default function ExploreScreen() {
               <Text style={styles.offerText}>{restaurant.offer}</Text>
             </View>
           ) : null}
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.favoriteButton}
-            onPress={() => toggleFavorite(restaurant.id)}
-          >
-            <Ionicons
-              name={favorite ? "heart" : "heart-outline"}
-              size={21}
-              color={favorite ? Colors.error || "#E53935" : "#444"}
-            />
-          </TouchableOpacity>
         </View>
 
         {/* DETAILS */}
@@ -1619,19 +1595,19 @@ const makeStyles = (Colors, isDark) =>
 
     deliverText: {
       fontFamily: Fonts.regular,
-      fontSize: 10,
+      fontSize: 17,
       color: Colors.textSecondary,
     },
 
     location: {
       fontFamily: Fonts.bold,
-      fontSize: 15,
+      fontSize: 18,
       color: Colors.textPrimary,
     },
 
     city: {
       fontFamily: Fonts.regular,
-      fontSize: 13,
+      fontSize: 17,
       color: Colors.textSecondary,
     },
 
@@ -1641,14 +1617,14 @@ const makeStyles = (Colors, isDark) =>
     },
 
     title: {
-      fontFamily: Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: 30,
       color: Colors.textPrimary,
     },
 
     subtitle: {
       fontFamily: Fonts.regular,
-      fontSize: 14,
+      fontSize: 17,
       color: Colors.textSecondary,
       marginTop: 4,
     },
@@ -1703,7 +1679,7 @@ const makeStyles = (Colors, isDark) =>
     },
 
     sectionTitle: {
-      fontFamily: Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: 22,
       color: Colors.textPrimary,
     },
@@ -1752,7 +1728,7 @@ const makeStyles = (Colors, isDark) =>
     categoryText: {
       marginTop: 8,
       fontFamily: Fonts.medium,
-      fontSize: 13,
+      fontSize: 17,
       color: Colors.textPrimary,
       textAlign: "center",
     },
@@ -1772,20 +1748,20 @@ const makeStyles = (Colors, isDark) =>
     },
 
     restaurantTitle: {
-      fontFamily: Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: 24,
       color: Colors.textPrimary,
     },
 
     resultText: {
       fontFamily: Fonts.regular,
-      fontSize: 12,
+      fontSize: 17,
       color: Colors.textSecondary,
       marginTop: 4,
     },
 
     clearFilterText: {
-      fontFamily: Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: 13,
       color: Colors.primary || "#F9080C",
     },
@@ -1875,13 +1851,13 @@ const makeStyles = (Colors, isDark) =>
 
     ratingText: {
       color: "#FFFFFF",
-      fontFamily: Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: 11,
     },
 
     cuisine: {
       fontFamily: Fonts.regular,
-      fontSize: 13,
+      fontSize: 17,
       color: Colors.textSecondary,
       marginTop: 5,
     },
@@ -1949,8 +1925,8 @@ const makeStyles = (Colors, isDark) =>
     },
 
     deliveryText: {
-      fontFamily: Fonts.medium,
-      fontSize: 11,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
       color: Colors.textSecondary,
     },
 

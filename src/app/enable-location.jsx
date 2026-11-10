@@ -4,24 +4,47 @@ import * as Location from "expo-location";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import {
-    Alert,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Fonts from "../constants/Fonts";
 import { useTheme } from "../hooks/use-theme";
 
 const RED = "#FF2028";
 
+const formatAddress = (place) => {
+  if (!place) return "";
+
+  const parts = [
+    place.name,
+    place.street,
+    place.district,
+    place.city ?? place.subregion,
+    [place.region, place.postalCode].filter(Boolean).join(" "),
+    place.country,
+  ]
+    .map((part) => String(part ?? "").trim())
+    .filter(Boolean);
+
+  return parts
+    .filter(
+      (part, index) => part.toLowerCase() !== parts[index - 1]?.toLowerCase(),
+    )
+    .join(", ");
+};
+
 export default function EnableLocationScreen() {
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [loading, setLoading] = useState(false);
+  const [locationResult, setLocationResult] = useState(null);
+  const [locationError, setLocationError] = useState("");
 
   const goBack = () => {
     if (router.canGoBack()) {
@@ -38,10 +61,15 @@ export default function EnableLocationScreen() {
   const allowLocation = async () => {
     try {
       setLoading(true);
+      setLocationError("");
 
       const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== "granted") {
+        setLocationResult(null);
+        setLocationError(
+          "Location permission is needed to detect your current location.",
+        );
         Alert.alert(
           "Location Permission",
           "Enable location permission in your device settings to find nearby restaurants.",
@@ -59,13 +87,42 @@ export default function EnableLocationScreen() {
         return;
       }
 
-      // Permission granted. Continue to the home screen.
-      // You can retrieve the coordinates here when needed.
-      continueHome();
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Highest,
+      });
+      const { latitude, longitude } = position.coords;
+
+      let address = "";
+      let addressError = "";
+
+      try {
+        const [place] = await Location.reverseGeocodeAsync({
+          latitude,
+          longitude,
+        });
+        address = formatAddress(place);
+      } catch (error) {
+        console.error("REVERSE GEOCODE ERROR:", error);
+        addressError = "Street address details are unavailable right now.";
+      }
+
+      setLocationResult({
+        address: address || "Address details unavailable",
+        addressError,
+        latitude,
+        longitude,
+      });
     } catch (error) {
+      console.error("GET CURRENT LOCATION ERROR:", error);
+      setLocationResult(null);
+      setLocationError(
+        error?.message ||
+          "We couldn't detect your current location. Please try again.",
+      );
       Alert.alert(
-        "Something went wrong",
-        "We couldn't request location permission. Please try again.",
+        "Location unavailable",
+        error?.message ||
+          "We couldn't detect your current location. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -87,7 +144,11 @@ export default function EnableLocationScreen() {
           <View style={styles.statusIcons}>
             <Ionicons name="cellular" size={19} color={colors.text} />
             <Ionicons name="wifi" size={21} color={colors.text} />
-            <Ionicons name="battery-full-outline" size={25} color={colors.text} />
+            <Ionicons
+              name="battery-full-outline"
+              size={25}
+              color={colors.text}
+            />
           </View>
         </View>
 
@@ -151,11 +212,7 @@ export default function EnableLocationScreen() {
             </TouchableOpacity>
 
             <LinearGradient
-              colors={[
-                "rgba(5,5,5,0)",
-                "rgba(5,5,5,0.2)",
-                colors.background,
-              ]}
+              colors={["rgba(5,5,5,0)", "rgba(5,5,5,0.2)", colors.background]}
               style={styles.mapFade}
               pointerEvents="none"
             />
@@ -169,6 +226,35 @@ export default function EnableLocationScreen() {
               Allow BAKASURAN to use your location to find nearby restaurants
               and faster delivery.
             </Text>
+
+            {locationResult && (
+              <View style={styles.locationResult}>
+                <View style={styles.locationResultHeader}>
+                  <Ionicons name="location" size={20} color={RED} />
+                  <Text style={styles.locationResultTitle}>
+                    Your current location
+                  </Text>
+                </View>
+                <Text style={styles.locationResultAddress}>
+                  {locationResult.address}
+                </Text>
+                <Text style={styles.locationCoordinates}>
+                  Latitude: {locationResult.latitude.toFixed(6)}
+                </Text>
+                <Text style={styles.locationCoordinates}>
+                  Longitude: {locationResult.longitude.toFixed(6)}
+                </Text>
+                {!!locationResult.addressError && (
+                  <Text style={styles.locationAddressError}>
+                    {locationResult.addressError}
+                  </Text>
+                )}
+              </View>
+            )}
+
+            {!!locationError && (
+              <Text style={styles.locationError}>{locationError}</Text>
+            )}
           </View>
 
           {/* Buttons */}
@@ -188,7 +274,11 @@ export default function EnableLocationScreen() {
                 <Ionicons name="navigate" size={26} color="#FFFFFF" />
 
                 <Text style={styles.allowText}>
-                  {loading ? "Please wait..." : "Allow Location"}
+                  {loading
+                    ? "Getting your location..."
+                    : locationResult
+                      ? "Refresh Location"
+                      : "Allow Location"}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -213,385 +303,439 @@ export default function EnableLocationScreen() {
 
 const createStyles = (colors) =>
   StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  header: {
-    height: 58,
-    paddingHorizontal: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    zIndex: 10,
-  },
+    header: {
+      height: 58,
+      paddingHorizontal: 24,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      zIndex: 10,
+    },
 
-  time: {
-    color: colors.text,
-    fontSize: 17,
-    fontWeight: "600",
-  },
+    time: {
+      color: colors.text,
+      fontSize: 17,
+      fontWeight: "600",
+    },
 
-  statusIcons: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
+    statusIcons: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
 
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 24,
-  },
+    scrollContent: {
+      flexGrow: 1,
+      paddingBottom: 24,
+    },
 
-  mapContainer: {
-    height: 440,
-    width: "100%",
-    overflow: "hidden",
-    position: "relative",
-    backgroundColor: "#101010",
-  },
+    mapContainer: {
+      height: 440,
+      width: "100%",
+      overflow: "hidden",
+      position: "relative",
+      backgroundColor: "#101010",
+    },
 
-  mapBackground: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "#111111",
-  },
+    mapBackground: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: "#111111",
+    },
 
-  road: {
-    position: "absolute",
-    backgroundColor: "#303030",
-    borderColor: "#242424",
-    borderWidth: 1,
-  },
+    road: {
+      position: "absolute",
+      backgroundColor: "#303030",
+      borderColor: "#242424",
+      borderWidth: 1,
+    },
 
-  roadOne: {
-    width: 1200,
-    height: 18,
-    top: 80,
-    left: -100,
-    transform: [{ rotate: "-37deg" }],
-  },
+    roadOne: {
+      width: 1200,
+      height: 18,
+      top: 80,
+      left: -100,
+      transform: [{ rotate: "-37deg" }],
+    },
 
-  roadTwo: {
-    width: 1100,
-    height: 22,
-    top: 210,
-    left: -100,
-    transform: [{ rotate: "35deg" }],
-  },
+    roadTwo: {
+      width: 1100,
+      height: 22,
+      top: 210,
+      left: -100,
+      transform: [{ rotate: "35deg" }],
+    },
 
-  roadThree: {
-    width: 950,
-    height: 15,
-    top: 300,
-    left: -100,
-    transform: [{ rotate: "-25deg" }],
-  },
+    roadThree: {
+      width: 950,
+      height: 15,
+      top: 300,
+      left: -100,
+      transform: [{ rotate: "-25deg" }],
+    },
 
-  roadFour: {
-    width: 800,
-    height: 18,
-    top: 140,
-    left: -100,
-    transform: [{ rotate: "55deg" }],
-  },
+    roadFour: {
+      width: 800,
+      height: 18,
+      top: 140,
+      left: -100,
+      transform: [{ rotate: "55deg" }],
+    },
 
-  roadFive: {
-    width: 850,
-    height: 14,
-    top: 250,
-    left: -100,
-    transform: [{ rotate: "-58deg" }],
-  },
+    roadFive: {
+      width: 850,
+      height: 14,
+      top: 250,
+      left: -100,
+      transform: [{ rotate: "-58deg" }],
+    },
 
-  roadSix: {
-    width: 700,
-    height: 12,
-    top: 30,
-    left: 100,
-    transform: [{ rotate: "68deg" }],
-  },
+    roadSix: {
+      width: 700,
+      height: 12,
+      top: 30,
+      left: 100,
+      transform: [{ rotate: "68deg" }],
+    },
 
-  roadSeven: {
-    width: 900,
-    height: 14,
-    top: 350,
-    left: -150,
-    transform: [{ rotate: "15deg" }],
-  },
+    roadSeven: {
+      width: 900,
+      height: 14,
+      top: 350,
+      left: -150,
+      transform: [{ rotate: "15deg" }],
+    },
 
-  roadEight: {
-    width: 700,
-    height: 12,
-    top: 170,
-    left: 70,
-    transform: [{ rotate: "-70deg" }],
-  },
+    roadEight: {
+      width: 700,
+      height: 12,
+      top: 170,
+      left: 70,
+      transform: [{ rotate: "-70deg" }],
+    },
 
-  roadNine: {
-    width: 700,
-    height: 10,
-    top: 100,
-    left: 80,
-    transform: [{ rotate: "18deg" }],
-  },
+    roadNine: {
+      width: 700,
+      height: 10,
+      top: 100,
+      left: 80,
+      transform: [{ rotate: "18deg" }],
+    },
 
-  roadTen: {
-    width: 800,
-    height: 12,
-    top: 280,
-    left: -120,
-    transform: [{ rotate: "75deg" }],
-  },
+    roadTen: {
+      width: 800,
+      height: 12,
+      top: 280,
+      left: -120,
+      transform: [{ rotate: "75deg" }],
+    },
 
-  cityBlock: {
-    position: "absolute",
-    backgroundColor: "#191919",
-    borderWidth: 1,
-    borderColor: "#242424",
-  },
+    cityBlock: {
+      position: "absolute",
+      backgroundColor: "#191919",
+      borderWidth: 1,
+      borderColor: "#242424",
+    },
 
-  blockOne: {
-    width: 75,
-    height: 65,
-    top: 70,
-    left: 40,
-    transform: [{ rotate: "-37deg" }],
-  },
+    blockOne: {
+      width: 75,
+      height: 65,
+      top: 70,
+      left: 40,
+      transform: [{ rotate: "-37deg" }],
+    },
 
-  blockTwo: {
-    width: 90,
-    height: 75,
-    top: 160,
-    right: 45,
-    transform: [{ rotate: "35deg" }],
-  },
+    blockTwo: {
+      width: 90,
+      height: 75,
+      top: 160,
+      right: 45,
+      transform: [{ rotate: "35deg" }],
+    },
 
-  blockThree: {
-    width: 70,
-    height: 80,
-    top: 290,
-    left: 40,
-    transform: [{ rotate: "-25deg" }],
-  },
+    blockThree: {
+      width: 70,
+      height: 80,
+      top: 290,
+      left: 40,
+      transform: [{ rotate: "-25deg" }],
+    },
 
-  blockFour: {
-    width: 85,
-    height: 70,
-    top: 40,
-    right: 80,
-    transform: [{ rotate: "35deg" }],
-  },
+    blockFour: {
+      width: 85,
+      height: 70,
+      top: 40,
+      right: 80,
+      transform: [{ rotate: "35deg" }],
+    },
 
-  blockFive: {
-    width: 90,
-    height: 65,
-    top: 300,
-    right: 30,
-    transform: [{ rotate: "-30deg" }],
-  },
+    blockFive: {
+      width: 90,
+      height: 65,
+      top: 300,
+      right: 30,
+      transform: [{ rotate: "-30deg" }],
+    },
 
-  blockSix: {
-    width: 70,
-    height: 80,
-    top: 210,
-    left: 15,
-    transform: [{ rotate: "35deg" }],
-  },
+    blockSix: {
+      width: 70,
+      height: 80,
+      top: 210,
+      left: 15,
+      transform: [{ rotate: "35deg" }],
+    },
 
-  locationGlowOuter: {
-    position: "absolute",
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    backgroundColor: "rgba(255, 0, 16, 0.06)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 32, 40, 0.12)",
-    alignSelf: "center",
-    top: 130,
-  },
+    locationGlowOuter: {
+      position: "absolute",
+      width: 240,
+      height: 240,
+      borderRadius: 120,
+      backgroundColor: "rgba(255, 0, 16, 0.06)",
+      borderWidth: 1,
+      borderColor: "rgba(255, 32, 40, 0.12)",
+      alignSelf: "center",
+      top: 130,
+    },
 
-  locationGlowInner: {
-    position: "absolute",
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: "rgba(255, 0, 16, 0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 32, 40, 0.2)",
-    alignSelf: "center",
-    top: 175,
-  },
+    locationGlowInner: {
+      position: "absolute",
+      width: 150,
+      height: 150,
+      borderRadius: 75,
+      backgroundColor: "rgba(255, 0, 16, 0.08)",
+      borderWidth: 1,
+      borderColor: "rgba(255, 32, 40, 0.2)",
+      alignSelf: "center",
+      top: 175,
+    },
 
-  pinWrapper: {
-    position: "absolute",
-    alignSelf: "center",
-    top: 130,
-    zIndex: 5,
-  },
+    pinWrapper: {
+      position: "absolute",
+      alignSelf: "center",
+      top: 130,
+      zIndex: 5,
+    },
 
-  pin: {
-    width: 145,
-    height: 145,
-    borderRadius: 73,
-    alignItems: "center",
-    justifyContent: "flex-start",
-    paddingTop: 20,
-    borderWidth: 2,
-    borderColor: "#FF4850",
-    transform: [{ rotate: "45deg" }],
-    borderBottomRightRadius: 8,
-    elevation: 18,
-    shadowColor: RED,
-    shadowOpacity: 0.55,
-    shadowRadius: 25,
-    shadowOffset: { width: 0, height: 8 },
-  },
+    pin: {
+      width: 145,
+      height: 145,
+      borderRadius: 73,
+      alignItems: "center",
+      justifyContent: "flex-start",
+      paddingTop: 20,
+      borderWidth: 2,
+      borderColor: "#FF4850",
+      transform: [{ rotate: "45deg" }],
+      borderBottomRightRadius: 8,
+      elevation: 18,
+      shadowColor: RED,
+      shadowOpacity: 0.55,
+      shadowRadius: 25,
+      shadowOffset: { width: 0, height: 8 },
+    },
 
-  pinCenter: {
-    width: 65,
-    height: 65,
-    borderRadius: 33,
-    backgroundColor: "#8F0008",
-    alignItems: "center",
-    justifyContent: "center",
-    transform: [{ rotate: "-45deg" }],
-    borderWidth: 3,
-    borderColor: "#5B0005",
-  },
+    pinCenter: {
+      width: 65,
+      height: 65,
+      borderRadius: 33,
+      backgroundColor: "#8F0008",
+      alignItems: "center",
+      justifyContent: "center",
+      transform: [{ rotate: "-45deg" }],
+      borderWidth: 3,
+      borderColor: "#5B0005",
+    },
 
-  pinCenterDot: {
-    width: 43,
-    height: 43,
-    borderRadius: 22,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 2,
-    borderColor: "#EEEEEE",
-  },
+    pinCenterDot: {
+      width: 43,
+      height: 43,
+      borderRadius: 22,
+      backgroundColor: "#FFFFFF",
+      borderWidth: 2,
+      borderColor: "#EEEEEE",
+    },
 
-  locationPointOuter: {
-    position: "absolute",
-    alignSelf: "center",
-    top: 340,
-    width: 44,
-    height: 28,
-    borderRadius: 22,
-    borderWidth: 3,
-    borderColor: "#FFFFFF",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FF2028",
-    zIndex: 4,
-  },
+    locationPointOuter: {
+      position: "absolute",
+      alignSelf: "center",
+      top: 340,
+      width: 44,
+      height: 28,
+      borderRadius: 22,
+      borderWidth: 3,
+      borderColor: "#FFFFFF",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#FF2028",
+      zIndex: 4,
+    },
 
-  locationPointInner: {
-    width: 18,
-    height: 10,
-    borderRadius: 10,
-    backgroundColor: "#FFFFFF",
-  },
+    locationPointInner: {
+      width: 18,
+      height: 10,
+      borderRadius: 10,
+      backgroundColor: "#FFFFFF",
+    },
 
-  backButton: {
-    position: "absolute",
-    top: 22,
-    left: 22,
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: "rgba(20,20,20,0.9)",
-    borderWidth: 1,
-    borderColor: "#383838",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 8,
-  },
+    backButton: {
+      position: "absolute",
+      top: 22,
+      left: 22,
+      width: 54,
+      height: 54,
+      borderRadius: 27,
+      backgroundColor: "rgba(20,20,20,0.9)",
+      borderWidth: 1,
+      borderColor: "#383838",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 8,
+    },
 
-  mapFade: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 125,
-  },
+    mapFade: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 125,
+    },
 
-  content: {
-    paddingHorizontal: 24,
-    marginTop: -2,
-    alignItems: "center",
-  },
+    content: {
+      paddingHorizontal: 24,
+      marginTop: -2,
+      alignItems: "center",
+    },
 
-  title: {
-    color: colors.text,
-    fontFamily: Fonts.bold,
-    fontSize: 36,
-    textAlign: "center",
-    marginBottom: 18,
-    letterSpacing: -0.8,
-  },
+    title: {
+      color: colors.text,
+      fontFamily: Fonts.bold,
+      fontSize: 36,
+      textAlign: "center",
+      marginBottom: 18,
+      letterSpacing: -0.8,
+    },
 
-  description: {
-    color: colors.textSecondary,
-    fontFamily: Fonts.regular,
-    fontSize: 18,
-    lineHeight: 30,
-    textAlign: "center",
-    maxWidth: 360,
-  },
+    description: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 18,
+      lineHeight: 30,
+      textAlign: "center",
+      maxWidth: 360,
+    },
 
-  actions: {
-    paddingHorizontal: 24,
-    marginTop: 34,
-  },
+    locationResult: {
+      width: "100%",
+      marginTop: 22,
+      padding: 16,
+      borderRadius: 16,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
-  allowButton: {
-    borderRadius: 50,
-    overflow: "hidden",
-    marginBottom: 18,
-  },
+    locationResultHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 8,
+    },
 
-  allowGradient: {
-    minHeight: 78,
-    borderRadius: 50,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 20,
-    paddingHorizontal: 18,
-  },
+    locationResultTitle: {
+      color: colors.text,
+      fontFamily: Fonts.semiBold,
+      fontSize: 16,
+    },
 
-  allowText: {
-    color: "#FFFFFF",
-    fontFamily: Fonts.semiBold,
-    fontSize: 21,
-  },
+    locationResultAddress: {
+      color: colors.text,
+      fontFamily: Fonts.medium,
+      fontSize: 15,
+      lineHeight: 22,
+      marginBottom: 8,
+    },
 
-  laterButton: {
-    minHeight: 76,
-    borderRadius: 50,
-    borderWidth: 2,
-    borderColor: colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "transparent",
-  },
+    locationCoordinates: {
+      color: colors.textSecondary,
+      fontFamily: Fonts.regular,
+      fontSize: 13,
+      lineHeight: 19,
+    },
 
-  laterText: {
-    color: colors.text,
-    fontFamily: Fonts.semiBold,
-    fontSize: 21,
-  },
+    locationAddressError: {
+      color: colors.textMuted,
+      fontFamily: Fonts.regular,
+      fontSize: 12,
+      marginTop: 8,
+    },
 
-  privacyText: {
-    marginTop: 20,
-    textAlign: "center",
-    color: colors.textMuted,
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    lineHeight: 18,
-  },
+    locationError: {
+      color: colors.primary,
+      fontFamily: Fonts.medium,
+      fontSize: 14,
+      lineHeight: 20,
+      textAlign: "center",
+      marginTop: 16,
+    },
+
+    actions: {
+      paddingHorizontal: 24,
+      marginTop: 34,
+    },
+
+    allowButton: {
+      borderRadius: 50,
+      overflow: "hidden",
+      marginBottom: 18,
+    },
+
+    allowGradient: {
+      minHeight: 78,
+      borderRadius: 50,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 20,
+      paddingHorizontal: 18,
+    },
+
+    allowText: {
+      color: "#FFFFFF",
+      fontFamily: Fonts.semiBold,
+      fontSize: 21,
+    },
+
+    laterButton: {
+      minHeight: 76,
+      borderRadius: 50,
+      borderWidth: 2,
+      borderColor: colors.border,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "transparent",
+    },
+
+    laterText: {
+      color: colors.text,
+      fontFamily: Fonts.semiBold,
+      fontSize: 21,
+    },
+
+    privacyText: {
+      marginTop: 20,
+      textAlign: "center",
+      color: colors.textMuted,
+      fontFamily: Fonts.regular,
+      fontSize: 12,
+      lineHeight: 18,
+    },
   });

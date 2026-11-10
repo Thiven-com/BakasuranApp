@@ -1043,15 +1043,15 @@ const makeStyles = (Colors) =>
 
     headerTitle: {
       color: Colors.text,
-      fontSize: 20,
-      fontFamily: Fonts?.bold || Fonts?.semiBold || undefined,
+      fontSize: 25,
+      fontFamily: Fonts?.regular || Fonts?.semiBold || undefined,
       fontWeight: "700",
     },
 
     countText: {
       marginTop: 2,
-      color: Colors.textSecondary || "#999999",
-      fontSize: 12,
+      color: Colors.textPrimary || "#999999",
+      fontSize: 16,
       fontFamily: Fonts?.regular || undefined,
     },
 
@@ -1066,7 +1066,7 @@ const makeStyles = (Colors) =>
       color: Colors.primary,
       fontSize: 14,
       fontWeight: "700",
-      fontFamily: Fonts?.semiBold || undefined,
+      fontFamily: Fonts?.regular || undefined,
     },
 
     headerRight: {
@@ -1141,10 +1141,10 @@ const makeStyles = (Colors) =>
 
     productName: {
       color: Colors.text,
-      fontSize: 16,
+      fontSize: 18,
       lineHeight: 21,
       fontWeight: "700",
-      fontFamily: Fonts?.semiBold || undefined,
+      fontFamily: Fonts?.regular,
     },
 
     heartButton: {
@@ -1158,8 +1158,8 @@ const makeStyles = (Colors) =>
 
     restaurant: {
       marginTop: 3,
-      color: Colors.textSecondary || "#999999",
-      fontSize: 12,
+      color: Colors.textPrimary || "#999999",
+      fontSize: 15,
       lineHeight: 17,
       fontFamily: Fonts?.regular || undefined,
     },

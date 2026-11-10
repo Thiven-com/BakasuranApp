@@ -858,7 +858,7 @@ export default function FoodDetailsScreen() {
 
   const openCart = useCallback(() => {
     try {
-      router.push("/(tabs)/CartScreen");
+      router.push("/CartScreen");
     } catch (error) {
       console.log("CART ROUTE ERROR:", error?.message);
 
@@ -1029,15 +1029,22 @@ export default function FoodDetailsScreen() {
         return;
       }
 
-      // ===============================================
-      // SUCCESS
-      // ===============================================
+      // =======================================================
+      // SUCCESS - NAVIGATE TO CART
+      // =======================================================
 
-      const success =
+      if (
         response?.success === 1 ||
         response?.success === true ||
-        response?.success === "1";
+        response?.success === "1"
+      ) {
+        console.log("Product added successfully");
+        console.log("Navigating to CartScreen");
 
+        router.push("/CartScreen");
+
+        return;
+      }
       // ===============================================
       // API ERROR
       // ===============================================
@@ -1250,15 +1257,23 @@ export default function FoodDetailsScreen() {
               </View>
             </View>
 
-            {/* SHARE */}
+            {/* SHARE 
 
             <TouchableOpacity
-              style={styles.shareButton}
-              onPress={handleShare}
+              style={
+                styles.shareButton
+              }
+              onPress={
+                handleShare
+              }
               activeOpacity={0.8}
             >
-              <Ionicons name="share-social" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
+              <Ionicons
+                name="share-social"
+                size={24}
+                color="#FFFFFF"
+              />
+            </TouchableOpacity>*/}
           </View>
 
           {/* PRICE */}
@@ -1559,7 +1574,7 @@ const createStyles = (colors, isDark) => {
 
     foodName: {
       color: text,
-      fontFamily: Fonts?.bold,
+      fontFamily: Fonts?.regular,
       fontSize: 27,
       lineHeight: 35,
       marginTop: 8,
@@ -1567,8 +1582,8 @@ const createStyles = (colors, isDark) => {
 
     variantText: {
       color: primary,
-      fontFamily: Fonts?.medium,
-      fontSize: 14,
+      fontFamily: Fonts?.regular,
+      fontSize: 17,
       marginTop: 5,
     },
 
@@ -1581,14 +1596,14 @@ const createStyles = (colors, isDark) => {
 
     rating: {
       color: "#FFC107",
-      fontFamily: Fonts?.bold,
-      fontSize: 17,
+      fontFamily: Fonts?.regular,
+      fontSize: 19,
     },
 
     reviews: {
       color: secondaryText,
       fontFamily: Fonts?.regular,
-      fontSize: 14,
+      fontSize: 17,
     },
 
     shareButton: {
@@ -1638,14 +1653,14 @@ const createStyles = (colors, isDark) => {
 
     discountText: {
       color: "#FFFFFF",
-      fontFamily: Fonts?.bold,
-      fontSize: 14,
+      fontFamily: Fonts?.regular,
+      fontSize: 15,
     },
 
     stockText: {
       color: "#45D483",
-      fontFamily: Fonts?.medium,
-      fontSize: 13,
+      fontFamily: Fonts?.regular,
+      fontSize: 16,
       marginTop: 8,
     },
 
@@ -1656,8 +1671,8 @@ const createStyles = (colors, isDark) => {
     description: {
       color: secondaryText,
       fontFamily: Fonts?.regular,
-      fontSize: 15,
-      lineHeight: 24,
+      fontSize: 18,
+      lineHeight: 26,
       marginTop: 20,
       marginBottom: 22,
     },
@@ -1683,8 +1698,8 @@ const createStyles = (colors, isDark) => {
 
     optionLabel: {
       color: secondaryText,
-      fontFamily: Fonts?.medium,
-      fontSize: 16,
+      fontFamily: Fonts?.regular,
+      fontSize: 19,
       marginBottom: 12,
     },
 
@@ -1713,8 +1728,8 @@ const createStyles = (colors, isDark) => {
 
     spiceText: {
       color: text,
-      fontFamily: Fonts?.semiBold,
-      fontSize: 15,
+      fontFamily: Fonts?.regular,
+      fontSize: 17,
     },
 
     spiceTextSelected: {
@@ -1759,7 +1774,7 @@ const createStyles = (colors, isDark) => {
 
     quantityValue: {
       color: text,
-      fontFamily: Fonts?.bold,
+      fontFamily: Fonts?.regular,
       fontSize: 20,
     },
 
@@ -1793,14 +1808,14 @@ const createStyles = (colors, isDark) => {
 
     addToCartText: {
       color: "#FFFFFF",
-      fontFamily: Fonts?.bold,
-      fontSize: 18,
+      fontFamily: Fonts?.regular,
+      fontSize: 20,
     },
 
     addToCartPrice: {
       color: "#FFFFFF",
-      fontFamily: Fonts?.bold,
-      fontSize: 18,
+      fontFamily: Fonts?.regular,
+      fontSize: 20,
     },
   });
 };

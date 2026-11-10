@@ -35,6 +35,51 @@ const notify = (title, message) => {
   }
 };
 
+// The locations endpoint's response shape can vary (plain array, { data: [] },
+// { data: { locations: [] } }, paginated { data: { data: [] } }, ...), so
+// search for the first array of records instead of hard-coding one shape.
+const findRecords = (value, depth = 0) => {
+  if (Array.isArray(value)) return value;
+  if (!value || typeof value !== "object" || depth > 4) return [];
+
+  const preferredKeys = [
+    "data",
+    "locations",
+    "states",
+    "items",
+    "results",
+    "records",
+  ];
+
+  for (const key of preferredKeys) {
+    if (key in value) {
+      const found = findRecords(value[key], depth + 1);
+      if (found.length > 0) return found;
+    }
+  }
+
+  for (const key of Object.keys(value)) {
+    const found = findRecords(value[key], depth + 1);
+    if (found.length > 0) return found;
+  }
+
+  return [];
+};
+
+const normalizeLocation = (item) => {
+  if (typeof item === "string") {
+    const name = item.trim();
+    return name ? { id: null, name } : null;
+  }
+
+  const name = item?.name ?? item?.state_name ?? item?.state ?? item?.title;
+  const id = item?.id ?? item?.state_id ?? item?.value ?? null;
+
+  if (typeof name !== "string" || !name.trim()) return null;
+
+  return { id, name: name.trim() };
+};
+
 /* ------------------------------------------------------------------ */
 /* Components are defined OUTSIDE the screen so they keep a stable     */
 /* identity between renders (otherwise TextInput remounts on each key). */
@@ -147,17 +192,14 @@ export default function AddAddressScreen() {
     const loadLocations = async () => {
       try {
         const response = await getLocations();
-        const records = Array.isArray(response)
-          ? response
-          : Array.isArray(response?.data)
-            ? response.data
-            : Array.isArray(response?.locations)
-              ? response.locations
-              : Array.isArray(response?.data?.locations)
-                ? response.data.locations
-                : null;
 
-        if (response?.success === 0) {
+        // Helps confirm the real response shape in the Metro / browser console
+        console.log(
+          "LOCATIONS RESPONSE:",
+          JSON.stringify(response)?.slice(0, 1500),
+        );
+
+        if (response?.success === 0 || response?.success === false) {
           if (active) {
             setLocations([]);
             setLocationsMessage(
@@ -167,34 +209,22 @@ export default function AddAddressScreen() {
           return;
         }
 
-        if (!records) {
-          throw new Error("The locations response has an unexpected format.");
-        }
-
-        const validLocations = records
-          .filter(
-            (location) =>
-              location?.id !== undefined &&
-              location?.id !== null &&
-              typeof location?.name === "string" &&
-              location.name.trim(),
-          )
-          .map((location) => ({
-            id: location.id,
-            name: location.name.trim(),
-          }));
+        const validLocations = findRecords(response)
+          .map(normalizeLocation)
+          .filter(Boolean);
 
         if (active) {
           setLocations(validLocations);
-          setLocationsMessage(
-            validLocations.length === 0 ? "No locations are available." : "",
-          );
+          setLocationsMessage("");
         }
       } catch (error) {
+        // State suggestions are optional: the user can still type the state,
+        // so show a neutral hint instead of a red validation-style error.
         if (active) {
           setLocations([]);
-          setLocationsMessage(error.message || "Unable to load locations.");
-          setLocationsLoadError(true);
+          setLocationsMessage(
+            "State suggestions are unavailable right now. You can type your state.",
+          );
         }
       }
     };
@@ -772,14 +802,14 @@ const makeStyles = (colors, isDark) => {
 
     sectionTitle: {
       color: colors.textPrimary,
-      fontSize: 19,
-      fontFamily: Fonts.semiBold,
+      fontSize: 23,
+      fontFamily: Fonts.regular,
     },
 
     sectionSubtitle: {
       color: colors.textSecondary,
       fontFamily: Fonts.medium,
-      fontSize: 15,
+      fontSize: 17,
       marginTop: 5,
     },
 
@@ -821,8 +851,8 @@ const makeStyles = (colors, isDark) => {
 
     addressTypeText: {
       color: colors.textSecondary,
-      fontFamily: Fonts.semiBold,
-      fontSize: 15,
+      fontFamily: Fonts.regular,
+      fontSize: 18,
       marginTop: 8,
     },
 
@@ -837,8 +867,8 @@ const makeStyles = (colors, isDark) => {
 
     label: {
       color: colors.textSecondary,
-      fontSize: 15,
-      fontFamily: Fonts.medium,
+      fontSize: 19,
+      fontFamily: Fonts.regular,
       marginBottom: 8,
     },
 
@@ -871,7 +901,7 @@ const makeStyles = (colors, isDark) => {
       flex: 1,
       minHeight: 49,
       color: colors.textPrimary,
-      fontSize: 15,
+      fontSize: 17,
       marginLeft: 12,
       paddingVertical: 10,
     },
@@ -888,8 +918,8 @@ const makeStyles = (colors, isDark) => {
 
     errorText: {
       color: colors.primary,
-      fontFamily: Fonts.medium,
-      fontSize: 11,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
       marginTop: 5,
     },
 
@@ -912,8 +942,8 @@ const makeStyles = (colors, isDark) => {
 
     locationSuggestionText: {
       color: colors.textPrimary,
-      fontFamily: Fonts.medium,
-      fontSize: 15,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
     },
 
     locationHint: {
@@ -958,14 +988,14 @@ const makeStyles = (colors, isDark) => {
 
     defaultAddressTitle: {
       color: colors.textPrimary,
-      fontFamily: Fonts.bold,
-      fontSize: 15,
+      fontFamily: Fonts.regular,
+      fontSize: 18,
     },
 
     defaultAddressSubtitle: {
       color: colors.textSecondary,
-      fontFamily: Fonts.medium,
-      fontSize: 13,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
       marginTop: 5,
     },
 
@@ -1014,8 +1044,8 @@ const makeStyles = (colors, isDark) => {
 
     saveButtonText: {
       color: "#FFFFFF",
-      fontFamily: Fonts.bold,
-      fontSize: 15,
+      fontFamily: Fonts.regular,
+      fontSize: 20,
       marginLeft: 9,
     },
 
@@ -1028,8 +1058,8 @@ const makeStyles = (colors, isDark) => {
 
     secureText: {
       color: colors.textSecondary,
-      fontFamily: Fonts.medium,
-      fontSize: 15,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
       marginLeft: 6,
     },
   });

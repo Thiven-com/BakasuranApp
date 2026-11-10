@@ -109,7 +109,12 @@ const getCategoryName = (item) =>
   item?.name || item?.title || item?.category_name || "Category";
 
 const getCategoryId = (item) =>
-  item?.id ?? item?.category_id ?? item?.categoryId ?? "";
+  item?.id ??
+  item?.category_id ??
+  item?.categoryId ??
+  item?.restaurant_category_id ??
+  item?.restaurantCategoryId ??
+  "";
 
 // =====================================================
 // PRODUCT HELPERS
@@ -839,11 +844,20 @@ const HomeScreen = () => {
   // ===================================================
 
   const openCategory = (item) => {
+    const categoryId = getCategoryId(item);
+    const categoryName = getCategoryName(item);
+
+    if (!categoryId) {
+      console.log("Category ID is missing:", item);
+      return;
+    }
+
     router.push({
       pathname: "/(tabs)/ExploreScreen",
       params: {
-        search: getCategoryName(item),
-        categoryId: String(getCategoryId(item)),
+        category: String(categoryName),
+        categoryId: String(categoryId),
+        search: "",
       },
     });
   };
@@ -1484,25 +1498,25 @@ const HomeScreen = () => {
 
         {/* =================================================
             TABLE BOOKING
-        ================================================= */}
+        ================================================= 
 
         {!hasSearchQuery && (
           <View style={styles.bookingCard}>
-            {/*<Image
-              source={require("../../../assets/images/book_table.jpg")}
-              style={styles.bookingImage}
-              resizeMode="cover"
-            />*/}
+           // <Image
+              //source={require("../../../assets/images/book_table.jpg")}
+              //style={styles.bookingImage}
+              //resizeMode="cover"
+           // />
 
-            <TouchableOpacity
-              style={styles.findTableButton}
-              activeOpacity={0.8}
-              accessibilityRole="button"
-              accessibilityLabel="Find a table"
-              onPress={() => router.push("/table-booking")}
+            //<TouchableOpacity
+              //style={styles.findTableButton}
+             // activeOpacity={0.8}
+             // accessibilityRole="button"
+             // accessibilityLabel="Find a table"
+             // onPress={() => router.push("/table-booking")}
             />
           </View>
-        )}
+        )}*/}
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
@@ -1687,9 +1701,14 @@ const makeStyles = (colors) =>
     },
 
     cuisineTopImage: {
-      width: 110,
+      width: 100,
       height: 100,
-      marginBottom: 3,
+      borderRadius: 50,
+      overflow: "hidden",
+      marginBottom: 5,
+      resizeMode: "cover",
+      borderWidth: 2,
+      borderColor: colors.border,
     },
 
     cuisineTopText: {

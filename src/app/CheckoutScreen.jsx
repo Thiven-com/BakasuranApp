@@ -43,7 +43,6 @@ const PAYMENT_METHODS = [
 
 const ORDER_TYPES = [
   { id: "order", label: "Order Now", icon: "flash-outline" },
-  { id: "preorder", label: "Pre-order", icon: "calendar-outline" },
 ];
 
 const FALLBACK_DELIVERY_FEE = 30;
@@ -769,10 +768,30 @@ export default function CheckoutScreen() {
         );
       }
 
-      notify(
-        "Order placed",
-        getErrorMessage(response, "Your order has been placed successfully."),
-      );
+      const result = unwrapResponse(response);
+      const order =
+        result?.data?.order ??
+        result?.data ??
+        result?.order ??
+        result;
+      const orderId =
+        order?.restaurant_food_order_id ??
+        order?.order_id ??
+        order?.id ??
+        order?.order_number;
+
+      if (orderId === undefined || orderId === null || String(orderId) === "") {
+        notify(
+          "Order placed",
+          "Your order was placed, but the server did not return an order ID to load its details.",
+        );
+        return;
+      }
+
+      router.replace({
+        pathname: "/order-success",
+        params: { orderId: String(orderId) },
+      });
     } catch (error) {
       console.log("CHECKOUT ORDER ERROR:", error);
 
@@ -841,7 +860,7 @@ export default function CheckoutScreen() {
 
         <TouchableOpacity
           style={styles.headerButton}
-          onPress={() => notify("Cart", "Your cart is shown below.")}
+          onPress={() => router.push("/CartScreen")}
           activeOpacity={0.8}
         >
           <Ionicons name="cart-outline" size={23} color={colors.textPrimary} />
@@ -860,7 +879,7 @@ export default function CheckoutScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.scrollContent}
       >
-        {/* PAGE TITLE */}
+        {/* PAGE TITLE
         <View style={styles.pageHeading}>
           <Text style={styles.brandText}>BAKASURAN FOOD</Text>
 
@@ -869,9 +888,9 @@ export default function CheckoutScreen() {
           <Text style={styles.pageSubtitle}>
             You're just a few steps away from enjoying your favourite food.
           </Text>
-        </View>
+        </View> */}
 
-        {/* ORDER TYPE */}
+        {/* ORDER TYPE 
         <View style={styles.orderTypeRow}>
           {ORDER_TYPES.map((type) => {
             const selected = orderType === type.id;
@@ -903,7 +922,7 @@ export default function CheckoutScreen() {
               </TouchableOpacity>
             );
           })}
-        </View>
+        </View> */}
 
         {/* 01 CONTACT INFORMATION */}
         <Card styles={styles}>
@@ -1273,10 +1292,7 @@ export default function CheckoutScreen() {
                 items.length === 0) &&
                 styles.placeOrderButtonDisabled,
             ]}
-            onPress={() => {
-              placeOrder();
-              router.push("/order-success");
-            }}
+            onPress={placeOrder}
             disabled={
               submitting ||
               previewLoading ||
@@ -1475,7 +1491,7 @@ const makeStyles = (colors, isDark) => {
 
     addressPickerTitle: {
       color: colors.textPrimary,
-      fontFamily: Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: 16,
     },
 
@@ -1566,7 +1582,7 @@ const makeStyles = (colors, isDark) => {
       flex: 1,
       textAlign: "center",
       color: colors.textPrimary,
-      fontFamily: Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: Fonts.size.xxl,
       letterSpacing: -0.3,
     },
@@ -1610,14 +1626,14 @@ const makeStyles = (colors, isDark) => {
 
     pageTitle: {
       color: colors.textPrimary,
-      fontSize: 32,
-      fontFamily: Fonts.bold,
+      fontSize: 36,
+      fontFamily: Fonts.regular,
       fontWeight: "800",
       marginTop: 7,
     },
 
     pageSubtitle: {
-      color: colors.textSecondary,
+      color: colors.textPrimary,
       fontFamily: Fonts.medium,
       fontSize: 12,
       textAlign: "center",
@@ -1650,9 +1666,9 @@ const makeStyles = (colors, isDark) => {
     },
 
     orderTypeText: {
-      color: colors.textSecondary,
-      fontFamily: Fonts.bold,
-      fontSize: 13,
+      color: colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 18,
       marginLeft: 7,
     },
 
@@ -1694,16 +1710,16 @@ const makeStyles = (colors, isDark) => {
 
     sectionHeading: {
       color: colors.textPrimary,
-      fontSize: 17,
-      fontFamily: Fonts.semiBold,
+      fontSize: 20,
+      fontFamily: Fonts.regular,
       flex: 1,
     },
 
     // CONTACT
     label: {
-      color: colors.textSecondary,
-      fontFamily: Fonts.medium,
-      fontSize: 17,
+      color: colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 19,
       marginBottom: 8,
     },
 
@@ -1722,7 +1738,7 @@ const makeStyles = (colors, isDark) => {
     input: {
       flex: 1,
       color: colors.textPrimary,
-      fontSize: 15,
+      fontSize: 19,
       marginLeft: 11,
     },
 
@@ -1751,21 +1767,21 @@ const makeStyles = (colors, isDark) => {
 
     addressTitle: {
       color: colors.textPrimary,
-      fontFamily: Fonts.bold,
-      fontSize: 15,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
       marginBottom: 5,
     },
 
     addressText: {
-      color: colors.textSecondary,
-      fontFamily: Fonts.medium,
-      fontSize: 15,
+      color: colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
       lineHeight: 18,
     },
 
     changeText: {
       color: colors.primary,
-      fontFamily: Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: 15,
       paddingLeft: 8,
     },
@@ -1778,8 +1794,8 @@ const makeStyles = (colors, isDark) => {
 
     emptyAddressText: {
       flex: 1,
-      color: colors.textSecondary,
-      fontFamily: Fonts.medium,
+      color: colors.textPrimary,
+      fontFamily: Fonts.regular,
       fontSize: 15,
       lineHeight: 19,
       marginLeft: 12,
@@ -1797,8 +1813,8 @@ const makeStyles = (colors, isDark) => {
 
     addAddressText: {
       color: colors.primary,
-      fontFamily: Fonts.bold,
-      fontSize: 15,
+      fontFamily: Fonts.regular,
+      fontSize: 19,
       marginLeft: 6,
     },
 
@@ -1833,13 +1849,13 @@ const makeStyles = (colors, isDark) => {
 
     paymentTitle: {
       color: colors.textPrimary,
-      fontFamily: Fonts.bold,
-      fontSize: 15,
+      fontFamily: Fonts.regular,
+      fontSize: 19,
     },
 
     paymentDescription: {
-      color: colors.textSecondary,
-      fontFamily: Fonts.medium,
+      color: colors.textPrimary,
+      fontFamily: Fonts.regular,
       fontSize: 15,
       lineHeight: 15,
       marginTop: 4,
@@ -1848,7 +1864,7 @@ const makeStyles = (colors, isDark) => {
     // ORDER SUMMARY
     summaryEyebrow: {
       color: colors.warning,
-      fontSize: 15,
+      fontSize: 17,
       fontWeight: "900",
       letterSpacing: 2,
     },
@@ -1863,14 +1879,14 @@ const makeStyles = (colors, isDark) => {
 
     summaryTitle: {
       color: colors.textPrimary,
-      fontFamily: Fonts.bold,
-      fontSize: 15,
+      fontFamily: Fonts.regular,
+      fontSize: 19,
     },
 
     itemCountText: {
-      color: colors.textSecondary,
-      fontFamily: Fonts.medium,
-      fontSize: 15,
+      color: colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 16,
     },
 
     foodItem: {
@@ -1910,8 +1926,8 @@ const makeStyles = (colors, isDark) => {
 
     foodName: {
       color: colors.textPrimary,
-      fontFamily: Fonts.bold,
-      fontSize: 15,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
     },
 
     foodTypeRow: {
@@ -1928,28 +1944,28 @@ const makeStyles = (colors, isDark) => {
     },
 
     foodType: {
-      fontSize: 15,
+      fontSize: 16,
       fontWeight: "600",
     },
 
     foodDescription: {
-      color: colors.textSecondary,
-      fontFamily: Fonts.medium,
+      color: colors.textPrimary,
+      fontFamily: Fonts.regular,
       fontSize: 15,
       marginTop: 5,
     },
 
     foodUnitPrice: {
-      color: colors.textSecondary,
-      fontFamily: Fonts.medium,
-      fontSize: 13,
+      color: colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
       marginTop: 4,
     },
 
     foodPrice: {
       color: colors.primary,
-      fontFamily: Fonts.bold,
-      fontSize: 1,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
       marginLeft: 5,
       marginTop: 5,
     },
@@ -1977,7 +1993,7 @@ const makeStyles = (colors, isDark) => {
       minWidth: 29,
       textAlign: "center",
       color: colors.textPrimary,
-      fontFamily: Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: 14,
     },
 
@@ -2003,7 +2019,7 @@ const makeStyles = (colors, isDark) => {
     discountInput: {
       flex: 1,
       color: colors.textPrimary,
-      fontSize: 14,
+      fontSize: 16,
       marginLeft: 8,
     },
 
@@ -2018,8 +2034,8 @@ const makeStyles = (colors, isDark) => {
 
     applyButtonText: {
       color: "#FFFFFF",
-      fontSize: 14,
-      fontWeight: "900",
+      fontSize: 16,
+      fontWeight: "700",
     },
 
     // PRICE
@@ -2031,15 +2047,15 @@ const makeStyles = (colors, isDark) => {
     },
 
     priceLabel: {
-      color: colors.textSecondary,
-      fontFamily: Fonts.medium,
-      fontSize: 15,
+      color: colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
     },
 
     priceValue: {
       color: colors.textPrimary,
-      fontFamily: Fonts.semiBold,
-      fontSize: 15,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
     },
 
     discountValue: {
@@ -2047,15 +2063,15 @@ const makeStyles = (colors, isDark) => {
     },
 
     previewNote: {
-      color: colors.textSecondary,
-      fontFamily: Fonts.medium,
+      color: colors.textPrimary,
+      fontFamily: Fonts.regular,
       fontSize: 13,
       marginBottom: 6,
     },
 
     previewError: {
       color: colors.primary,
-      fontFamily: Fonts.medium,
+      fontFamily: Fonts.regular,
       fontSize: 13,
       marginBottom: 6,
     },
@@ -2074,12 +2090,13 @@ const makeStyles = (colors, isDark) => {
 
     totalLabel: {
       color: colors.textPrimary,
-      fontFamily: Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: 18,
     },
 
     totalValue: {
       color: colors.primary,
+      fontFamily: Fonts.regular,
       fontSize: 22,
       fontWeight: "900",
     },
@@ -2100,8 +2117,8 @@ const makeStyles = (colors, isDark) => {
 
     placeOrderText: {
       color: "#FFFFFF",
-      fontSize: 15,
-      fontWeight: "900",
+      fontSize: 19,
+      fontWeight: "700",
       letterSpacing: 0.5,
     },
 
@@ -2113,9 +2130,9 @@ const makeStyles = (colors, isDark) => {
     },
 
     secureText: {
-      color: colors.textSecondary,
-      fontFamily: Fonts.medium,
-      fontSize: 11,
+      color: colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 14,
       marginLeft: 7,
     },
 
@@ -2138,9 +2155,9 @@ const makeStyles = (colors, isDark) => {
     },
 
     featureText: {
-      color: colors.textSecondary,
-      fontFamily: Fonts.medium,
-      fontSize: 9,
+      color: colors.textPrimary,
+      fontFamily: Fonts.regular,
+      fontSize: 12,
       textAlign: "center",
       marginTop: 7,
     },

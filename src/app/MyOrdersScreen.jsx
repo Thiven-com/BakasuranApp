@@ -191,10 +191,7 @@ const formatOrder = (order) => {
 
   return {
     id: String(
-      order?.restaurant_food_order_id ??
-        order?.id ??
-        order?.order_id ??
-        "",
+      order?.restaurant_food_order_id ?? order?.id ?? order?.order_id ?? "",
     ),
     number: String(
       order?.invoice_id ??
@@ -340,14 +337,14 @@ const OrdersScreen = () => {
         <View style={styles.eyebrowLine} />
       </View>
 
-      <Text style={styles.heroTitle}>
+      {/*<Text style={styles.heroTitle}>
         My <Text style={styles.heroTitleAccent}>Orders</Text>
-      </Text>
+      </Text>*/}
 
-      <Text style={styles.heroSubtitle}>
+      {/*<Text style={styles.heroSubtitle}>
         View your recent food orders and track your deliveries, all in one
         place.
-      </Text>
+      </Text>*/}
     </View>
   );
 
@@ -646,8 +643,8 @@ const createStyles = (Colors) => {
       flex: 1,
       textAlign: "center",
       color: Colors.textPrimary,
-      ...W.semiBold,
-      fontSize: 18,
+      ...W.regular,
+      fontSize: 25,
     },
 
     headerSpacer: {
@@ -713,16 +710,16 @@ const createStyles = (Colors) => {
     // CARD
     orderCard: {
       backgroundColor: Colors.surface,
-      borderRadius: 22,
+      borderRadius: 16,
       borderWidth: 1,
       borderColor: GOLD_EDGE,
-      marginBottom: 18,
+      marginBottom: 12,
       overflow: "hidden",
     },
 
     accentBar: {
       flexDirection: "row",
-      height: 3,
+      height: 2,
     },
 
     accentSegment: {
@@ -730,13 +727,13 @@ const createStyles = (Colors) => {
     },
 
     cardBody: {
-      padding: 16,
+      padding: 12,
     },
 
     eyebrowSmall: {
       color: MUTED,
-      ...W.medium,
-      fontSize: 12,
+      ...W.regular,
+      fontSize: 17,
       letterSpacing: 1.5,
     },
 
@@ -754,62 +751,62 @@ const createStyles = (Colors) => {
       color: Colors.textPrimary,
       ...W.bold,
       fontSize: 28,
-      marginTop: 4,
-      marginBottom: 10,
+      marginTop: 2,
+      marginBottom: 6,
     },
 
     statusPill: {
       flexDirection: "row",
       alignItems: "center",
       alignSelf: "flex-start",
-      gap: 7,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 18,
+      gap: 5,
+      paddingHorizontal: 9,
+      paddingVertical: 5,
+      borderRadius: 14,
     },
 
     statusPillText: {
-      ...W.semiBold,
-      fontSize: 15,
+      ...W.regular,
+      fontSize: 18,
     },
 
     topRight: {
       alignItems: "flex-end",
-      marginLeft: 12,
+      marginLeft: 10,
     },
 
     topTotal: {
       color: Colors.primary,
       ...W.bold,
       fontSize: 28,
-      marginTop: 6,
+      marginTop: 2,
     },
 
     itemCount: {
       color: Colors.textSecondary,
       ...W.regular,
-      fontSize: 15,
-      marginTop: 10,
+      fontSize: 17,
+      marginTop: 6,
     },
 
     divider: {
       height: 1,
       backgroundColor: DIVIDER,
-      marginVertical: 14,
+      marginVertical: 10,
     },
 
     // DATE
     dateRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 14,
-      marginBottom: 16,
+      gap: 10,
+      marginBottom: 10,
     },
 
     dateIcon: {
-      width: 42,
-      height: 42,
-      borderRadius: 21,
+      width: 30,
+      height: 30,
+      borderRadius: 15,
       backgroundColor: GOLD_BG,
       alignItems: "center",
       justifyContent: "center",
@@ -819,14 +816,14 @@ const createStyles = (Colors) => {
       flex: 1,
       color: Colors.textPrimary,
       ...W.regular,
-      fontSize: 16,
+      fontSize: 18,
     },
 
     // ITEMS
     itemsRow: {
       flexDirection: "row",
-      gap: 8,
-      marginBottom: 16,
+      gap: 6,
+      marginBottom: 10,
     },
 
     itemCell: {
@@ -836,9 +833,9 @@ const createStyles = (Colors) => {
     },
 
     itemImage: {
-      width: 46,
-      height: 46,
-      borderRadius: 12,
+      width: 36,
+      height: 36,
+      borderRadius: 10,
       borderWidth: 1,
       borderColor: GOLD_EDGE,
       backgroundColor: Colors.card ?? Colors.background,
@@ -846,7 +843,7 @@ const createStyles = (Colors) => {
 
     itemTextBlock: {
       flex: 1,
-      marginLeft: 8,
+      marginLeft: 6,
     },
 
     itemName: {
@@ -860,45 +857,45 @@ const createStyles = (Colors) => {
       color: Colors.textSecondary,
       ...W.regular,
       fontSize: 12,
-      marginTop: 2,
+      marginTop: 1,
     },
 
     moreItems: {
       color: Colors.textSecondary,
       ...W.medium,
       fontSize: 12,
-      marginTop: -6,
-      marginBottom: 14,
+      marginTop: -4,
+      marginBottom: 10,
     },
 
     // BILL
     billBox: {
       borderWidth: 1,
       borderColor: Colors.border,
-      borderRadius: 14,
-      paddingHorizontal: 16,
-      paddingTop: 14,
-      paddingBottom: 8,
-      marginBottom: 14,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingTop: 10,
+      paddingBottom: 4,
+      marginBottom: 10,
     },
 
     billRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      marginBottom: 10,
+      marginBottom: 6,
     },
 
     billLabel: {
       color: Colors.textSecondary,
       ...W.regular,
-      fontSize: 15,
+      fontSize: 17,
     },
 
     billValue: {
       color: Colors.textPrimary,
       ...W.regular,
-      fontSize: 15,
+      fontSize: 17,
     },
 
     dashedDivider: {
@@ -906,15 +903,15 @@ const createStyles = (Colors) => {
       borderStyle: "dashed",
       borderColor: MUTED,
       opacity: 0.6,
-      marginTop: 2,
-      marginBottom: 12,
+      marginTop: 0,
+      marginBottom: 8,
     },
 
     billTotalRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingBottom: 6,
+      paddingBottom: 4,
     },
 
     billTotalLabel: {
@@ -933,14 +930,14 @@ const createStyles = (Colors) => {
     banner: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 12,
+      gap: 8,
       backgroundColor: GOLD_SOFT_BG,
       borderLeftWidth: 3,
       borderLeftColor: GOLD,
       borderRadius: 8,
-      paddingHorizontal: 14,
-      paddingVertical: 14,
-      marginBottom: 16,
+      paddingHorizontal: 10,
+      paddingVertical: 8,
+      marginBottom: 10,
     },
 
     bannerText: {
@@ -956,7 +953,7 @@ const createStyles = (Colors) => {
       flexDirection: "row",
       alignItems: "flex-start",
       justifyContent: "space-between",
-      marginBottom: 14,
+      marginBottom: 10,
     },
 
     paymentLeft: {
@@ -968,14 +965,14 @@ const createStyles = (Colors) => {
       color: Colors.textPrimary,
       ...W.medium,
       fontSize: 20,
-      marginTop: 6,
+      marginTop: 3,
     },
 
     paymentMethodEmpty: {
       color: MUTED,
       ...W.medium,
-      fontSize: 15,
-      marginTop: 9,
+      fontSize: 17,
+      marginTop: 4,
     },
 
     paymentRight: {
@@ -983,10 +980,10 @@ const createStyles = (Colors) => {
     },
 
     paymentPill: {
-      paddingHorizontal: 22,
-      paddingVertical: 9,
-      borderRadius: 18,
-      marginTop: 6,
+      paddingHorizontal: 14,
+      paddingVertical: 5,
+      borderRadius: 14,
+      marginTop: 3,
     },
 
     paymentPillText: {
@@ -996,13 +993,13 @@ const createStyles = (Colors) => {
 
     // BUTTON
     viewButton: {
-      height: 56,
+      height: 42,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      gap: 12,
+      gap: 8,
       backgroundColor: Colors.primary,
-      borderRadius: 12,
+      borderRadius: 10,
     },
 
     viewButtonText: {
@@ -1013,7 +1010,7 @@ const createStyles = (Colors) => {
 
     viewButtonChevron: {
       position: "absolute",
-      right: 16,
+      right: 12,
     },
 
     // EMPTY STATE

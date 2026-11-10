@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Platform,
   RefreshControl,
   ScrollView,
   StatusBar,
@@ -701,87 +702,95 @@ export default function CartScreen() {
       return;
     }
 
-    Alert.alert(
-      "Clear Cart",
-      "Are you sure you want to remove all items from your cart?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Clear",
-          style: "destructive",
-          onPress: async () => {
-            setClearingCart(true);
+    const removeAllItems = async () => {
+      setClearingCart(true);
 
-            try {
-              console.log("========== CLEAR CART DELETE API ==========");
+      try {
+        console.log("========== CLEAR CART DELETE API ==========");
 
-              // Delete every cart item using its cart item ID.
-              for (const item of cartItems) {
-                const cartItemId = item.cartItemId;
+        for (const item of cartItems) {
+          const cartItemId = item.cartItemId;
 
-                if (
-                  cartItemId === null ||
-                  cartItemId === undefined ||
-                  String(cartItemId).trim() === ""
-                ) {
-                  throw new Error(
-                    `Cart item ID is missing for ${item.name || "an item"}.`,
-                  );
-                }
+          if (
+            cartItemId === null ||
+            cartItemId === undefined ||
+            String(cartItemId).trim() === ""
+          ) {
+            throw new Error(
+              `Cart item ID is missing for ${item.name || "an item"}.`,
+            );
+          }
 
-                console.log("Deleting cart item ID:", cartItemId);
+          console.log("Deleting cart item ID:", cartItemId);
 
-                const response = await deleteCartItem(String(cartItemId));
+          const response = await deleteCartItem(String(cartItemId));
 
-                console.log(
-                  "DELETE CART ITEM RESPONSE:",
-                  JSON.stringify(response, null, 2),
-                );
+          console.log(
+            "DELETE CART ITEM RESPONSE:",
+            JSON.stringify(response, null, 2),
+          );
 
-                const result = response?.data ?? response;
+          const result = response?.data ?? response;
+          const responseFlag =
+            result?.success !== undefined ? result.success : result?.status;
 
-                if (
-                  result?.success !== undefined &&
-                  ![1, true, "1", "success", "SUCCESS"].includes(result.success)
-                ) {
-                  throw new Error(
-                    result?.message || `Failed to delete item ${cartItemId}.`,
-                  );
-                }
-              }
+          if (
+            responseFlag !== undefined &&
+            ![1, true, "1", "success", "SUCCESS"].includes(responseFlag)
+          ) {
+            throw new Error(
+              result?.message || `Failed to delete item ${cartItemId}.`,
+            );
+          }
+        }
 
-              // Fetch the latest cart after all deletions succeed.
-              await fetchCart(false);
+        await fetchCart(false);
 
-              Alert.alert(
-                "Success",
-                "All cart items have been removed successfully.",
-              );
-            } catch (error) {
-              console.log(
-                "CLEAR CART ERROR:",
-                error?.response?.data || error?.message || error,
-              );
+        if (Platform.OS === "web") {
+          window.alert("All cart items have been removed successfully.");
+        } else {
+          Alert.alert(
+            "Success",
+            "All cart items have been removed successfully.",
+          );
+        }
+      } catch (error) {
+        console.log(
+          "CLEAR CART ERROR:",
+          error?.response?.data || error?.message || error,
+        );
 
-              // Reload the cart to show the actual server state.
-              await fetchCart(false);
+        await fetchCart(false);
 
-              Alert.alert(
-                "Clear Cart Failed",
-                error?.response?.data?.message ||
-                  error?.message ||
-                  "Unable to clear your cart. Please try again.",
-              );
-            } finally {
-              setClearingCart(false);
-            }
-          },
-        },
-      ],
-    );
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "Unable to clear your cart. Please try again.";
+
+        if (Platform.OS === "web") {
+          window.alert(`Clear Cart Failed\n\n${message}`);
+        } else {
+          Alert.alert("Clear Cart Failed", message);
+        }
+      } finally {
+        setClearingCart(false);
+      }
+    };
+
+    const confirmation =
+      "Are you sure you want to remove all items from your cart?";
+
+    if (Platform.OS === "web") {
+      if (window.confirm(`Clear Cart\n\n${confirmation}`)) {
+        void removeAllItems();
+      }
+      return;
+    }
+
+    Alert.alert("Clear Cart", confirmation, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Clear", style: "destructive", onPress: removeAllItems },
+    ]);
   }, [cartItems, clearingCart, fetchCart]);
 
   /* =======================================================
@@ -950,7 +959,7 @@ export default function CartScreen() {
             style={[
               styles.errorMessage,
               {
-                color: colors.textSecondary || "#8F8F8F",
+                color: colors.textSecondary || "#222222",
               },
             ]}
           >
@@ -1354,7 +1363,7 @@ export default function CartScreen() {
               style={[
                 styles.summaryTitle,
                 {
-                  color: colors.text,
+                  color: colors.textSecondary,
                 },
               ]}
             >
@@ -1366,7 +1375,7 @@ export default function CartScreen() {
                 style={[
                   styles.summaryLabel,
                   {
-                    color: colors.textSecondary || "#8F8F8F",
+                    color: colors.textPrimary || "#FFFFFF",
                   },
                 ]}
               >
@@ -1390,7 +1399,7 @@ export default function CartScreen() {
                 style={[
                   styles.summaryLabel,
                   {
-                    color: colors.textSecondary || "#8F8F8F",
+                    color: colors.textPrimary || "#FFFFFF",
                   },
                 ]}
               >
@@ -1417,7 +1426,7 @@ export default function CartScreen() {
                 style={[
                   styles.summaryLabel,
                   {
-                    color: colors.textSecondary || "#8F8F8F",
+                    color: colors.textPrimary || "#FFFFFF",
                   },
                 ]}
               >
@@ -1491,7 +1500,7 @@ export default function CartScreen() {
               style={[
                 styles.checkoutLabel,
                 {
-                  color: colors.textSecondary || "#8F8F8F",
+                  color: colors.textSecondary || "#111010",
                 },
               ]}
             >
@@ -1560,14 +1569,14 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    fontSize: 21,
-    fontFamily: Fonts?.bold || undefined,
+    fontSize: 25,
+    fontFamily: Fonts?.regular,
   },
 
   headerSubtitle: {
-    fontSize: 12,
+    fontSize: 19,
     marginTop: 2,
-    fontFamily: Fonts?.regular || undefined,
+    fontFamily: Fonts?.regular,
   },
 
   clearButton: {
@@ -1576,8 +1585,8 @@ const styles = StyleSheet.create({
   },
 
   clearText: {
-    fontSize: 14,
-    fontFamily: Fonts?.semiBold || undefined,
+    fontSize: 19,
+    fontFamily: Fonts?.regular,
   },
 
   headerRightPlaceholder: {
@@ -1620,7 +1629,7 @@ const styles = StyleSheet.create({
   retryText: {
     color: "#FFFFFF",
     fontSize: 14,
-    fontFamily: Fonts?.semiBold || undefined,
+    fontFamily: Fonts?.regular,
   },
 
   emptyContainer: {
@@ -1730,15 +1739,15 @@ const styles = StyleSheet.create({
   },
 
   itemName: {
-    fontSize: 17,
+    fontSize: 18,
     lineHeight: 20,
-    fontFamily: Fonts?.semiBold || undefined,
+    fontFamily: Fonts?.regular,
   },
 
   restaurantText: {
-    fontSize: 15,
+    fontSize: 19,
     marginTop: 4,
-    fontFamily: Fonts?.regular || undefined,
+    fontFamily: Fonts?.regular,
   },
 
   variantText: {
@@ -1762,8 +1771,8 @@ const styles = StyleSheet.create({
   },
 
   price: {
-    fontSize: 16,
-    fontFamily: Fonts?.bold || undefined,
+    fontSize: 18,
+    fontFamily: Fonts?.regular,
   },
 
   unitPrice: {
@@ -1797,7 +1806,7 @@ const styles = StyleSheet.create({
 
   quantityText: {
     fontSize: 15,
-    fontFamily: Fonts?.bold || undefined,
+    fontFamily: Fonts?.regular || undefined,
   },
 
   deliveryMessage: {
@@ -1815,9 +1824,9 @@ const styles = StyleSheet.create({
   deliveryMessageText: {
     flex: 1,
     marginLeft: 10,
-    fontSize: 12,
+    fontSize: 15,
     lineHeight: 18,
-    fontFamily: Fonts?.regular || undefined,
+    fontFamily: Fonts?.regular,
   },
 
   summaryCard: {
@@ -1828,9 +1837,9 @@ const styles = StyleSheet.create({
   },
 
   summaryTitle: {
-    fontSize: 17,
+    fontSize: 19,
     marginBottom: 16,
-    fontFamily: Fonts?.bold || undefined,
+    fontFamily: Fonts?.regular,
   },
 
   summaryRow: {
@@ -1841,13 +1850,13 @@ const styles = StyleSheet.create({
   },
 
   summaryLabel: {
-    fontSize: 14,
-    fontFamily: Fonts?.regular || undefined,
+    fontSize: 17,
+    fontFamily: Fonts?.regular,
   },
 
   summaryValue: {
-    fontSize: 14,
-    fontFamily: Fonts?.semiBold || undefined,
+    fontSize: 17,
+    fontFamily: Fonts?.regular,
   },
 
   summaryDivider: {
@@ -1863,13 +1872,13 @@ const styles = StyleSheet.create({
   },
 
   totalLabel: {
-    fontSize: 17,
-    fontFamily: Fonts?.bold || undefined,
+    fontSize: 19,
+    fontFamily: Fonts?.regular || undefined,
   },
 
   totalValue: {
     fontSize: 20,
-    fontFamily: Fonts?.bold || undefined,
+    fontFamily: Fonts?.regular || undefined,
   },
 
   checkoutContainer: {
@@ -1890,14 +1899,14 @@ const styles = StyleSheet.create({
   },
 
   checkoutLabel: {
-    fontSize: 11,
+    fontSize: 18,
     marginBottom: 2,
     fontFamily: Fonts?.regular || undefined,
   },
 
   checkoutTotal: {
-    fontSize: 18,
-    fontFamily: Fonts?.bold || undefined,
+    fontSize: 19,
+    fontFamily: Fonts?.regular || undefined,
   },
 
   checkoutButton: {
@@ -1913,7 +1922,7 @@ const styles = StyleSheet.create({
 
   checkoutButtonText: {
     color: "#FFFFFF",
-    fontSize: 14,
-    fontFamily: Fonts?.bold || undefined,
+    fontSize: 17,
+    fontFamily: Fonts?.regular || undefined,
   },
 });

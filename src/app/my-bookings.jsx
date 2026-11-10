@@ -663,10 +663,10 @@ export default function MyBookingsScreen() {
           </Text>
         </View>
 
-        <View style={styles.headerLogo}>
+        {/*<View style={styles.headerLogo}>
           <Ionicons name="restaurant" size={25} color={colors.primary} />
           <Text style={styles.logoText}>BAKA</Text>
-        </View>
+        </View>*/}
       </View>
 
       {/* Filters */}
@@ -829,14 +829,14 @@ const createStyles = (colors) =>
 
     headerTitle: {
       color: colors.textPrimary,
-      fontFamily: Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: 25,
     },
 
     headerSubtitle: {
       color: colors.textSecondary,
       fontFamily: Fonts.regular,
-      fontSize: 11,
+      fontSize: 15,
       marginTop: 4,
     },
 
@@ -881,19 +881,19 @@ const createStyles = (colors) =>
 
     filterText: {
       color: colors.textSecondary,
-      fontFamily: Fonts.medium,
-      fontSize: 11,
+      fontFamily: Fonts.regular,
+      fontSize: 13,
     },
 
     filterTextSelected: {
       color: colors.white,
-      fontFamily: Fonts.semiBold,
+      fontFamily: Fonts.regular,
     },
 
     filterCount: {
       color: colors.textSecondary,
-      fontFamily: Fonts.medium,
-      fontSize: 10,
+      fontFamily: Fonts.regular,
+      fontSize: 13,
     },
 
     filterCountSelected: {
@@ -919,8 +919,8 @@ const createStyles = (colors) =>
 
     sectionTitle: {
       color: colors.textPrimary,
-      fontFamily: Fonts.bold,
-      fontSize: 24,
+      fontFamily: Fonts.regular,
+      fontSize: 22,
     },
 
     sectionCount: {
@@ -958,7 +958,7 @@ const createStyles = (colors) =>
 
     imageBrand: {
       color: colors.textPrimary,
-      fontFamily: Fonts.bold,
+      fontFamily: Fonts.regular,
       fontSize: 13,
       letterSpacing: 2,
       marginTop: 5,
@@ -982,8 +982,8 @@ const createStyles = (colors) =>
 
     restaurantName: {
       color: colors.textPrimary,
-      fontFamily: Fonts.bold,
-      fontSize: 19,
+      fontFamily: Fonts.regular,
+      fontSize: 22,
       marginBottom: 5,
     },
 
@@ -1006,7 +1006,7 @@ const createStyles = (colors) =>
     },
 
     statusText: {
-      fontFamily: Fonts.semiBold,
+      fontFamily: Fonts.regular,
       fontSize: 12,
     },
 
@@ -1024,7 +1024,7 @@ const createStyles = (colors) =>
     metadataText: {
       color: colors.textPrimary,
       fontFamily: Fonts.regular,
-      fontSize: 14,
+      fontSize: 16,
       flexShrink: 1,
     },
 
@@ -1056,8 +1056,8 @@ const createStyles = (colors) =>
 
     detailsButtonText: {
       color: colors.primary,
-      fontFamily: Fonts.semiBold,
-      fontSize: 14,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
     },
 
     modifyButton: {
@@ -1067,8 +1067,8 @@ const createStyles = (colors) =>
 
     modifyButtonText: {
       color: colors.textPrimary,
-      fontFamily: Fonts.semiBold,
-      fontSize: 14,
+      fontFamily: Fonts.regular,
+      fontSize: 16,
     },
 
     cancelButton: {
@@ -1079,8 +1079,8 @@ const createStyles = (colors) =>
 
     cancelButtonText: {
       color: colors.white,
-      fontFamily: Fonts.semiBold,
-      fontSize: 12,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
     },
 
     cancelConfirmation: {
@@ -1093,8 +1093,8 @@ const createStyles = (colors) =>
 
     cancelConfirmationText: {
       color: colors.textPrimary,
-      fontFamily: Fonts.semiBold,
-      fontSize: 14,
+      fontFamily: Fonts.regular,
+      fontSize: 17,
     },
 
     cancelConfirmationActions: {
@@ -1109,8 +1109,8 @@ const createStyles = (colors) =>
 
     keepBookingText: {
       color: colors.textPrimary,
-      fontFamily: Fonts.semiBold,
-      fontSize: 13,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
     },
 
     confirmCancelButton: {
@@ -1121,21 +1121,21 @@ const createStyles = (colors) =>
 
     confirmCancelText: {
       color: colors.white,
-      fontFamily: Fonts.semiBold,
-      fontSize: 13,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
     },
 
     cancelErrorText: {
       color: colors.error,
-      fontFamily: Fonts.medium,
+      fontFamily: Fonts.regular,
       fontSize: 13,
     },
 
     cancelSuccessText: {
       color: colors.success,
-      fontFamily: Fonts.medium,
+      fontFamily: Fonts.regular,
       fontSize: 13,
-      marginBottom: 12,
+      marginBottom: 15,
     },
 
     rebookButton: {
@@ -1165,8 +1165,8 @@ const createStyles = (colors) =>
 
     emptyTitle: {
       color: colors.textPrimary,
-      fontFamily: Fonts.bold,
-      fontSize: 19,
+      fontFamily: Fonts.regular,
+      fontSize: 22,
       marginBottom: 9,
     },
 
@@ -1188,8 +1188,8 @@ const createStyles = (colors) =>
 
     emptyButtonText: {
       color: colors.white,
-      fontFamily: Fonts.semiBold,
-      fontSize: 13,
+      fontFamily: Fonts.regular,
+      fontSize: 15,
     },
 
     bottomSpacing: {
@@ -1219,8 +1219,8 @@ const createStyles = (colors) =>
       flex: 1,
       textAlign: "center",
       color: colors.white,
-      fontFamily: Fonts.bold,
-      fontSize: 14,
+      fontFamily: Fonts.regular,
+      fontSize: 20,
       marginHorizontal: 10,
     },
   });

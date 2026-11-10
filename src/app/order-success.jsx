@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Image,
   ScrollView,
@@ -12,18 +12,173 @@ import {
 
 import Fonts from "../constants/Fonts";
 import { useTheme } from "../hooks/use-theme";
+import BASE_URL from "../constants/AppUrls";
+import { getOrderById } from "../utils/Function";
+
+const FALLBACK_FOOD_IMAGE = require("../../assets/images/chicken_biryani.jpg");
+
+const getImageSource = (value) => {
+  const image =
+    typeof value === "string"
+      ? value
+      : (value?.url ?? value?.image_url ?? value?.imageUrl ?? value?.path);
+
+  if (typeof image !== "string" || !image.trim()) return null;
+
+  const cleanImage = image.trim();
+  if (/^(https?:|data:image\/)/i.test(cleanImage)) return { uri: cleanImage };
+
+  const baseUrl = String(BASE_URL || "").replace(/\/+$/, "");
+  return baseUrl
+    ? { uri: `${baseUrl}/${cleanImage.replace(/^\/+/, "")}` }
+    : null;
+};
 
 const OrderSuccessScreen = () => {
   const { colors: Colors } = useTheme();
   const styles = useMemo(() => createStyles(Colors), [Colors]);
   const params = useLocalSearchParams();
 
-  const orderId = params.orderId || "BAKA10245";
-  const itemName = params.itemName || "Chicken Biryani";
-  const restaurant = params.restaurant || "Spice House";
-  const items = params.items || "2 items";
-  const price = params.price || "₹420";
-  const date = params.date || "25 Oct 2026";
+  const routeOrderId = Array.isArray(params.orderId)
+    ? params.orderId[0]
+    : params.orderId;
+  const [orderData, setOrderData] = useState(null);
+  const [orderError, setOrderError] = useState("");
+
+  useEffect(() => {
+    if (!routeOrderId) return undefined;
+
+    let active = true;
+
+    const loadOrder = async () => {
+      const response = await getOrderById(routeOrderId);
+      if (!active) return;
+
+      if (response?.success === 9) {
+        router.replace("/login");
+        return;
+      }
+
+      const responseFlag =
+        response?.success !== undefined ? response.success : response?.status;
+      if (
+        responseFlag !== undefined &&
+        ![1, true, "1", "true"].includes(responseFlag)
+      ) {
+        setOrderError(response?.message || "Unable to load order details.");
+        return;
+      }
+
+      let detail =
+        response?.data?.order ??
+        response?.data?.data ??
+        response?.data ??
+        response?.order ??
+        response;
+
+      if (Array.isArray(detail)) {
+        detail =
+          detail.find((order) => String(order?.id) === String(routeOrderId)) ??
+          detail[0] ??
+          null;
+      }
+
+      setOrderData(detail);
+    };
+
+    loadOrder().catch((error) => {
+      if (!active) return;
+      setOrderError(error?.message || "Unable to load order details.");
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [routeOrderId]);
+
+  const orderItems =
+    orderData?.items ??
+    orderData?.order_items ??
+    orderData?.order_products ??
+    orderData?.products ??
+    orderData?.details ??
+    [];
+  const firstItem = Array.isArray(orderItems) ? orderItems[0] : null;
+  const firstProduct =
+    firstItem?.product ??
+    firstItem?.product_details ??
+    firstItem?.variant?.product ??
+    firstItem?.product_variant?.product ??
+    firstItem?.food ??
+    firstItem;
+  const orderId =
+    orderData?.invoice_id ??
+    orderData?.order_number ??
+    orderData?.restaurant_food_order_id ??
+    orderData?.id ??
+    orderData?.order_id ??
+    routeOrderId ??
+    "BAKA10245";
+  const itemName =
+    firstProduct?.name ??
+    firstProduct?.product_name ??
+    params.itemName ??
+    "Chicken Biryani";
+  const restaurant =
+    orderData?.restaurant?.name ??
+    orderData?.restaurant_name ??
+    params.restaurant ??
+    "Spice House";
+  const itemCount =
+    orderData?.items_count ??
+    orderData?.item_count ??
+    (Array.isArray(orderItems)
+      ? orderItems.reduce(
+          (sum, item) => sum + (Number(item?.quantity ?? item?.qty) || 1),
+          0,
+        )
+      : null);
+  const items =
+    itemCount != null
+      ? `${itemCount} ${Number(itemCount) === 1 ? "item" : "items"}`
+      : params.items || "2 items";
+  const total =
+    orderData?.grand_total ??
+    orderData?.total_amount ??
+    orderData?.total ??
+    orderData?.amount;
+  const price =
+    total != null
+      ? `₹${Number(total).toLocaleString("en-IN", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`
+      : params.price || "₹420";
+  const date =
+    orderData?.created_at ??
+    orderData?.order_date ??
+    params.date ??
+    "25 Oct 2026";
+  const coverImage =
+    orderData?.cover_image ??
+    orderData?.cover_image_url ??
+    orderData?.coverImage ??
+    orderData?.image_url ??
+    orderData?.image ??
+    firstItem?.cover_image ??
+    firstItem?.cover_image_url ??
+    firstItem?.image_url ??
+    firstItem?.image ??
+    firstProduct?.cover_image ??
+    firstProduct?.cover_image_url ??
+    firstProduct?.image_url ??
+    firstProduct?.product_image_url ??
+    firstProduct?.product_image ??
+    firstProduct?.image ??
+    firstProduct?.thumbnail ??
+    firstProduct?.thumbnail_url ??
+    firstProduct?.image_path;
+  const imageSource = getImageSource(coverImage) ?? FALLBACK_FOOD_IMAGE;
 
   return (
     <View style={styles.container}>
@@ -107,6 +262,9 @@ const OrderSuccessScreen = () => {
           <Text style={styles.successSubtitle}>
             Your delicious food is on the way ❤️
           </Text>
+          {orderError ? (
+            <Text style={styles.orderError}>{orderError}</Text>
+          ) : null}
         </View>
 
         {/* =====================================
@@ -139,7 +297,7 @@ const OrderSuccessScreen = () => {
           {/* FOOD IMAGE */}
 
           <Image
-            source={require("../../assets/images/chicken_biryani.jpg")}
+            source={imageSource}
             style={styles.foodImage}
             resizeMode="cover"
           />
@@ -199,7 +357,10 @@ const OrderSuccessScreen = () => {
           style={styles.trackButton}
           activeOpacity={0.85}
           onPress={() => {
-            router.push("/Track-OrderScreen");
+            router.push({
+              pathname: "/Track-OrderScreen",
+              params: { orderId: String(orderId) },
+            });
           }}
         >
           <Text style={styles.trackButtonText}>Track Order</Text>
@@ -711,6 +872,18 @@ const createStyles = (Colors) =>
       fontFamily: Fonts.medium,
 
       fontSize: Fonts.size.base,
+
+      textAlign: "center",
+    },
+
+    orderError: {
+      marginTop: 12,
+
+      color: Colors.textSecondary,
+
+      fontFamily: Fonts.regular,
+
+      fontSize: Fonts.size.xs,
 
       textAlign: "center",
     },
