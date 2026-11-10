@@ -2,6 +2,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import BASE_URL from "../constants/AppUrls";
 
+import { Platform } from "react-native";
+
 import { deleteMethod, getMethod } from "./APIServices";
 
 // =========================================================
@@ -545,68 +547,95 @@ export async function getProfile() {
 // =========================================================
 // UPDATE PROFILE API
 // POST: /api/customer/profile/update
+// Content-Type: multipart/form-data
 // =========================================================
 
 export async function updateProfile(profileData) {
-  const url = `${APP_URL}profile/update`;
-
   try {
     const token = await getAuthToken();
 
     if (!token) {
       return {
         success: 9,
-        message: "Please login to update your profile.",
+        message: "Please login first.",
       };
     }
 
-    const payload = {
-      name: String(profileData?.name || "").trim(),
+    const formData = new FormData();
 
-      email: String(profileData?.email || "").trim() || null,
-    };
+    formData.append("name", String(profileData?.name || "").trim());
+    formData.append("email", String(profileData?.email || "").trim());
 
-    if (!payload.name) {
-      return {
-        success: 0,
-        message: "Please enter your full name.",
-      };
+    const asset = profileData?.profile_pic;
+
+    if (asset?.uri) {
+      const fileName = asset.fileName || `profile_${Date.now()}.jpg`;
+
+      const mimeType = asset.mimeType || "image/jpeg";
+
+      if (Platform.OS === "web") {
+        let file = asset.file;
+
+        if (!(file instanceof File)) {
+          const imageResponse = await fetch(asset.uri);
+
+          if (!imageResponse.ok) {
+            throw new Error("Could not read selected image.");
+          }
+
+          const blob = await imageResponse.blob();
+
+          file = new File([blob], fileName, {
+            type: blob.type || mimeType,
+          });
+        }
+
+        console.log("WEB IMAGE FILE:", {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+        });
+
+        if (!file.size || !file.type.startsWith("image/")) {
+          throw new Error("Selected image is empty or invalid.");
+        }
+
+        formData.append("profile_pic", file, file.name);
+      } else {
+        formData.append("profile_pic", {
+          uri: asset.uri,
+          name: fileName,
+          type: mimeType,
+        });
+      }
     }
 
-    console.log("UPDATE PROFILE PAYLOAD:", JSON.stringify(payload, null, 2));
+    const url = `${APP_URL}profile/update`;
 
-    const response = await axios.post(url, payload, {
+    console.log("PROFILE UPDATE URL:", url);
+
+    const response = await axios.post(url, formData, {
       headers: {
         Accept: "application/json",
-        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       timeout: REQUEST_TIMEOUT,
     });
 
+    console.log("PROFILE UPDATE RESPONSE:", response.data);
+
     return response.data;
   } catch (error) {
-    console.log(
-      "UPDATE PROFILE ERROR:",
-      JSON.stringify(error?.response?.data || error?.message, null, 2),
+    console.log("PROFILE UPDATE ERROR:", error.response?.data || error.message);
+
+    return (
+      error.response?.data || {
+        success: 0,
+        message: error.message || "Profile update failed.",
+      }
     );
-
-    if (error?.response?.status === 401) {
-      return {
-        success: 9,
-        message: "Your session has expired. Please login again.",
-      };
-    }
-
-    return {
-      success: 0,
-      message: getApiErrorMessage(error, "Unable to update your profile."),
-      errors: error?.response?.data?.errors || null,
-      statusCode: error?.response?.status,
-    };
   }
 }
-
 // =========================================================
 // GET CART API
 // GET: /api/customer/cart
@@ -2588,10 +2617,7 @@ export const deleteCartItem = async (cartItemId) => {
     });
 
     const responseData = response.data;
-    console.log(
-      "DELETE CART HTTP STATUS:",
-      response.status,
-    );
+    console.log("DELETE CART HTTP STATUS:", response.status);
     console.log("DELETE CART RESPONSE:", JSON.stringify(responseData ?? null));
 
     if (responseData == null || responseData === "") {

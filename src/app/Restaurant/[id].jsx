@@ -1872,7 +1872,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: 90,
+    height: 2,
     backgroundColor: "rgba(0,0,0,0.35)",
   },
 

@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Platform,
   ScrollView,
   StatusBar,
@@ -40,6 +41,7 @@ const extractProfileData = (response) => {
     "mobile",
     "phone",
     "phone_number",
+    "profile_pic",
     "mobile_number",
     "mobile_no",
     "contact_number",
@@ -133,6 +135,7 @@ export default function ProfileScreen() {
   const [profileError, setProfileError] = useState("");
   const [loggingOut, setLoggingOut] = useState(false);
 
+
   // =========================================
   // GET PROFILE API
   // =========================================
@@ -161,8 +164,8 @@ export default function ProfileScreen() {
 
       setProfileError(
         error?.response?.data?.message ||
-          error?.message ||
-          "Unable to load profile.",
+        error?.message ||
+        "Unable to load profile.",
       );
     } finally {
       setProfileLoading(false);
@@ -204,6 +207,14 @@ export default function ProfileScreen() {
     "";
 
   const profileEmail = profile?.email || profile?.email_address || "";
+
+  const profileImage =
+    typeof profile?.profile_pic === "string" &&
+      profile.profile_pic.trim() !== ""
+      ? profile.profile_pic.trim().replace(/\\/g, "")
+      : null;
+
+  console.log("PROFILE IMAGE URL:", profileImage);
 
   const profilePoints =
     profile?.points ??
@@ -253,8 +264,8 @@ export default function ProfileScreen() {
         showMessage(
           "Logout Failed",
           error?.response?.data?.message ||
-            error?.message ||
-            "Unable to logout. Please try again.",
+          error?.message ||
+          "Unable to logout. Please try again.",
         );
       } finally {
         setLoggingOut(false);
@@ -409,7 +420,28 @@ export default function ProfileScreen() {
           <View style={styles.profileTop}>
             <View style={styles.avatarOuter}>
               <View style={styles.avatar}>
-                <Ionicons name="person" size={48} color={colors.textPrimary} />
+                {profileImage ? (
+                  <Image
+                    source={{ uri: profileImage }}
+                    style={styles.avatarImage}
+                    resizeMode="cover"
+                    onLoad={() => {
+                      console.log("PROFILE IMAGE LOADED SUCCESSFULLY");
+                    }}
+                    onError={(error) => {
+                      console.log(
+                        "PROFILE IMAGE LOAD ERROR:",
+                        error.nativeEvent
+                      );
+                    }}
+                  />
+                ) : (
+                  <Ionicons
+                    name="person"
+                    size={48}
+                    color={colors.textPrimary}
+                  />
+                )}
               </View>
             </View>
 
@@ -693,6 +725,12 @@ const makeStyles = (colors, isDark) =>
       justifyContent: "center",
       alignItems: "center",
       overflow: "hidden",
+    },
+
+    avatarImage: {
+      width: "100%",
+      height: "100%",
+      borderRadius: 42,
     },
 
     profileInformation: {

@@ -355,9 +355,9 @@ const getRestaurantDeliveryTime = (item) => {
 // =====================================================
 
 const HomeScreen = () => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
-  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const styles = useMemo(() => makeStyles(colors, isDark), [colors, isDark]);
 
   // ===================================================
   // SEARCH
@@ -1528,7 +1528,7 @@ const HomeScreen = () => {
 // STYLES
 // =====================================================
 
-const makeStyles = (colors) =>
+const makeStyles = (colors, isDark) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -1959,23 +1959,40 @@ const makeStyles = (colors) =>
       marginTop: 8,
     },
 
+    // RESTAURANT CARD
     restaurantCard: {
-      marginHorizontal: 16,
-      marginBottom: 14,
-      borderRadius: 18,
+      marginHorizontal: 10,
+      marginBottom: 18,
+      padding: 12,
+      borderRadius: 26,
       overflow: "hidden",
-      backgroundColor: colors.surface,
+
+      // Dark and light theme
+      backgroundColor: isDark ? "#2B2A2A" : "#FFFFFF",
+
       borderWidth: 1,
-      borderColor: colors.border || "#292929",
+      borderColor: isDark ? "#3A3A3A" : "#E8E8E8",
+
+      elevation: isDark ? 4 : 2,
+
+      shadowColor: "#000000",
+      shadowOffset: {
+        width: 0,
+        height: 3,
+      },
+      shadowOpacity: isDark ? 0.15 : 0.08,
+      shadowRadius: 5,
     },
 
+    // RESTAURANT IMAGE
     restaurantImageWrapper: {
       width: "100%",
-      height: 180,
+      height: 210,
+      borderRadius: 22,
+      overflow: "hidden",
       position: "relative",
-      backgroundColor: colors.card || "#202020",
+      backgroundColor: isDark ? "#383838" : "#F2F2F2",
     },
-
     restaurantImage: {
       width: "100%",
       height: "100%",

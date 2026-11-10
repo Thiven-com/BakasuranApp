@@ -241,7 +241,7 @@ export default function DineInOrderReview() {
                     onPress={() => changeQuantity(item.id, -1)}
                   >
                     <Ionicons
-                      name={item.quantity === 1 ? "trash-outline" : "remove"}
+                      name={item.quantity === 1 ? "remove" : "remove"}
                       size={17}
                       color="#FFFFFF"
                     />
@@ -375,9 +375,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  title: { fontSize: 20, fontFamily: Fonts?.bold || undefined },
+  title: { fontSize: 25, fontFamily: Fonts?.regular || undefined },
   subtitle: {
-    fontSize: 12,
+    fontSize: 16,
     marginTop: 2,
     fontFamily: Fonts?.regular || undefined,
   },
@@ -398,9 +398,9 @@ const styles = StyleSheet.create({
   },
   imagePlaceholder: { alignItems: "center", justifyContent: "center" },
   itemInfo: { flex: 1 },
-  itemName: { fontSize: 15, fontFamily: Fonts?.bold || undefined },
+  itemName: { fontSize: 19, fontFamily: Fonts?.regular || undefined },
   itemPrice: {
-    fontSize: 12,
+    fontSize: 15,
     marginTop: 3,
     fontFamily: Fonts?.regular || undefined,
   },
@@ -426,11 +426,11 @@ const styles = StyleSheet.create({
   },
   quantityText: {
     color: "#FFFFFF",
-    fontSize: 14,
+    fontSize: 17,
     fontFamily: Fonts?.bold || undefined,
   },
   sectionLabel: {
-    fontSize: 15,
+    fontSize: 20,
     marginTop: 8,
     marginBottom: 8,
     fontFamily: Fonts?.bold || undefined,
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     padding: 12,
-    fontSize: 14,
+    fontSize: 18,
     textAlignVertical: "top",
     fontFamily: Fonts?.regular || undefined,
   },
@@ -450,9 +450,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 8,
   },
-  summaryLabel: { fontSize: 13, fontFamily: Fonts?.regular || undefined },
-  summaryValue: { fontSize: 14, fontFamily: Fonts?.bold || undefined },
-  note: { fontSize: 11, marginTop: 4, fontFamily: Fonts?.regular || undefined },
+  summaryLabel: { fontSize: 20, fontFamily: Fonts?.regular || undefined },
+  summaryValue: { fontSize: 18, fontFamily: Fonts?.bold || undefined },
+  note: { fontSize: 16, marginTop: 4, fontFamily: Fonts?.regular || undefined },
   emptyBox: { alignItems: "center", justifyContent: "center", minHeight: 260 },
   emptyText: {
     marginTop: 10,
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
   },
   menuButtonText: {
     color: "#FFFFFF",
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: Fonts?.bold || undefined,
   },
   bottomBar: {
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
   },
   placeButtonText: {
     color: "#FFFFFF",
-    fontSize: 15,
+    fontSize: 19,
     fontFamily: Fonts?.bold || undefined,
   },
 });
