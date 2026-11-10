@@ -1781,23 +1781,28 @@ const makeStyles = (Colors, isDark) =>
     },
 
     
-   // RESTAURANT CARD
+   //// RESTAURANT CARD
 restaurantCard: {
-  marginHorizontal: 4,
+  marginHorizontal: 10,
   marginBottom: 18,
   padding: 12,
   borderRadius: 26,
   overflow: "hidden",
-  backgroundColor: "#2b2a2a",
+
+  // Dark and light theme
+  backgroundColor: isDark ? "#2B2A2A" : "#FFFFFF",
+
   borderWidth: 1,
-  borderColor: "#161616",
-  elevation: 4,
+  borderColor: isDark ? "#3A3A3A" : "#E8E8E8",
+
+  elevation: isDark ? 4 : 2,
+
   shadowColor: "#000000",
   shadowOffset: {
     width: 0,
     height: 3,
   },
-  shadowOpacity: 0.10,
+  shadowOpacity: isDark ? 0.15 : 0.08,
   shadowRadius: 5,
 },
     imageContainer: {

@@ -9,7 +9,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 import BannersScreen from "../../components/BannersScreen";
@@ -355,9 +355,9 @@ const getRestaurantDeliveryTime = (item) => {
 // =====================================================
 
 const HomeScreen = () => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
-  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const styles = useMemo(() => makeStyles(colors, isDark), [colors, isDark]);
 
   // ===================================================
   // SEARCH
@@ -1528,7 +1528,7 @@ const HomeScreen = () => {
 // STYLES
 // =====================================================
 
-const makeStyles = (colors) =>
+const makeStyles = (colors, isDark) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -1959,23 +1959,28 @@ cuisineTopText: {
       marginTop: 8,
     },
 
-   // RESTAURANT CARD
+  // RESTAURANT CARD
 restaurantCard: {
   marginHorizontal: 10,
   marginBottom: 18,
   padding: 12,
   borderRadius: 26,
   overflow: "hidden",
-  backgroundColor: "#2b2a2a",
+
+  // Dark and light theme
+  backgroundColor: isDark ? "#2B2A2A" : "#FFFFFF",
+
   borderWidth: 1,
-  borderColor: "#161616",
-  elevation: 4,
+  borderColor: isDark ? "#3A3A3A" : "#E8E8E8",
+
+  elevation: isDark ? 4 : 2,
+
   shadowColor: "#000000",
   shadowOffset: {
     width: 0,
     height: 3,
   },
-  shadowOpacity: 0.10,
+  shadowOpacity: isDark ? 0.15 : 0.08,
   shadowRadius: 5,
 },
 
@@ -1986,9 +1991,8 @@ restaurantImageWrapper: {
   borderRadius: 22,
   overflow: "hidden",
   position: "relative",
-  backgroundColor: "#585454",
+  backgroundColor: isDark ? "#383838" : "#F2F2F2",
 },
-
 restaurantImage: {
   width: "100%",
   height: "100%",
